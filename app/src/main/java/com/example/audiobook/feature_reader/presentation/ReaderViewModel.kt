@@ -26,6 +26,7 @@ data class ReaderUiState(
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
     private val repository: LibraryRepository,
+    private val bookDao: com.example.audiobook.core.database.dao.BookDao, // Inject DAO for updates
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -75,5 +76,35 @@ class ReaderViewModel @Inject constructor(
 
     fun toggleReadingMode() {
         _uiState.update { it.copy(isReadingMode = !it.isReadingMode) }
+    }
+
+    fun nextPage() {
+        val currentBook = uiState.value.book ?: return
+        if (currentBook.currentPage < currentBook.totalPages - 1) { // 0-indexed
+            val newPage = currentBook.currentPage + 1
+            updatePage(currentBook, newPage)
+        }
+    }
+
+    fun previousPage() {
+        val currentBook = uiState.value.book ?: return
+        if (currentBook.currentPage > 0) {
+            val newPage = currentBook.currentPage - 1
+            updatePage(currentBook, newPage)
+        }
+    }
+
+    private fun updatePage(book: BookEntity, newPage: Int) {
+        viewModelScope.launch {
+            // 1. Update UI immediately (Optimistic update)
+            val updatedBook = book.copy(currentPage = newPage)
+            _uiState.update { it.copy(book = updatedBook, isLoading = true) }
+
+            // 2. Load new text
+            loadPage(updatedBook.fileUri, newPage)
+
+            // 3. Persist to DB
+            bookDao.updateBook(updatedBook)
+        }
     }
 }

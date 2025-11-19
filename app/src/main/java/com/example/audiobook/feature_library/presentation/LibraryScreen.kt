@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun LibraryScreen(
+    onBookClick: (Long) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     // 1. Observe the State (The "Brain" tells us what to draw)
@@ -126,7 +127,7 @@ fun LibraryScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(books) { book ->
-                    BookItem(book = book, onClick = { /* TODO: Open Book */ })
+                    BookItem(book = book, onClick = { onBookClick(book.id) })
                 }
             }
         }
