@@ -11,6 +11,7 @@ data class BookEntity(
     val totalPages: Int = 0,
     val currentPage: Int = 0,
     val lastPlayedTimestamp: Long = 0, // In milliseconds (position in audio)
-    val lastInteractionTime: Long = System.currentTimeMillis(), // For "Recently Opened" sort
-    val isIndexedForSearch: Boolean = false // To track if we ran FTS indexing
+    val lastInteractionTimestamp: Long = System.currentTimeMillis(), // For "Recently Opened" sort
+    val coverImagePath: String? = null, // Path to local storage
+    val isSearchIndexed: Boolean = false // To track if we ran FTS indexing
 )

@@ -55,19 +55,24 @@ class LibraryRepositoryImpl @Inject constructor(
                     }
                 }
 
-                // 3. Calculate total pages (Heavy operation, do it once)
-                val totalPages = pdfParser.getPageCount(uri)
+                // 4. Calculate total pages
+            val totalPages = pdfParser.getPageCount(uri)
 
-                // 4. Save to Database
-                val newBook = com.example.audiobook.core.database.entity.BookEntity(
-                    title = fileName,
-                    fileUri = uriString,
-                    totalPages = totalPages
-                )
-                val newId = bookDao.insertBook(newBook)
+            // 5. Generate Cover
+            val coverPath = pdfParser.generateCoverThumbnail(uri, fileName)
 
-                // Success!
-                Resource.Success(newId)
+            // 6. Create Entity
+            val newBook = com.example.audiobook.core.database.entity.BookEntity(
+                title = fileName,
+                fileUri = uri.toString(),
+                totalPages = totalPages,
+                coverImagePath = coverPath
+            )
+
+            // 7. Insert into DB
+            val id = bookDao.insertBook(newBook)
+            
+            Resource.Success(id)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -78,6 +83,10 @@ class LibraryRepositoryImpl @Inject constructor(
 
     override fun getBooks(): kotlinx.coroutines.flow.Flow<List<com.example.audiobook.core.database.entity.BookEntity>> {
         return bookDao.getAllBooks()
+    }
+
+    override fun searchBooks(query: String): kotlinx.coroutines.flow.Flow<List<com.example.audiobook.core.database.entity.BookEntity>> {
+        return bookDao.searchBooksByTitle(query)
     }
 
     override suspend fun getBookById(id: Long): com.example.audiobook.core.database.entity.BookEntity? {

@@ -18,6 +18,8 @@ interface LibraryRepository {
 
     fun getBooks(): kotlinx.coroutines.flow.Flow<List<com.example.audiobook.core.database.entity.BookEntity>>
 
+    fun searchBooks(query: String): kotlinx.coroutines.flow.Flow<List<com.example.audiobook.core.database.entity.BookEntity>>
+
     suspend fun getBookById(id: Long): com.example.audiobook.core.database.entity.BookEntity?
 
     /**
