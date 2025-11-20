@@ -93,6 +93,37 @@ class LibraryRepositoryImpl @Inject constructor(
         return bookDao.getBookById(id)
     }
 
+    override suspend fun indexBook(bookId: Long, uri: Uri, totalPages: Int) {
+        withContext(Dispatchers.IO) {
+            // Loop through all pages
+            for (i in 0 until totalPages) {
+                // Extract text
+                val result = pdfParser.getPageText(uri, i)
+                if (result is Resource.Success) {
+                    val text = result.data ?: continue
+                    if (text.isNotBlank()) {
+                        // Save to FTS table
+                        val ftsEntity = com.example.audiobook.core.database.entity.BookTextFts(
+                            bookId = bookId,
+                            pageIndex = i,
+                            textContent = text
+                        )
+                        bookDao.insertBookText(ftsEntity)
+                    }
+                }
+            }
+            // Mark book as indexed
+            val book = bookDao.getBookById(bookId)
+            book?.let {
+                bookDao.updateBook(it.copy(isSearchIndexed = true))
+            }
+        }
+    }
+
+    override suspend fun searchBookContent(bookId: Long, query: String): List<com.example.audiobook.core.database.entity.BookTextFts> {
+        return bookDao.searchBookText(bookId, query)
+    }
+
     override suspend fun getBookPage(uri: Uri, pageIndex: Int): Resource<String> {
         // Here we delegate to the specialized Parser
         return pdfParser.getPageText(uri, pageIndex)

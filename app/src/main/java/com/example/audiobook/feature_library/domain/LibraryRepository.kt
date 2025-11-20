@@ -22,6 +22,10 @@ interface LibraryRepository {
 
     suspend fun getBookById(id: Long): com.example.audiobook.core.database.entity.BookEntity?
 
+    // --- In-Book Search ---
+    suspend fun indexBook(bookId: Long, uri: Uri, totalPages: Int)
+    suspend fun searchBookContent(bookId: Long, query: String): List<com.example.audiobook.core.database.entity.BookTextFts>
+
     /**
      * Extracts the text content of a specific page.
      * Used for the "Interactive Reading" mode.
