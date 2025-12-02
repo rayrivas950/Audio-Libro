@@ -27,6 +27,7 @@ data class ReaderUiState(
 class ReaderViewModel @Inject constructor(
     private val repository: LibraryRepository,
     private val bookDao: com.example.audiobook.core.database.dao.BookDao, // Inject DAO for updates
+    private val ttsManager: com.example.audiobook.core.tts.TtsManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -37,7 +38,20 @@ class ReaderViewModel @Inject constructor(
     private val bookId: Long = checkNotNull(savedStateHandle["bookId"])
 
     init {
+        ttsManager.initialize()
         loadBook()
+    }
+
+    fun playAudio() {
+        val text = uiState.value.currentPageText
+        if (text.isNotBlank()) {
+            ttsManager.speak(text, text) // Using text as utteranceId for simplicity
+        }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        ttsManager.shutdown()
     }
 
     private fun loadBook() {
