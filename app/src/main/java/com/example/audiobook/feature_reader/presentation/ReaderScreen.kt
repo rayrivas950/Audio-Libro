@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -71,6 +72,13 @@ fun ReaderScreen(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
                 ) {
                     Icon(Icons.Default.VisibilityOff, contentDescription = "Salir Modo Lectura")
+                }
+            } else { // Show play button when not in reading mode
+                androidx.compose.material3.FloatingActionButton(
+                    onClick = { viewModel.playAudio() },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = "Reproducir Audio")
                 }
             }
         }

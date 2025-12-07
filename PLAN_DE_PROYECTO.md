@@ -46,10 +46,14 @@ Crear una aplicación nativa de Android que permita a los usuarios importar sus 
 -   [x] Crear pantalla de Lector de Texto (`ReaderScreen` y `ReaderViewModel`).
 
 ### Hito 2: Implementación de Texto-a-Voz (TTS) - (En Progreso)
--   [ ] **Investigación:** Investigar la implementación de `TextToSpeech` en Android con Jetpack Compose.
--   [ ] **ViewModel:** Crear una clase `TtsManager` para encapsular la lógica del TTS.
--   [ ] **ViewModel:** Inyectar y utilizar `TtsManager` en `ReaderViewModel`.
--   [ ] **ViewModel:** Añadir lógica para iniciar la lectura del texto de la página actual.
--   [ ] **UI:** Añadir botones de Play/Pausa en `ReaderScreen` y conectarlos al `ReaderViewModel`.
+-   [x] **Investigación:** Investigar la implementación de `TextToSpeech` en Android con Jetpack Compose.
+-   [x] **ViewModel:** Crear una clase `TtsManager` para encapsular la lógica del TTS.
+-   [x] **ViewModel:** Inyectar y utilizar `TtsManager` en `ReaderViewModel`.
+-   [x] **ViewModel:** Añadir lógica para iniciar la lectura del texto de la página actual.
+-   [x] **UI:** Añadir botones de Play/Pausa en `ReaderScreen` y conectarlos al `ReaderViewModel`.
 -   [ ] **UI:** Implementar el resaltado de la palabra/frase que se está leyendo.
 -   [ ] **Servicio:** Crear un `ForegroundService` para gestionar la reproducción en segundo plano.
+
+### Pruebas Unitarias
+-   [x] **TtsManagerTest:** Crear pruebas unitarias para `TtsManager`, verificando su inicialización, configuración de idioma, capacidad de hablar y cierre.
+-   [ ] **ReaderViewModelTest:** Crear pruebas unitarias para `ReaderViewModel` que verifiquen la correcta interacción con `TtsManager` (inicialización, reproducción, cierre).
