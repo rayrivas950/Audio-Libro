@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Preferencias de colaboración personalizadas
+preferencias.txt
