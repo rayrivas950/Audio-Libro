@@ -71,8 +71,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Security (SQLCipher)
+    // Security
     implementation(libs.sqlcipher)
+    implementation(libs.androidx.security.crypto)
 
     // PDF & Image Loading
     implementation(libs.coil.compose)

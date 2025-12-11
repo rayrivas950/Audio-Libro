@@ -20,6 +20,9 @@ ksp = "1.9.0-1.0.13"
 room = "2.6.1"
 sqlcipher = "4.5.4"
 
+# Security
+securityCrypto = "1.0.0"
+
 # Utils
 coil = "2.6.0"
 pdfbox = "2.0.27.0"
@@ -57,8 +60,9 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
-# Security (Database Encryption)
+# Security
 sqlcipher = { group = "net.zetetic", name = "android-database-sqlcipher", version.ref = "sqlcipher" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 
 # PDF & Image Loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }

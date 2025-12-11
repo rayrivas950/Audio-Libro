@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.cititor.core.database.CititorDatabase
 import com.example.cititor.core.database.dao.BookDao
+import com.example.cititor.core.security.SecurityManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,10 +20,17 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    fun provideSecurityManager(@ApplicationContext context: Context): SecurityManager {
+        return SecurityManager(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideDatabase(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        securityManager: SecurityManager
     ): CititorDatabase {
-        val passphrase = SQLiteDatabase.getBytes("ultra-secret-password".toCharArray())
+        val passphrase = securityManager.getDatabasePassphrase()
         val factory = SupportFactory(passphrase)
 
         return Room.databaseBuilder(
