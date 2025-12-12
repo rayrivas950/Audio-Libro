@@ -96,4 +96,13 @@ La seguridad de los datos del usuario es una prioridad.
 
 Se utilizarán **commits atómicos**. Cada commit debe representar un cambio pequeño y completo. Los mensajes de commit seguirán la especificación de Commits Convencionales (ej. `feat:`, `fix:`, `refactor:`, `docs:`, `test:`).
 
+## 8. Deuda Técnica
+
+Esta sección documenta las decisiones técnicas tomadas para acelerar el desarrollo que deberán ser "pagadas" en el futuro.
+
+- **Dependencia de Seguridad en Versión Alpha:**
+    - **Deuda:** Se está utilizando `androidx.security:security-crypto:1.1.0-alpha06` en lugar de la versión estable recomendada (`1.0.0`).
+    - **Motivo:** Un bug inexplicable y persistente en el sistema de compilación de Gradle impide que la versión estable `1.0.0` se resuelva correctamente en el classpath de las pruebas instrumentadas, incluso después de limpiezas exhaustivas de la caché.
+    - **Plan de Pago:** Antes de cualquier lanzamiento público o al iniciar una nueva fase de desarrollo mayor, se debe investigar nuevamente este problema (posiblemente con una nueva versión del Android Gradle Plugin) para poder volver a la versión estable de la librería.
+
 *Este es un documento vivo y será actualizado a medida que el proyecto evolucione.*
