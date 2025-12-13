@@ -40,23 +40,23 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
 
 ## 4. Fases de Desarrollo (Roadmap Detallado)
 
-### Fase 1: Configuración y Base del Proyecto
-1.  Configurar las dependencias de `Hilt`, `Room`, `Compose Navigation`, etc., en los archivos `build.gradle.kts` y `libs.versions.toml`.
-2.  Establecer la estructura inicial de paquetes: `core`, `app`, `ui.theme`.
-3.  Definir la entidad de la base de datos (`BookEntity`) que representará un libro.
-4.  Crear la configuración de la base de datos Room, incluyendo el `Dao` (Data Access Object) y la clase principal de la base de datos cifrada con `SQLCipher`.
-5.  Crear la clase `Application` (`CititorApp`) y configurarla para Hilt.
+### Fase 1: Configuración y Base del Proyecto - ✅ COMPLETADA
+- [x] Configurar las dependencias de `Hilt`, `Room`, `Compose Navigation`, etc., en los archivos `build.gradle.kts` y `libs.versions.toml`.
+- [x] Establecer la estructura inicial de paquetes: `core`, `app`, `ui.theme`.
+- [x] Definir la entidad de la base de datos (`BookEntity`) que representará un libro.
+- [x] Crear la configuración de la base de datos Room, incluyendo el `Dao` (Data Access Object) y la clase principal de la base de datos cifrada con `SQLCipher`.
+- [x] Crear la clase `Application` (`CititorApp`) y configurarla para Hilt.
 
-### Fase 2: Módulo de Biblioteca (`feature_library`)
+### Fase 2: Módulo de Biblioteca (`feature_library`) - 🚧 EN PROGRESO
 1.  **Capa de Dominio:**
-    -   Definir la interfaz `LibraryRepository` (el "contrato" de lo que se puede hacer con los datos de la biblioteca).
-    -   Crear los Casos de Uso: `GetBooksUseCase`, `AddBookUseCase`, `SearchBooksUseCase`.
+    -   [x] Definir la interfaz `LibraryRepository` (el "contrato" de lo que se puede hacer con los datos de la biblioteca).
+    -   [x] Crear los Casos de Uso: `GetBooksUseCase`, `AddBookUseCase`, `SearchBooksUseCase`.
 2.  **Capa de Datos:**
-    -   Implementar `LibraryRepositoryImpl` que usará el `BookDao` para interactuar con la base de datos Room.
+    -   [x] Implementar `LibraryRepositoryImpl` que usará el `BookDao` para interactuar con la base de datos Room.
 3.  **Capa de Presentación:**
-    -   Crear el `LibraryViewModel` que utilizará los casos de uso para obtener y modificar los datos.
-    -   Diseñar la `LibraryScreen` en Jetpack Compose que mostrará la lista de libros y una barra de búsqueda.
-    -   Implementar la funcionalidad para importar un nuevo libro `.pdf`.
+    -   [x] Crear el `LibraryViewModel` que utilizará los casos de uso para obtener y modificar los datos.
+    -   [x] Diseñar la `LibraryScreen` en Jetpack Compose que mostrará la lista de libros y una barra de búsqueda.
+    -   [ ] Implementar la funcionalidad para importar un nuevo libro `.pdf`.
 
 ### Fase 3: Módulo de Lector (`feature_reader`)
 1.  **Capa de Dominio:**

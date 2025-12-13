@@ -23,7 +23,10 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insertBook(book: Book) {
-        dao.insertBook(book.toEntity())
+        val existingBook = dao.getBookByFilePath(book.filePath)
+        if (existingBook == null) {
+            dao.insertBook(book.toEntity())
+        }
     }
 }
 
