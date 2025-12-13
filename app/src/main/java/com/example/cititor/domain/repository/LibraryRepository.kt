@@ -16,6 +16,11 @@ interface LibraryRepository {
     fun getBooks(): Flow<List<Book>>
 
     /**
+     * Returns a flow that emits a single book, or null if it doesn't exist.
+     */
+    fun getBookById(id: Long): Flow<Book?>
+
+    /**
      * Inserts a new book into the library.
      * @param book The book to be added.
      */

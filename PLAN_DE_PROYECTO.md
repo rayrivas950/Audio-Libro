@@ -47,7 +47,7 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
 - [x] Crear la configuración de la base de datos Room, incluyendo el `Dao` (Data Access Object) y la clase principal de la base de datos cifrada con `SQLCipher`.
 - [x] Crear la clase `Application` (`CititorApp`) y configurarla para Hilt.
 
-### Fase 2: Módulo de Biblioteca (`feature_library`) - 🚧 EN PROGRESO
+### Fase 2: Módulo de Biblioteca (`feature_library`) - ✅ COMPLETADA
 1.  **Capa de Dominio:**
     -   [x] Definir la interfaz `LibraryRepository` (el "contrato" de lo que se puede hacer con los datos de la biblioteca).
     -   [x] Crear los Casos de Uso: `GetBooksUseCase`, `AddBookUseCase`, `SearchBooksUseCase`.
@@ -56,18 +56,18 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
 3.  **Capa de Presentación:**
     -   [x] Crear el `LibraryViewModel` que utilizará los casos de uso para obtener y modificar los datos.
     -   [x] Diseñar la `LibraryScreen` en Jetpack Compose que mostrará la lista de libros y una barra de búsqueda.
-    -   [ ] Implementar la funcionalidad para importar un nuevo libro `.pdf`.
+    -   [x] Implementar la funcionalidad para importar un nuevo libro `.pdf`.
 
-### Fase 3: Módulo de Lector (`feature_reader`)
+### Fase 3: Módulo de Lector (`feature_reader`) - 🚧 EN PROGRESO
 1.  **Capa de Dominio:**
-    -   Definir la interfaz `ReaderRepository`.
-    -   Crear los Casos de Uso: `GetBookPageUseCase`, `UpdateBookProgressUseCase`.
+    -   [x] Definir la interfaz `ReaderRepository`.
+    -   [x] Crear los Casos de Uso: `GetBookPageUseCase`, `UpdateBookProgressUseCase`.
 2.  **Capa de Datos:**
-    -   Implementar `ReaderRepositoryImpl` que interactuará con `pdfbox` y `BookDao`.
+    -   [x] Implementar `ReaderRepositoryImpl` que interactuará con `pdfbox` y `BookDao`.
 3.  **Capa de Presentación:**
-    -   Crear el `ReaderViewModel`.
-    -   Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
-    -   Implementar la navegación básica entre páginas.
+    -   [ ] Crear el `ReaderViewModel`.
+    -   [ ] Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
+    -   [ ] Implementar la navegación básica entre páginas.
 
 ### Fase 4: Funcionalidad Avanzada
 1.  Integrar el `TextToSpeech` de Android en `ReaderScreen`.

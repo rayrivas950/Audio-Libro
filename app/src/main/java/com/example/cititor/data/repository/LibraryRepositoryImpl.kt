@@ -22,6 +22,12 @@ class LibraryRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getBookById(id: Long): Flow<Book?> {
+        return dao.getBookByIdAsFlow(id).map { entity ->
+            entity?.toDomainModel()
+        }
+    }
+
     override suspend fun insertBook(book: Book) {
         val existingBook = dao.getBookByFilePath(book.filePath)
         if (existingBook == null) {

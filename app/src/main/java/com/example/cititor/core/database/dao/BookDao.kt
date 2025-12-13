@@ -24,6 +24,9 @@ interface BookDao {
     @Query("SELECT * FROM books WHERE id = :id")
     suspend fun getBookById(id: Long): BookEntity?
 
+    @Query("SELECT * FROM books WHERE id = :id")
+    fun getBookByIdAsFlow(id: Long): Flow<BookEntity?>
+
     @Query("SELECT * FROM books WHERE filePath = :filePath")
     suspend fun getBookByFilePath(filePath: String): BookEntity?
 
