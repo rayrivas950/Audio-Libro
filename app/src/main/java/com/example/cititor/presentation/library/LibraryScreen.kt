@@ -2,6 +2,7 @@ package com.example.cititor.presentation.library
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,15 +18,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.cititor.presentation.navigation.Screen
 
 @Composable
 fun LibraryScreen(
+    navController: NavController,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         uri?.let { viewModel.onBookUriSelected(it) }
     }
@@ -33,7 +37,7 @@ fun LibraryScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { filePickerLauncher.launch("application/pdf") }
+                onClick = { filePickerLauncher.launch(arrayOf("application/pdf")) }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add book")
             }
@@ -45,7 +49,12 @@ fun LibraryScreen(
                 .padding(paddingValues)
         ) {
             items(state.books) { book ->
-                Text(text = book.title)
+                Text(
+                    text = book.title,
+                    modifier = Modifier.clickable { 
+                        navController.navigate(Screen.ReaderScreen.withArgs(book.id))
+                    }
+                )
             }
         }
     }

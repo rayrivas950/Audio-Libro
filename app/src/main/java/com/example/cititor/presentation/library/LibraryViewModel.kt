@@ -1,6 +1,7 @@
 package com.example.cititor.presentation.library
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,8 +47,12 @@ class LibraryViewModel @Inject constructor(
     fun onBookUriSelected(uri: Uri) {
         viewModelScope.launch {
             try {
+                // Take persistable URI permission
+                val contentResolver = application.contentResolver
+                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
                 val document = withContext(Dispatchers.IO) {
-                    application.contentResolver.openInputStream(uri)?.use {
+                    contentResolver.openInputStream(uri)?.use {
                         PDDocument.load(it)
                     }
                 }
@@ -67,6 +72,9 @@ class LibraryViewModel @Inject constructor(
                 }
             } catch (e: IOException) {
                 // Handle exception (e.g., show a toast to the user)
+                e.printStackTrace()
+            } catch (e: SecurityException) {
+                // Handle exception
                 e.printStackTrace()
             }
         }
