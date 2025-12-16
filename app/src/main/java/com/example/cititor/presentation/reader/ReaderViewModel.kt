@@ -3,6 +3,7 @@ package com.example.cititor.presentation.reader
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cititor.core.tts.TextToSpeechManager
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.use_case.GetBookPageUseCase
 import com.example.cititor.domain.use_case.GetBookUseCase
@@ -27,6 +28,7 @@ class ReaderViewModel @Inject constructor(
     private val getBookUseCase: GetBookUseCase,
     private val getBookPageUseCase: GetBookPageUseCase,
     private val updateBookProgressUseCase: UpdateBookProgressUseCase,
+    private val textToSpeechManager: TextToSpeechManager,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -37,6 +39,10 @@ class ReaderViewModel @Inject constructor(
         savedStateHandle.get<Long>("bookId")?.let {
             loadBook(it)
         }
+    }
+
+    fun startReading() {
+        textToSpeechManager.speak(state.value.pageContent)
     }
 
     fun nextPage() {
@@ -92,5 +98,10 @@ class ReaderViewModel @Inject constructor(
                 updateBookProgressUseCase(book, state.value.currentPage)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        textToSpeechManager.shutdown()
     }
 }

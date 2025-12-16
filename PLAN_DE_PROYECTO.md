@@ -58,22 +58,28 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
     -   [x] Diseñar la `LibraryScreen` en Jetpack Compose que mostrará la lista de libros y una barra de búsqueda.
     -   [x] Implementar la funcionalidad para importar un nuevo libro `.pdf`.
 
-### Fase 3: Módulo de Lector (`feature_reader`) - 🚧 EN PROGRESO
+### Fase 3: Módulo de Lector (`feature_reader`) - ✅ COMPLETADA
 1.  **Capa de Dominio:**
     -   [x] Definir la interfaz `ReaderRepository`.
     -   [x] Crear los Casos de Uso: `GetBookPageUseCase`, `UpdateBookProgressUseCase`.
 2.  **Capa de Datos:**
     -   [x] Implementar `ReaderRepositoryImpl` que interactuará con `pdfbox` y `BookDao`.
 3.  **Capa de Presentación:**
-    -   [ ] Crear el `ReaderViewModel`.
-    -   [ ] Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
-    -   [ ] Implementar la navegación básica entre páginas.
+    -   [x] Crear el `ReaderViewModel`.
+    -   [x] Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
+    -   [x] Implementar la navegación básica entre páginas.
 
-### Fase 4: Funcionalidad Avanzada
-1.  Integrar el `TextToSpeech` de Android en `ReaderScreen`.
-2.  Implementar la lógica del marcador visual que se sincroniza con el audio.
-3.  Añadir el soporte para importar y leer archivos `.epub`.
-4.  Implementar la búsqueda de texto completo dentro de un libro abierto.
+### Fase 4: Funcionalidad Avanzada - 🚧 EN PROGRESO
+1.  **Integración de Text-to-Speech (TTS):**
+    -   [ ] Crear un gestor de TTS para abstraer la lógica del motor de Android.
+    -   [ ] Inyectar el gestor en `ReaderViewModel`.
+    -   [ ] Añadir un botón de "Play/Pausa" en la `ReaderScreen`.
+2.  **Sincronización Audio-Texto:**
+    -   [ ] Implementar la lógica del marcador visual que se sincroniza con el audio.
+3.  **Soporte para EPUB:**
+    -   [ ] Añadir el soporte para importar y leer archivos `.epub`.
+4.  **Búsqueda Interna:**
+    -   [ ] Implementar la búsqueda de texto completo dentro de un libro abierto.
 
 ### Fase 5: Experimentación
 1.  Investigar y prototipar el sistema de voces fluidas offline.
