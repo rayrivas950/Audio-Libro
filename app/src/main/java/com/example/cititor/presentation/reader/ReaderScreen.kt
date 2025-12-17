@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -54,7 +58,17 @@ fun ReaderScreen(
                         .padding(16.dp)
                         .verticalScroll(scrollState)
                 ) {
-                    Text(text = state.pageContent)
+                    val annotatedText = buildAnnotatedString {
+                        append(state.pageContent)
+                        state.highlightedTextRange?.let {
+                            addStyle(
+                                style = SpanStyle(background = Color.Yellow),
+                                start = it.first,
+                                end = it.last
+                            )
+                        }
+                    }
+                    Text(text = annotatedText)
                 }
 
                 Row(

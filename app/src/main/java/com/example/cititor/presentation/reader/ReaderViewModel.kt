@@ -20,7 +20,8 @@ data class ReaderState(
     val book: Book? = null,
     val pageContent: String = "",
     val currentPage: Int = 0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val highlightedTextRange: IntRange? = null
 )
 
 @HiltViewModel
@@ -39,6 +40,10 @@ class ReaderViewModel @Inject constructor(
         savedStateHandle.get<Long>("bookId")?.let {
             loadBook(it)
         }
+
+        textToSpeechManager.currentSpokenWord.onEach { range ->
+            _state.value = state.value.copy(highlightedTextRange = range)
+        }.launchIn(viewModelScope)
     }
 
     fun startReading() {
