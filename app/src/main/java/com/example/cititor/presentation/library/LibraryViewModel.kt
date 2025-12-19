@@ -9,6 +9,8 @@ import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.use_case.AddBookUseCase
 import com.example.cititor.domain.use_case.GetBooksUseCase
 import com.github.mertakdut.Reader
+import com.github.mertakdut.exception.OutOfPagesException
+import com.github.mertakdut.exception.ReadingException
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -104,8 +106,17 @@ class LibraryViewModel @Inject constructor(
 
                 val title = reader.infoPackage.metadata.title ?: "Untitled EPUB"
                 val author = reader.infoPackage.metadata.creator ?: "Unknown Author"
-                // Placeholder - We need to find the correct method to get the page count.
-                val pageCount = 0
+                
+                var sectionCount = 0
+                while (true) {
+                    try {
+                        reader.readSection(sectionCount)
+                        sectionCount++
+                    } catch (e: OutOfPagesException) {
+                        // We have reached the end of the book. This is the exit condition.
+                        break
+                    }
+                }
 
                 val newBook = Book(
                     id = 0, // Room will auto-generate
@@ -114,12 +125,14 @@ class LibraryViewModel @Inject constructor(
                     filePath = uri.toString(),
                     coverPath = null, // Future feature
                     currentPage = 0,
-                    totalPages = pageCount,
+                    totalPages = sectionCount,
                     lastReadTimestamp = System.currentTimeMillis()
                 )
                 addBookUseCase(newBook)
 
-            } catch (e: Exception) {
+            } catch (e: ReadingException) {
+                e.printStackTrace()
+            } catch (e: IOException) {
                 e.printStackTrace()
             } finally {
                 tempFile?.delete()

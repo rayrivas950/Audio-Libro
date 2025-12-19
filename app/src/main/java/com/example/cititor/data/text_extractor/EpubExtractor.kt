@@ -63,9 +63,21 @@ class EpubExtractor @Inject constructor(
             val reader = Reader()
             reader.setFullContent(tempFile.absolutePath)
 
-            // Placeholder - We need to find the correct method to get the page count.
-            0
+            var sectionCount = 0
+            while (true) {
+                try {
+                    reader.readSection(sectionCount)
+                    sectionCount++
+                } catch (e: OutOfPagesException) {
+                    // We have reached the end of the book. This is the exit condition.
+                    break
+                }
+            }
+            sectionCount
         } catch (e: IOException) {
+            e.printStackTrace()
+            0
+        } catch (e: ReadingException) {
             e.printStackTrace()
             0
         } finally {
