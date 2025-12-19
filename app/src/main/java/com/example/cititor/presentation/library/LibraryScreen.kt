@@ -37,7 +37,7 @@ fun LibraryScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { filePickerLauncher.launch(arrayOf("application/pdf")) }
+                onClick = { filePickerLauncher.launch(arrayOf("application/pdf", "application/epub+zip")) }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add book")
             }

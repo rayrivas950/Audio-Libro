@@ -26,6 +26,7 @@ securityCrypto = "1.1.0-alpha06"
 # Utils
 coil = "2.6.0"
 pdfbox = "2.0.27.0"
+epubParser = "1.0.95" 
 
 # Testing
 junit = "4.13.2"
@@ -64,9 +65,10 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 sqlcipher = { group = "net.zetetic", name = "android-database-sqlcipher", version.ref = "sqlcipher" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 
-# PDF & Image Loading
+# PDF, EPUB & Image Loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 pdfbox = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
+epub-parser = { group = "com.github.mertakdut", name = "EpubParser", version.ref = "epubParser" }
 
 # Lifecycle
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }

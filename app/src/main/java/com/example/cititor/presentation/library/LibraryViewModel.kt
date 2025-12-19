@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.use_case.AddBookUseCase
 import com.example.cititor.domain.use_case.GetBooksUseCase
+import com.github.mertakdut.Reader
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
@@ -46,39 +49,84 @@ class LibraryViewModel @Inject constructor(
 
     fun onBookUriSelected(uri: Uri) {
         viewModelScope.launch {
-            try {
-                // Take persistable URI permission
-                val contentResolver = application.contentResolver
-                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // Persist permission for the URI
+            val contentResolver = application.contentResolver
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-                val document = withContext(Dispatchers.IO) {
-                    contentResolver.openInputStream(uri)?.use {
-                        PDDocument.load(it)
+            val mimeType = contentResolver.getType(uri)
+
+            when (mimeType) {
+                "application/pdf" -> parsePdf(uri)
+                "application/epub+zip" -> parseEpub(uri)
+                else -> { // Handle unsupported file types
+                }
+            }
+        }
+    }
+
+    private suspend fun parsePdf(uri: Uri) {
+        withContext(Dispatchers.IO) {
+            try {
+                application.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    PDDocument.load(inputStream).use { document ->
+                        val newBook = Book(
+                            id = 0, // Room will auto-generate
+                            title = document.documentInformation.title ?: "Untitled PDF",
+                            author = document.documentInformation.author,
+                            filePath = uri.toString(),
+                            coverPath = null, // Future feature
+                            currentPage = 0,
+                            totalPages = document.numberOfPages,
+                            lastReadTimestamp = System.currentTimeMillis()
+                        )
+                        addBookUseCase(newBook)
                     }
                 }
-                document?.let {
-                    val newBook = Book(
-                        id = 0, // Room will auto-generate
-                        title = it.documentInformation.title ?: "Untitled",
-                        author = it.documentInformation.author,
-                        filePath = uri.toString(),
-                        coverPath = null, // Future feature
-                        currentPage = 0,
-                        totalPages = it.numberOfPages,
-                        lastReadTimestamp = System.currentTimeMillis()
-                    )
-                    addBookUseCase(newBook)
-                    it.close()
-                }
             } catch (e: IOException) {
-                // Handle exception (e.g., show a toast to the user)
-                e.printStackTrace()
-            } catch (e: SecurityException) {
-                // Handle exception
                 e.printStackTrace()
             }
         }
     }
+
+    private suspend fun parseEpub(uri: Uri) {
+        withContext(Dispatchers.IO) {
+            var tempFile: File? = null
+            try {
+                tempFile = File.createTempFile("temp_epub", ".epub", application.cacheDir)
+                application.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    FileOutputStream(tempFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+
+                val reader = Reader()
+                reader.setFullContent(tempFile.absolutePath)
+
+                val title = reader.infoPackage.metadata.title ?: "Untitled EPUB"
+                val author = reader.infoPackage.metadata.creator ?: "Unknown Author"
+                // Placeholder - We need to find the correct method to get the page count.
+                val pageCount = 0
+
+                val newBook = Book(
+                    id = 0, // Room will auto-generate
+                    title = title,
+                    author = author,
+                    filePath = uri.toString(),
+                    coverPath = null, // Future feature
+                    currentPage = 0,
+                    totalPages = pageCount,
+                    lastReadTimestamp = System.currentTimeMillis()
+                )
+                addBookUseCase(newBook)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                tempFile?.delete()
+            }
+        }
+    }
+
 
     private fun getBooks() {
         getBooksUseCase().onEach { books ->
