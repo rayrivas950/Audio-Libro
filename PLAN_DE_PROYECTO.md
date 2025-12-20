@@ -2,7 +2,7 @@
 
 ## 1. Visión del Proyecto
 
-El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para la lectura y escucha de libros digitales.
+El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para la lectura y escucha de libros digitales, con un enfoque en una experiencia de audio avanzada y personalizable.
 
 ### 1.1. Características Clave
 
@@ -12,29 +12,29 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
 - **Sincronización Audio-Texto:**
     - Capacidad para reproducir el texto de la página actual como audio.
     - Un marcador visual indicará en el texto la palabra o frase que se está reproduciendo.
-    - El progreso de la lectura (página actual y posición del marcador) se guardará automáticamente.
-- **Búsqueda Avanzada:**
-    - Búsqueda por título o autor en la biblioteca.
-    - Búsqueda de texto completo dentro del contenido de un libro abierto.
-- **(Experimental) Voces Fluidas Offline:** Investigar la posibilidad de pre-generar archivos de audio de alta calidad para ofrecer una experiencia de escucha offline superior y de bajo consumo.
+    - El progreso de la lectura se guardará automáticamente.
+- **(Futuro) Capacidades Avanzadas de TTS:**
+    - Investigar y desarrollar la capacidad de asignar voces diferentes a personajes distintos dentro de una conversación.
 
 ## 2. Arquitectura y Principios
 
 - **Lenguaje:** Kotlin
 - **UI:** Jetpack Compose
 - **Arquitectura:** Arquitectura Limpia (Clean Architecture) con un enfoque MVVM en la capa de presentación.
+- **Pre-procesamiento de Contenido:** Para optimizar el rendimiento y habilitar funcionalidades avanzadas, el contenido de los libros se extraerá, limpiará y almacenará en un formato de texto puro durante un proceso de importación en segundo plano.
 - **Inyección de Dependencias:** Hilt
 - **Base de Datos:** Room
-- **Asincronía:** Corrutinas de Kotlin y Flow
+- **Asincronía:** Corrutinas de Kotlin, Flow y WorkManager para trabajos en segundo plano.
 
 ## 3. Dependencias Clave
 
 - `androidx.compose`: Para la UI.
 - `androidx.navigation`: Para la navegación entre pantallas de Compose.
-- `androidx.room`: Para la base de datos local.
+- `androidx.room`: Para la base de datos local y el almacenamiento de contenido pre-procesado.
+- `androidx.work:work-runtime-ktx`: Para la gestión de trabajos en segundo plano (procesamiento de libros).
 - `com.google.dagger:hilt`: Para la inyección de dependencias.
 - `io.coil-kt:coil-compose`: Para la carga de imágenes (portadas de libros).
-- `com.tom-roush:pdfbox-android`: Para la extracción de texto e información de archivos PDF.
+- `com.tom-roush:pdfbox-android`: Para la extracción de texto de archivos PDF.
 - **Adicional para Pruebas:** `junit`, `mockk`, `androidx.test.*`
 - **Adicional para Seguridad:** `net.zetetic:android-database-sqlcipher` (para encriptar Room)
 
@@ -69,20 +69,34 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
     -   [x] Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
     -   [x] Implementar la navegación básica entre páginas.
 
-### Fase 4: Funcionalidad Avanzada - 🚧 EN PROGRESO
-1.  **Integración de Text-to-Speech (TTS):**
-    -   [ ] Crear un gestor de TTS para abstraer la lógica del motor de Android.
-    -   [ ] Inyectar el gestor en `ReaderViewModel`.
-    -   [ ] Añadir un botón de "Play/Pausa" en la `ReaderScreen`.
-2.  **Sincronización Audio-Texto:**
-    -   [ ] Implementar la lógica del marcador visual que se sincroniza con el audio.
-3.  **Soporte para EPUB:**
-    -   [ ] Añadir el soporte para importar y leer archivos `.epub`.
-4.  **Búsqueda Interna:**
-    -   [ ] Implementar la búsqueda de texto completo dentro de un libro abierto.
+### Fase 4: Motor de Pre-procesamiento y TTS - 🚧 EN PROGRESO
 
-### Fase 5: Experimentación
-1.  Investigar y prototipar el sistema de voces fluidas offline.
+Esta fase se centra en refactorizar el sistema de lectura para que se base en contenido pre-procesado, sentando las bases para funcionalidades avanzadas de TTS.
+
+1.  **Creación del Sanitizador de Texto:**
+    -   [ ] Desarrollar una clase `TextSanitizer` que elimine etiquetas HTML y artefactos de una cadena de texto, produciendo texto plano puro.
+2.  **Ampliación de la Base de Datos:**
+    -   [ ] Definir una nueva entidad de Room, `CleanPageEntity`, para almacenar el contenido de texto limpio asociado a cada libro.
+    -   [ ] Actualizar la configuración de la base de datos para incluir la nueva tabla.
+3.  **Implementación del Worker de Procesamiento:**
+    -   [ ] Crear un `BookProcessingWorker` usando `WorkManager`.
+    -   [ ] Implementar la lógica dentro del Worker para: abrir el archivo original, usar los `Extractor` para obtener el contenido de cada página, pasar el contenido por el `TextSanitizer` y guardar el resultado en la tabla `CleanPageEntity`.
+4.  **Refactorización del Flujo de Importación:**
+    -   [ ] Al importar un libro, encolar una nueva solicitud de trabajo para el `BookProcessingWorker`.
+    -   [ ] (Opcional) Actualizar la UI de la biblioteca para mostrar un indicador de "Procesando..." en los libros nuevos.
+5.  **Refactorización del Repositorio de Lectura:**
+    -   [ ] Modificar `ReaderRepositoryImpl` para que el método `getPageContent` ya no extraiga texto del archivo original, sino que consulte directamente la tabla `CleanPageEntity` para obtener el texto pre-procesado.
+6.  **Validación del TTS:**
+    -   [ ] Una vez que el sistema funcione sobre texto limpio, verificar que la funcionalidad de Text-to-Speech se haya restaurado para todos los formatos.
+
+### Fase 5: Funcionalidad Avanzada
+
+1.  **Sincronización Audio-Texto:**
+    -   [ ] Implementar la lógica del marcador visual que se sincroniza con el audio.
+2.  **Búsqueda Interna:**
+    -   [ ] Implementar la búsqueda de texto completo dentro de un libro abierto.
+3.  **Investigación de TTS Avanzado:**
+    -   [ ] Investigar técnicas para el reconocimiento de diálogos y la asignación de voces múltiples a diferentes personajes.
 
 ## 5. Calidad y Pruebas
 
@@ -97,6 +111,7 @@ La seguridad de los datos del usuario es una prioridad.
 - **Cifrado de la Base de Datos:** La base de datos de Room será cifrada utilizando `SQLCipher` para proteger la información de la biblioteca en reposo.
 - **Almacenamiento Seguro:** Los archivos de los libros (`.pdf`, `.epub`) se almacenarán en el directorio interno y privado de la aplicación.
 - **Permisos:** Se seguirá el principio de mínimo privilegio en la solicitud de permisos al usuario.
+- **Análisis de Seguridad de Parsers:** Investigar y robustecer las librerías de procesamiento de archivos (e.g., para EPUB y PDF) para prevenir vulnerabilidades comunes como "Zip Slip" y "XML External Entity (XXE)".
 
 ## 7. Control de Versiones
 
