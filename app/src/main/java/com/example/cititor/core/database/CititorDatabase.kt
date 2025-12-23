@@ -9,7 +9,7 @@ import com.example.cititor.core.database.entity.CleanPageEntity
 
 @Database(
     entities = [BookEntity::class, CleanPageEntity::class],
-    version = 2, // Incremented version because of schema change
+    version = 3, // Schema updated to include work ID in BookEntity
     exportSchema = false
 )
 abstract class CititorDatabase : RoomDatabase() {

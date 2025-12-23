@@ -13,5 +13,6 @@ data class BookEntity(
     val coverPath: String? = null,
     val currentPage: Int = 0,
     val totalPages: Int,
-    val lastReadTimestamp: Long = System.currentTimeMillis()
+    val lastReadTimestamp: Long = System.currentTimeMillis(),
+    val processingWorkId: String? = null // To track the background processing job
 )

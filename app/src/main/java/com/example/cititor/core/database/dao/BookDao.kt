@@ -21,6 +21,9 @@ interface BookDao {
     @Delete
     suspend fun deleteBook(book: BookEntity)
 
+    @Query("UPDATE books SET processingWorkId = :workId WHERE id = :bookId")
+    suspend fun updateWorkId(bookId: Long, workId: String)
+
     @Query("SELECT * FROM books WHERE id = :id")
     suspend fun getBookById(id: Long): BookEntity?
 

@@ -1,6 +1,7 @@
 package com.example.cititor.presentation.reader
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -36,52 +38,71 @@ fun ReaderScreen(
 
     Scaffold(
         floatingActionButton = {
-            if (!state.isLoading) {
+            if (!state.isLoading && !state.isProcessing) {
                 FloatingActionButton(onClick = { viewModel.startReading() }) {
                     Icon(Icons.Default.PlayArrow, contentDescription = "Start Reading")
                 }
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                val scrollState = rememberScrollState()
+            if (state.isLoading || state.isProcessing) {
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(16.dp)
-                        .verticalScroll(scrollState)
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    val annotatedText = buildAnnotatedString {
-                        append(state.pageDisplayText)
-                        state.highlightedTextRange?.let {
-                            addStyle(
-                                style = SpanStyle(background = Color.Yellow),
-                                start = it.first,
-                                end = it.last
-                            )
-                        }
+                    CircularProgressIndicator()
+                    if (state.isProcessing) {
+                        Text(
+                            text = state.pageDisplayText,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
                     }
-                    Text(text = annotatedText)
                 }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(onClick = { viewModel.previousPage() }, enabled = state.currentPage > 0) {
-                        Text("Previous")
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    val scrollState = rememberScrollState()
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(16.dp)
+                            .verticalScroll(scrollState)
+                    ) {
+                        val annotatedText = buildAnnotatedString {
+                            append(state.pageDisplayText)
+                            state.highlightedTextRange?.let {
+                                addStyle(
+                                    style = SpanStyle(background = Color.Yellow),
+                                    start = it.first,
+                                    end = it.last
+                                )
+                            }
+                        }
+                        Text(text = annotatedText)
                     }
-                    Button(onClick = { viewModel.nextPage() }, enabled = state.book?.let { state.currentPage < it.totalPages - 1 } ?: false) {
-                        Text("Next")
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(onClick = { viewModel.previousPage() }, enabled = state.currentPage > 0) {
+                            Text("Previous")
+                        }
+                        Button(
+                            onClick = { viewModel.nextPage() },
+                            enabled = state.book?.let { state.currentPage < it.totalPages - 1 } ?: false
+                        ) {
+                            Text("Next")
+                        }
                     }
                 }
             }

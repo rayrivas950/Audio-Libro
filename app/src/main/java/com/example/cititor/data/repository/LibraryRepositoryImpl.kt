@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.example.cititor.core.database.CititorDatabase
 import com.example.cititor.core.database.dao.BookDao
 import com.example.cititor.core.database.entity.BookEntity
 import com.example.cititor.data.worker.BookProcessingWorker
@@ -14,12 +15,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-/**
- * The concrete implementation of the LibraryRepository interface.
- * This class is responsible for orchestrating data between the local database and the domain layer.
- */
 class LibraryRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val db: CititorDatabase,
     private val dao: BookDao
 ) : LibraryRepository {
 
@@ -38,10 +36,11 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insertBook(book: Book) {
-        val existingBook = dao.getBookByFilePath(book.filePath)
-        if (existingBook == null) {
-            val newBookId = dao.insertBook(book.toEntity())
-            startBookProcessing(newBookId, book.filePath)
+        if (dao.getBookByFilePath(book.filePath) == null) {
+            db.runInTransaction {
+                val newBookId = dao.insertBook(book.toEntity())
+                startBookProcessing(newBookId, book.filePath)
+            }
         }
     }
 
@@ -54,12 +53,11 @@ class LibraryRepositoryImpl @Inject constructor(
             .build()
 
         workManager.enqueue(workRequest)
+        // Update the book entity with the work request ID
+        dao.updateWorkId(bookId, workRequest.id.toString())
     }
 }
 
-/**
- * Converts a database [BookEntity] to a domain [Book] model.
- */
 private fun BookEntity.toDomainModel(): Book {
     return Book(
         id = this.id,
@@ -69,13 +67,11 @@ private fun BookEntity.toDomainModel(): Book {
         coverPath = this.coverPath,
         currentPage = this.currentPage,
         totalPages = this.totalPages,
-        lastReadTimestamp = this.lastReadTimestamp
+        lastReadTimestamp = this.lastReadTimestamp,
+        processingWorkId = this.processingWorkId
     )
 }
 
-/**
- * Converts a domain [Book] model to a database [BookEntity].
- */
 private fun Book.toEntity(): BookEntity {
     return BookEntity(
         id = this.id,
@@ -85,6 +81,7 @@ private fun Book.toEntity(): BookEntity {
         coverPath = this.coverPath,
         currentPage = this.currentPage,
         totalPages = this.totalPages,
-        lastReadTimestamp = this.lastReadTimestamp
+        lastReadTimestamp = this.lastReadTimestamp,
+        processingWorkId = this.processingWorkId
     )
 }
