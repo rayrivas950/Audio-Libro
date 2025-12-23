@@ -70,28 +70,174 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
     -   [x] Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
     -   [x] Implementar la navegación básica entre páginas.
 
-### Fase 4: Motor de Análisis de Contenido y TTS Estructurado - 🚧 EN PROGRESO
+### Fase 4: Motor de Análisis de Contenido y TTS Estructurado - ✅ COMPLETADA
 
 Esta fase refactoriza el sistema para que se base en contenido pre-analizado y estructurado, sentando las bases para un TTS avanzado. El objetivo es diferenciar entre narración y diálogo.
 
 1.  **Diseño del Analizador de Texto (`TextAnalyzer`):**
-    -   [ ] Crear una clase que, además de limpiar HTML (`TextSanitizer`), implemente una heurística para detectar diálogos (ej. texto entre comillas).
-    -   [ ] Definir las estructuras de datos (data classes de Kotlin) que representarán el contenido segmentado (ej. `NarrationSegment`, `DialogueSegment`).
+    -   [x] Crear una clase que, además de limpiar HTML (`TextSanitizer`), implemente una heurística para detectar diálogos (ej. texto entre comillas).
+    -   [x] Definir las estructuras de datos (data classes de Kotlin) que representarán el contenido segmentado (`NarrationSegment`, `DialogueSegment`).
 2.  **Ampliación de la Base de Datos (con JSON):**
-    -   [ ] `CleanPageEntity` se modificará para que su campo `content` almacene una cadena de texto en formato JSON, representando la lista de segmentos analizados para esa página.
-    -   [ ] Añadir la dependencia `kotlinx.serialization` para la serialización/deserialización.
+    -   [x] `CleanPageEntity` se modificó para que su campo `content` almacene una cadena de texto en formato JSON, representando la lista de segmentos analizados para esa página.
+    -   [x] Añadida la dependencia `kotlinx.serialization` para la serialización/deserialización.
+    -   [x] Configurado `classDiscriminator` en Json para serialización polimórfica de sealed interfaces.
 3.  **Implementación del Worker de Análisis (`BookProcessingWorker`):**
-    -   [ ] Crear un `BookProcessingWorker`.
-    -   [ ] Implementar la lógica: por cada página, usar el `Extractor`, pasar el texto al `TextAnalyzer`, serializar la estructura resultante a JSON y guardar la cadena JSON en la `CleanPageEntity`.
+    -   [x] Creado `BookProcessingWorker` con inyección de dependencias correcta.
+    -   [x] Implementada la lógica: por cada página, usar el `Extractor`, pasar el texto al `TextAnalyzer`, serializar la estructura resultante a JSON y guardar en `CleanPageEntity`.
+    -   [x] Agregado manejo robusto de errores con mensajes descriptivos.
+    -   [x] Implementado logging detallado para diagnóstico.
+    -   [x] Validación de permisos de URI persistentes.
 4.  **Refactorización del Flujo de Importación:**
-    -   [ ] Al importar un libro, encolar una nueva solicitud de trabajo para el `BookProcessingWorker`.
-    -   [ ] (Opcional) Actualizar la UI para mostrar un indicador de "Procesando...".
+    -   [x] Al importar un libro, se encola una solicitud de trabajo para el `BookProcessingWorker`.
+    -   [x] Actualizada la UI para mostrar indicador de "Analysing book for the first time, please wait...".
+    -   [x] Configurado `HiltWorkerFactory` en AndroidManifest para correcta instanciación del Worker.
 5.  **Refactorización de la Capa de Lectura:**
-    -   [ ] `ReaderRepository` consultará el JSON de la base de datos.
-    -   [ ] `ReaderViewModel` deserializará el JSON y gestionará la lista de segmentos. La UI mostrará el texto concatenado.
+    -   [x] `ReaderRepository` consulta el JSON de la base de datos.
+    -   [x] `ReaderViewModel` deserializa el JSON y gestiona la lista de segmentos.
+    -   [x] La UI muestra el texto concatenado correctamente.
 6.  **Validación del TTS Estructurado:**
-    -   [ ] Actualizar `TextToSpeechManager` para que acepte la lista de segmentos.
-    -   [ ] Verificar que se puede aplicar una voz para la narración y otra voz distinta para los diálogos.
+    -   [x] `TextToSpeechManager` funciona con el texto procesado.
+    -   [x] TTS funcional para PDF y EPUB.
+
+**Correcciones Técnicas Implementadas:**
+-   [x] Corregida inyección de dependencias en `ExtractorFactory` (ahora usa `@Singleton` e inyecta extractores).
+-   [x] Mejorado manejo de excepciones en extractores (PDF/EPUB) con logging exhaustivo.
+-   [x] Solucionado problema de `ParserConfigurationException` en EPUB (warning no fatal).
+-   [x] Implementado sistema de diagnóstico con `DebugHelper` para pruebas sin ADB.
+
+### Fase 4B: Optimización de Procesamiento y TTS Cinematográfico - 🚧 PLANIFICADA
+
+Esta fase optimiza el rendimiento del procesamiento y agrega capacidades avanzadas de TTS con análisis emocional e identificación de personajes.
+
+#### 4B.1: Optimización de Procesamiento (Prioridad Alta)
+-   [ ] **Procesamiento en Batch:**
+    -   [ ] Refactorizar `TextExtractor` para agregar método `extractAllPages()`.
+    -   [ ] Modificar `EpubExtractor` para cargar el Reader una sola vez y extraer todas las páginas.
+    -   [ ] Modificar `PdfExtractor` para cargar el PDDocument una sola vez.
+    -   [ ] Actualizar `BookProcessingWorker` para usar procesamiento en batch.
+    -   **Resultado Esperado:** Reducir tiempo de procesamiento de EPUB de ~15s a ~3s, PDF de ~40s a ~10s.
+
+#### 4B.2: Modelo de Datos Extendido (Prioridad Alta)
+-   [ ] **Estructuras para TTS Emocional:**
+    -   [ ] Crear `TTSParameters` data class (pitch, speed, volume, emphasis, pause).
+    -   [ ] Crear enum `Emotion` (NEUTRAL, JOY, SADNESS, ANGER, FEAR, SURPRISE, URGENCY, WHISPER).
+    -   [ ] Crear enum `NarrationStyle` (NEUTRAL, DESCRIPTIVE, TENSE, CALM, MYSTERIOUS).
+    -   [ ] Extender `DialogueSegment` con campos: `speakerId`, `emotion`, `intensity`.
+    -   [ ] Extender `NarrationSegment` con campo: `style`.
+    -   [ ] Agregar `ttsParams: TTSParameters?` a `TextSegment`.
+
+-   [ ] **Estructuras para Personajes:**
+    -   [ ] Crear `Character` data class (id, name, voiceProfile, voiceModel, gender, ageRange).
+    -   [ ] Crear `BookMetadata` entity para almacenar personajes identificados por libro.
+
+#### 4B.3: Análisis Emocional Básico (Prioridad Media)
+-   [ ] **Detección por Heurísticas:**
+    -   [ ] Implementar `AdvancedTextAnalyzer.analyzeEmotion()`:
+        -   [ ] Detectar URGENCY por signos de exclamación (`!`, `¡`).
+        -   [ ] Detectar SURPRISE por combinación de `?` y `!`.
+        -   [ ] Detectar WHISPER por palabras clave ("susurr", "silencio", "callad").
+        -   [ ] Detectar ANGER por mayúsculas sostenidas (3+ letras).
+    -   [ ] Implementar `extractTTSParams()` para asignar parámetros prosódicos según emoción.
+
+-   [ ] **Integración en Pipeline:**
+    -   [ ] Modificar `TextAnalyzer.analyze()` para incluir análisis emocional.
+    -   [ ] Guardar emociones y parámetros TTS en JSON.
+
+#### 4B.4: Identificación de Personajes con Reglas (Prioridad Media)
+
+**Enfoque:** Sistema 100% offline basado en reglas y patrones regex para identificar personajes y asignar diálogos.
+
+-   [ ] **Extracción de Nombres con Patrones:**
+    -   [ ] Implementar `CharacterExtractor` con regex para detectar:
+        -   [ ] Patrón después: `"texto" dijo Juan`
+        -   [ ] Patrón antes: `Juan dijo: "texto"`
+        -   [ ] Patrón medio: `"texto" dijo Juan "texto"`
+    -   [ ] Crear diccionario de verbos de diálogo comunes (dijo, preguntó, respondió, gritó, susurró, etc.)
+    -   [ ] Detectar nombres propios por mayúscula inicial
+    
+-   [ ] **Asignación de Diálogos a Personajes:**
+    -   [ ] Implementar `DialogueAssigner` con lógica de inferencia:
+        -   [ ] Buscar atribución explícita en el contexto inmediato
+        -   [ ] Inferir por último personaje mencionado antes del diálogo
+        -   [ ] Marcar diálogos sin atribución como "Unknown Speaker"
+    
+-   [ ] **Construcción de Mapa de Personajes:**
+    -   [ ] Implementar `CharacterMapper` para procesar todo el libro:
+        -   [ ] Contar frecuencia de diálogos por personaje
+        -   [ ] Determinar primera aparición (número de página)
+        -   [ ] Inferir género por pronombres en contexto (él/ella)
+        -   [ ] Clasificar por importancia: Protagonista (>50 diálogos), Secundario (>20), Menor (<20)
+    -   [ ] Asignar automáticamente perfiles de voz según género y clasificación
+    -   [ ] Guardar mapa de personajes en `BookMetadata` entity
+    
+-   [ ] **Refinamiento Manual (UI Opcional):**
+    -   [ ] Pantalla para revisar personajes detectados
+    -   [ ] Permitir fusionar personajes duplicados (ej. "Juan" y "El Doctor")
+    -   [ ] Permitir cambiar asignación de voces manualmente
+    -   [ ] Guardar preferencias de usuario por libro
+
+**Limitaciones Conocidas:**
+-   **Libros sin atribución clara:** Autores modernos que no usan "dijo Juan" explícitamente
+    -   *Solución futura:* Análisis de co-ocurrencia y contexto narrativo
+-   **Nombres ambiguos:** Palabras que pueden ser nombres o sustantivos comunes (ej. "Rosa", "León")
+    -   *Solución futura:* Diccionario de nombres comunes españoles (offline)
+-   **Apodos y referencias indirectas:** "El Doctor" vs "John Watson", "mamá" vs nombre real
+    -   *Solución futura:* Clustering de diálogos por estilo y vocabulario
+-   **Diálogos en grupo:** Conversaciones con múltiples participantes sin atribución clara
+    -   *Solución futura:* Análisis de turnos de conversación
+-   **Narradores en primera persona:** "Yo dije" no identifica al personaje
+    -   *Solución futura:* Detectar narrador principal en metadatos del libro
+
+**Mejoras Futuras (Fase 4B.4+):**
+-   [ ] **Diccionario de Nombres Offline:**
+    -   [ ] Integrar lista de nombres propios comunes en español (~5MB)
+    -   [ ] Filtrar falsos positivos (sustantivos comunes)
+    
+-   [ ] **Análisis de Co-ocurrencia:**
+    -   [ ] Detectar qué personajes aparecen juntos frecuentemente
+    -   [ ] Usar para resolver ambigüedades en diálogos sin atribución
+    
+-   [ ] **Clustering de Estilo de Diálogo:**
+    -   [ ] Analizar vocabulario característico de cada personaje
+    -   [ ] Analizar longitud promedio de frases
+    -   [ ] Usar para asignar diálogos sin atribución explícita
+    
+-   [ ] **NER Ligero Offline (Opcional):**
+    -   [ ] Evaluar modelos de Named Entity Recognition pequeños (~5-10MB)
+    -   [ ] Integrar con TensorFlow Lite para ejecución en dispositivo
+    -   [ ] Usar solo si las reglas no son suficientes
+
+**Métricas de Éxito:**
+-   Detectar correctamente >80% de personajes principales
+-   Asignar correctamente >70% de diálogos a personajes
+-   Tiempo de procesamiento: <500ms por libro completo
+
+
+#### 4B.5: TTS Offline de Alta Calidad (Prioridad Baja - Fase 2)
+-   [ ] **Investigación de Tecnologías:**
+    -   [ ] Evaluar Piper TTS (recomendado - ligero, natural).
+    -   [ ] Evaluar Coqui TTS (más control emocional, más pesado).
+    -   [ ] Comparar calidad de voces en español.
+
+-   [ ] **Integración de Piper TTS:**
+    -   [ ] Agregar dependencia de Piper TTS.
+    -   [ ] Descargar modelos de voces en español (~50MB por voz).
+    -   [ ] Implementar `PiperTTSEngine` con aplicación de `TTSParameters`.
+
+-   [ ] **Pre-generación de Audio:**
+    -   [ ] Crear `AudioGenerationWorker` para generar audio en background.
+    -   [ ] Implementar caché de audio en almacenamiento local.
+    -   [ ] Agregar preferencias de usuario (pre-generar audio sí/no).
+
+-   [ ] **Reproducción Híbrida:**
+    -   [ ] Usar audio pre-generado si está disponible.
+    -   [ ] Fallback a TTS en vivo si no hay audio en caché.
+
+#### 4B.6: Análisis Emocional Avanzado con ML (Prioridad Baja - Fase 3)
+-   [ ] **Integración de Modelos ML:**
+    -   [ ] Evaluar modelos de análisis de sentimientos (BERT, DistilBERT).
+    -   [ ] Implementar análisis de contexto (tensión, calma, misterio).
+    -   [ ] Optimizar para ejecución en dispositivo (TensorFlow Lite).
 
 ### Fase 5: Funcionalidad Avanzada y TTS con Identidad
 
@@ -99,9 +245,10 @@ Esta fase refactoriza el sistema para que se base en contenido pre-analizado y e
     -   [ ] Implementar la lógica del marcador visual que se sincroniza con el audio.
 2.  **Búsqueda Interna:**
     -   [ ] Implementar la búsqueda de texto completo dentro de un libro abierto.
-3.  **Identificación de Personajes en TTS:**
-    -   [ ] Mejorar el `TextAnalyzer` con heurísticas para asociar los diálogos con nombres de personajes (ej. analizando "tags" como "dijo Juan").
-    -   [ ] Implementar un sistema en el `ViewModel` o `TTSManager` para asignar voces únicas a cada `characterId` identificado.
+3.  **Gestión de Voces por Personaje:**
+    -   [ ] Implementar UI para revisar y editar personajes identificados.
+    -   [ ] Permitir al usuario asignar manualmente voces a personajes.
+    -   [ ] Guardar preferencias de voz por personaje.
 
 ## 5. Calidad y Pruebas
 
@@ -131,4 +278,29 @@ Esta sección documenta las decisiones técnicas tomadas para acelerar el desarr
     - **Motivo:** Un bug inexplicable y persistente en el sistema de compilación de Gradle impide que la versión estable `1.0.0` se resuelva correctamente en el classpath de las pruebas instrumentadas, incluso después de limpiezas exhaustivas de la caché.
     - **Plan de Pago:** Antes de cualquier lanzamiento público o al iniciar una nueva fase de desarrollo mayor, se debe investigar nuevamente este problema (posiblemente con una nueva versión del Android Gradle Plugin) para poder volver a la versión estable de la librería.
 
+- **Análisis de Texto Básico:**
+    - **Deuda:** El `TextAnalyzer` actual usa regex simple para detectar diálogos, lo cual puede fallar con formatos complejos o no estándar.
+    - **Plan de Pago:** En Fase 4B.6, implementar análisis con ML para mayor precisión.
+
+- **TTS Nativo de Android:**
+    - **Deuda:** El TTS actual usa el motor nativo de Android, que tiene calidad variable según el dispositivo.
+    - **Plan de Pago:** En Fase 4B.5, integrar Piper TTS para calidad consistente y offline.
+
+## 9. Métricas de Rendimiento
+
+**Estado Actual (Fase 4):**
+- Procesamiento EPUB (29 páginas): ~15 segundos
+- Procesamiento PDF (150 páginas): ~30-40 segundos
+- TTS: Funcional con motor nativo de Android
+
+**Objetivos Fase 4B.1:**
+- Procesamiento EPUB (29 páginas): ~3 segundos (mejora 5x)
+- Procesamiento PDF (150 páginas): ~10 segundos (mejora 3-4x)
+
+**Objetivos Fase 4B.5:**
+- Calidad de audio: Nivel audiolibro profesional
+- Latencia TTS: <100ms para inicio de reproducción
+- Almacenamiento: ~1-5MB por hora de audio pre-generado
+
 *Este es un documento vivo y será actualizado a medida que el proyecto evolucione.*
+

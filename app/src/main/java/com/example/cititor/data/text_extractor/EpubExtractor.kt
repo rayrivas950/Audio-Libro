@@ -105,6 +105,85 @@ class EpubExtractor @Inject constructor() : TextExtractor {
         }
     }
 
+    override suspend fun extractAllPages(context: Context, uri: Uri): List<String> = 
+        withContext(Dispatchers.IO) {
+            Log.d(TAG, "Extracting all pages from EPUB in batch, URI: $uri")
+            val pages = mutableListOf<String>()
+            var tempFile: File? = null
+            
+            try {
+                // 1. Create temp file ONCE
+                tempFile = File.createTempFile("temp_epub_batch", ".epub", context.cacheDir)
+                Log.d(TAG, "Created temp file: ${tempFile.absolutePath}")
+                
+                // 2. Copy EPUB ONCE
+                val inputStream = context.contentResolver.openInputStream(uri)
+                if (inputStream == null) {
+                    Log.e(TAG, "Could not open input stream for URI: $uri")
+                    return@withContext emptyList()
+                }
+                
+                inputStream.use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                Log.d(TAG, "Copied EPUB to temp file successfully")
+                
+                // 3. Initialize Reader ONCE
+                val reader = Reader()
+                reader.setIsIncludingTextContent(true)
+                
+                try {
+                    reader.setFullContent(tempFile.absolutePath)
+                    Log.d(TAG, "EPUB reader initialized")
+                } catch (e: Exception) {
+                    // ParserConfigurationException is common and non-fatal
+                    Log.d(TAG, "EPUB reader initialized (with parser warning: ${e.javaClass.simpleName})")
+                }
+                
+                // 4. Get section count
+                val sectionCount = getPageCount(context, uri)
+                Log.d(TAG, "EPUB has $sectionCount sections, extracting all...")
+                
+                // 5. Extract ALL sections in a loop
+                for (i in 0 until sectionCount) {
+                    try {
+                        val section = reader.readSection(i)
+                        val text = section?.sectionTextContent ?: ""
+                        pages.add(text)
+                        Log.d(TAG, "Extracted ${text.length} characters from section $i")
+                    } catch (e: OutOfPagesException) {
+                        Log.e(TAG, "Section $i out of bounds", e)
+                        pages.add("") // Empty page for missing section
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error extracting section $i", e)
+                        pages.add("") // Empty page on error
+                    }
+                }
+                
+                Log.d(TAG, "Successfully extracted ${pages.size} sections in batch")
+                
+            } catch (e: ReadingException) {
+                Log.e(TAG, "ReadingException while batch extracting EPUB", e)
+            } catch (e: IOException) {
+                Log.e(TAG, "IOException while batch extracting EPUB", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error while batch extracting EPUB", e)
+            } finally {
+                // 6. Delete temp file ONCE at the end
+                tempFile?.let {
+                    if (it.delete()) {
+                        Log.d(TAG, "Temp file deleted successfully")
+                    } else {
+                        Log.w(TAG, "Failed to delete temp file: ${it.absolutePath}")
+                    }
+                }
+            }
+            
+            pages
+        }
+
     override suspend fun getPageCount(context: Context, uri: Uri): Int = withContext(Dispatchers.IO) {
         Log.d(TAG, "Getting section count for EPUB, URI: $uri")
         var tempFile: File? = null

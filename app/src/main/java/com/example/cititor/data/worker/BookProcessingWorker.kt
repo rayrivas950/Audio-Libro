@@ -74,9 +74,10 @@ class BookProcessingWorker @AssistedInject constructor(
         }
 
         try {
-            Log.d(TAG, "Getting page count...")
-            val pageCount = extractor.getPageCount(applicationContext, bookUri)
-            Log.d(TAG, "Page count: $pageCount")
+            Log.d(TAG, "Extracting all pages in batch...")
+            val allPagesText = extractor.extractAllPages(applicationContext, bookUri)
+            val pageCount = allPagesText.size
+            Log.d(TAG, "Extracted $pageCount pages")
             
             if (pageCount <= 0) {
                 val errorMsg = "Could not read any pages from the document. The file might be empty, corrupted, or password-protected."
@@ -86,11 +87,10 @@ class BookProcessingWorker @AssistedInject constructor(
 
             val cleanPages = mutableListOf<CleanPageEntity>()
 
-            for (i in 0 until pageCount) {
+            allPagesText.forEachIndexed { i, rawText ->
                 Log.d(TAG, "Processing page ${i + 1}/$pageCount")
                 
                 try {
-                    val rawText = extractor.extractText(applicationContext, bookUri, i)
                     Log.d(TAG, "Extracted ${rawText.length} characters from page $i")
                     
                     val segments = TextAnalyzer.analyze(rawText)

@@ -13,9 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
+
 class TextToSpeechManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) : TextToSpeech.OnInitListener {
