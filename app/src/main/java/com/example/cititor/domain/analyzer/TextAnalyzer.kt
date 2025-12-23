@@ -30,14 +30,14 @@ object TextAnalyzer {
             // 1. Add any text before the dialogue as a NarrationSegment.
             val narrationText = text.substring(lastIndex, matchResult.range.first).trim()
             if (narrationText.isNotEmpty()) {
-                segments.add(NarrationSegment(narrationText))
+                segments.add(NarrationSegment(text = narrationText))
             }
 
             // 2. Add the dialogue itself as a DialogueSegment.
             // The content is in one of the capturing groups.
             val dialogueText = (matchResult.groups[1] ?: matchResult.groups[2] ?: matchResult.groups[3])?.value?.trim()
             if (!dialogueText.isNullOrEmpty()) {
-                segments.add(DialogueSegment(dialogueText))
+                segments.add(DialogueSegment(text = dialogueText))
             }
 
             // 3. Update the index to the end of the current match.
@@ -48,7 +48,7 @@ object TextAnalyzer {
         if (lastIndex < text.length) {
             val remainingNarration = text.substring(lastIndex).trim()
             if (remainingNarration.isNotEmpty()) {
-                segments.add(NarrationSegment(remainingNarration))
+                segments.add(NarrationSegment(text = remainingNarration))
             }
         }
 

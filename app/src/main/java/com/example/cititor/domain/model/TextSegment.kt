@@ -1,5 +1,6 @@
 package com.example.cititor.domain.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,17 +10,29 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface TextSegment {
     val text: String
+    val ttsParams: TTSParameters?
 }
 
 /**
  * A segment of text representing narration.
  */
 @Serializable
-data class NarrationSegment(override val text: String) : TextSegment
+@SerialName("narration")
+data class NarrationSegment(
+    override val text: String,
+    override val ttsParams: TTSParameters? = null,
+    val style: NarrationStyle = NarrationStyle.NEUTRAL
+) : TextSegment
 
 /**
  * A segment of text representing dialogue.
- * In the future, this can be expanded to include a characterId.
  */
 @Serializable
-data class DialogueSegment(override val text: String) : TextSegment
+@SerialName("dialogue")
+data class DialogueSegment(
+    override val text: String,
+    override val ttsParams: TTSParameters? = null,
+    val speakerId: String? = null,
+    val emotion: Emotion = Emotion.NEUTRAL,
+    val intensity: Float = 1.0f
+) : TextSegment
