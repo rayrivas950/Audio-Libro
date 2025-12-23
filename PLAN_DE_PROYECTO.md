@@ -21,7 +21,7 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
 - **Lenguaje:** Kotlin
 - **UI:** Jetpack Compose
 - **Arquitectura:** Arquitectura Limpia (Clean Architecture) con un enfoque MVVM en la capa de presentación.
-- **Pre-procesamiento de Contenido:** Para optimizar el rendimiento y habilitar funcionalidades avanzadas, el contenido de los libros se extraerá, limpiará y almacenará en un formato de texto puro durante un proceso de importación en segundo plano.
+- **Motor de Análisis de Contenido:** Para optimizar el rendimiento y habilitar funcionalidades avanzadas de TTS, el contenido de los libros no solo se extraerá y limpiará, sino que se analizará para identificar su estructura (ej. narración vs. diálogo). El resultado se almacenará en un formato estructurado (JSON) durante un proceso de importación en segundo plano.
 - **Inyección de Dependencias:** Hilt
 - **Base de Datos:** Room
 - **Asincronía:** Corrutinas de Kotlin, Flow y WorkManager para trabajos en segundo plano.
@@ -31,7 +31,8 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
 - `androidx.compose`: Para la UI.
 - `androidx.navigation`: Para la navegación entre pantallas de Compose.
 - `androidx.room`: Para la base de datos local y el almacenamiento de contenido pre-procesado.
-- `androidx.work:work-runtime-ktx`: Para la gestión de trabajos en segundo plano (procesamiento de libros).
+- `androidx.work:work-runtime-ktx`: Para la gestión de trabajos en segundo plano.
+- `org.jetbrains.kotlinx:kotlinx-serialization-json`: Para la serialización y deserialización de datos estructurados.
 - `com.google.dagger:hilt`: Para la inyección de dependencias.
 - `io.coil-kt:coil-compose`: Para la carga de imágenes (portadas de libros).
 - `com.tom-roush:pdfbox-android`: Para la extracción de texto de archivos PDF.
@@ -69,34 +70,38 @@ El objetivo es desarrollar una aplicación nativa de Android, **Cititor**, para 
     -   [x] Diseñar la `ReaderScreen` que mostrará el texto con scroll vertical y el modo de lectura inmersivo.
     -   [x] Implementar la navegación básica entre páginas.
 
-### Fase 4: Motor de Pre-procesamiento y TTS - 🚧 EN PROGRESO
+### Fase 4: Motor de Análisis de Contenido y TTS Estructurado - 🚧 EN PROGRESO
 
-Esta fase se centra en refactorizar el sistema de lectura para que se base en contenido pre-procesado, sentando las bases para funcionalidades avanzadas de TTS.
+Esta fase refactoriza el sistema para que se base en contenido pre-analizado y estructurado, sentando las bases para un TTS avanzado. El objetivo es diferenciar entre narración y diálogo.
 
-1.  **Creación del Sanitizador de Texto:**
-    -   [ ] Desarrollar una clase `TextSanitizer` que elimine etiquetas HTML y artefactos de una cadena de texto, produciendo texto plano puro.
-2.  **Ampliación de la Base de Datos:**
-    -   [ ] Definir una nueva entidad de Room, `CleanPageEntity`, para almacenar el contenido de texto limpio asociado a cada libro.
-    -   [ ] Actualizar la configuración de la base de datos para incluir la nueva tabla.
-3.  **Implementación del Worker de Procesamiento:**
-    -   [ ] Crear un `BookProcessingWorker` usando `WorkManager`.
-    -   [ ] Implementar la lógica dentro del Worker para: abrir el archivo original, usar los `Extractor` para obtener el contenido de cada página, pasar el contenido por el `TextSanitizer` y guardar el resultado en la tabla `CleanPageEntity`.
+1.  **Diseño del Analizador de Texto (`TextAnalyzer`):**
+    -   [ ] Crear una clase que, además de limpiar HTML (`TextSanitizer`), implemente una heurística para detectar diálogos (ej. texto entre comillas).
+    -   [ ] Definir las estructuras de datos (data classes de Kotlin) que representarán el contenido segmentado (ej. `NarrationSegment`, `DialogueSegment`).
+2.  **Ampliación de la Base de Datos (con JSON):**
+    -   [ ] `CleanPageEntity` se modificará para que su campo `content` almacene una cadena de texto en formato JSON, representando la lista de segmentos analizados para esa página.
+    -   [ ] Añadir la dependencia `kotlinx.serialization` para la serialización/deserialización.
+3.  **Implementación del Worker de Análisis (`BookProcessingWorker`):**
+    -   [ ] Crear un `BookProcessingWorker`.
+    -   [ ] Implementar la lógica: por cada página, usar el `Extractor`, pasar el texto al `TextAnalyzer`, serializar la estructura resultante a JSON y guardar la cadena JSON en la `CleanPageEntity`.
 4.  **Refactorización del Flujo de Importación:**
     -   [ ] Al importar un libro, encolar una nueva solicitud de trabajo para el `BookProcessingWorker`.
-    -   [ ] (Opcional) Actualizar la UI de la biblioteca para mostrar un indicador de "Procesando..." en los libros nuevos.
-5.  **Refactorización del Repositorio de Lectura:**
-    -   [ ] Modificar `ReaderRepositoryImpl` para que el método `getPageContent` ya no extraiga texto del archivo original, sino que consulte directamente la tabla `CleanPageEntity` para obtener el texto pre-procesado.
-6.  **Validación del TTS:**
-    -   [ ] Una vez que el sistema funcione sobre texto limpio, verificar que la funcionalidad de Text-to-Speech se haya restaurado para todos los formatos.
+    -   [ ] (Opcional) Actualizar la UI para mostrar un indicador de "Procesando...".
+5.  **Refactorización de la Capa de Lectura:**
+    -   [ ] `ReaderRepository` consultará el JSON de la base de datos.
+    -   [ ] `ReaderViewModel` deserializará el JSON y gestionará la lista de segmentos. La UI mostrará el texto concatenado.
+6.  **Validación del TTS Estructurado:**
+    -   [ ] Actualizar `TextToSpeechManager` para que acepte la lista de segmentos.
+    -   [ ] Verificar que se puede aplicar una voz para la narración y otra voz distinta para los diálogos.
 
-### Fase 5: Funcionalidad Avanzada
+### Fase 5: Funcionalidad Avanzada y TTS con Identidad
 
 1.  **Sincronización Audio-Texto:**
     -   [ ] Implementar la lógica del marcador visual que se sincroniza con el audio.
 2.  **Búsqueda Interna:**
     -   [ ] Implementar la búsqueda de texto completo dentro de un libro abierto.
-3.  **Investigación de TTS Avanzado:**
-    -   [ ] Investigar técnicas para el reconocimiento de diálogos y la asignación de voces múltiples a diferentes personajes.
+3.  **Identificación de Personajes en TTS:**
+    -   [ ] Mejorar el `TextAnalyzer` con heurísticas para asociar los diálogos con nombres de personajes (ej. analizando "tags" como "dijo Juan").
+    -   [ ] Implementar un sistema en el `ViewModel` o `TTSManager` para asignar voces únicas a cada `characterId` identificado.
 
 ## 5. Calidad y Pruebas
 
