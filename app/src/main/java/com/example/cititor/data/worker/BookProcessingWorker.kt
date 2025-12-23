@@ -24,6 +24,7 @@ class BookProcessingWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val extractorFactory: ExtractorFactory,
     private val cleanPageDao: CleanPageDao,
+    private val bookMetadataDao: com.example.cititor.core.database.dao.BookMetadataDao,
     private val json: Json
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -86,6 +87,7 @@ class BookProcessingWorker @AssistedInject constructor(
             }
 
             val cleanPages = mutableListOf<CleanPageEntity>()
+            val allCharacters = mutableMapOf<String, com.example.cititor.domain.model.Character>()
 
             allPagesText.forEachIndexed { i, rawText ->
                 Log.d(TAG, "Processing page ${i + 1}/$pageCount")
@@ -93,8 +95,13 @@ class BookProcessingWorker @AssistedInject constructor(
                 try {
                     Log.d(TAG, "Extracted ${rawText.length} characters from page $i")
                     
-                    val segments = TextAnalyzer.analyze(rawText)
-                    Log.d(TAG, "Analyzed into ${segments.size} segments")
+                    val (segments, characters) = TextAnalyzer.analyze(rawText)
+                    Log.d(TAG, "Analyzed into ${segments.size} segments and found ${characters.size} characters")
+                    
+                    // Accumulate characters
+                    characters.forEach { char ->
+                        allCharacters[char.id] = char
+                    }
                     
                     val jsonContent = json.encodeToString(segments)
 
@@ -120,6 +127,17 @@ class BookProcessingWorker @AssistedInject constructor(
 
             Log.d(TAG, "Inserting ${cleanPages.size} pages into database...")
             cleanPageDao.insertAll(cleanPages)
+            
+            // Save detected characters metadata
+            if (allCharacters.isNotEmpty()) {
+                Log.d(TAG, "Saving ${allCharacters.size} detected characters...")
+                val metadataEntity = com.example.cititor.core.database.entity.BookMetadataEntity(
+                    bookId = bookId,
+                    charactersJson = json.encodeToString(allCharacters.values.toList())
+                )
+                bookMetadataDao.insertMetadata(metadataEntity)
+            }
+            
             Log.d(TAG, "Processing completed successfully")
 
             Result.success()

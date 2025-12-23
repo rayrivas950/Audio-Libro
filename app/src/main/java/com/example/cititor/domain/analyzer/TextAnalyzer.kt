@@ -17,35 +17,31 @@ object TextAnalyzer {
 
     /**
      * Analyzes a raw string, sanitizes it, and splits it into a list of TextSegments.
+     * Returns the segments and the list of characters detected in this chunk.
      *
-     * @param rawText The raw text from a book page, potentially with HTML and artifacts.
-     * @return A list of [TextSegment] objects, ordered as they appear in the text.
+     * @param rawText The raw text from a book page.
+     * @return A Pair containing the list of [TextSegment] and a list of [Character] detected.
      */
-    fun analyze(rawText: String): List<TextSegment> {
+    fun analyze(rawText: String): Pair<List<TextSegment>, List<com.example.cititor.domain.model.Character>> {
         val text = TextSanitizer.sanitize(rawText)
         val rawSegments = mutableListOf<TextSegment>()
         var lastIndex = 0
 
         // Phase 1: Segmentation
         dialogueRegex.findAll(text).forEach { matchResult ->
-            // 1. Add any text before the dialogue as a NarrationSegment.
             val narrationText = text.substring(lastIndex, matchResult.range.first).trim()
             if (narrationText.isNotEmpty()) {
                 rawSegments.add(NarrationSegment(text = narrationText))
             }
 
-            // 2. Add the dialogue itself as a DialogueSegment.
-            // The content is in one of the capturing groups.
             val dialogueText = (matchResult.groups[1] ?: matchResult.groups[2] ?: matchResult.groups[3])?.value?.trim()
             if (!dialogueText.isNullOrEmpty()) {
                 rawSegments.add(DialogueSegment(text = dialogueText))
             }
 
-            // 3. Update the index to the end of the current match.
             lastIndex = matchResult.range.last + 1
         }
 
-        // 4. Add any remaining text after the last dialogue as a final NarrationSegment.
         if (lastIndex < text.length) {
             val remainingNarration = text.substring(lastIndex).trim()
             if (remainingNarration.isNotEmpty()) {
@@ -53,23 +49,28 @@ object TextAnalyzer {
             }
         }
 
-        // Phase 2: Enrichment (Emotion Detection)
+        // Phase 2: Enrichment (Emotion & Character Detection)
         val language = detectLanguage(text)
         return enrichSegments(rawSegments, language)
     }
 
     private fun detectLanguage(text: String): String {
-        // Very basic heuristic for now
         val sample = text.take(500).lowercase()
         return if (sample.contains(" the ") || sample.contains(" and ") || sample.contains(" is ")) {
             "en"
         } else {
-            "es" // Default to Spanish
+            "es"
         }
     }
 
-    private fun enrichSegments(segments: List<TextSegment>, language: String): List<TextSegment> {
-        return segments.mapIndexed { index, segment ->
+    private fun enrichSegments(
+        segments: List<TextSegment>, 
+        language: String
+    ): Pair<List<TextSegment>, List<com.example.cititor.domain.model.Character>> {
+        val characterRegistry = com.example.cititor.domain.analyzer.character.CharacterRegistry()
+        val characterDetector = com.example.cititor.domain.analyzer.character.CharacterDetector()
+
+        val enrichedSegments = segments.mapIndexed { index, segment ->
             if (segment is DialogueSegment) {
                 // Look at context before and after
                 val prevSegment = segments.getOrNull(index - 1) as? NarrationSegment
@@ -77,16 +78,32 @@ object TextAnalyzer {
                 
                 val contextText = (prevSegment?.text ?: "") + " " + (nextSegment?.text ?: "")
                 
+                // 1. Emotion Detection
                 val (emotion, intensity) = com.example.cititor.domain.analyzer.emotion.EmotionDetector.detect(
                     dialogueText = segment.text,
                     contextText = contextText,
                     languageCode = language
                 )
 
-                segment.copy(emotion = emotion, intensity = intensity)
+                // 2. Character Detection
+                val charGuess = characterDetector.detectSpeaker(contextText, language)
+                var speakerId: String? = null
+                
+                if (charGuess != null) {
+                    val character = characterRegistry.getOrCreate(charGuess.name, charGuess.gender)
+                    speakerId = character.id
+                }
+
+                segment.copy(
+                    emotion = emotion, 
+                    intensity = intensity,
+                    speakerId = speakerId
+                )
             } else {
                 segment
             }
         }
+        
+        return Pair(enrichedSegments, characterRegistry.getAll())
     }
 }

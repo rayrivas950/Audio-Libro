@@ -85,7 +85,7 @@ object DebugHelper {
                 Nadie respondió. "Sal de ahí" insistió.
             """.trimIndent()
             
-            val segments = TextAnalyzer.analyze(testText)
+            val (segments, _) = TextAnalyzer.analyze(testText)
             results.add("✅ Analyzed: ${segments.size} segments")
             Log.d(TAG, "TextAnalyzer produced ${segments.size} segments")
             

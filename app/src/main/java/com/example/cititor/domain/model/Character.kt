@@ -6,9 +6,11 @@ import kotlinx.serialization.Serializable
 data class Character(
     val id: String,
     val name: String,
+    val aliases: Set<String> = emptySet(),
+    val isProtagonist: Boolean = false,
     val gender: Gender = Gender.UNKNOWN,
     val ageRange: AgeRange = AgeRange.ADULT,
-    val voiceProfile: String? = null // ID de voz (ej. "es-ES-Neural2-A")
+    val voiceProfile: String? = null
 )
 
 @Serializable
