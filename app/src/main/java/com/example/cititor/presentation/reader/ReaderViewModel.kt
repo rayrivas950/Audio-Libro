@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cititor.core.tts.TextToSpeechManager
 import com.example.cititor.domain.model.Book
+import com.example.cititor.domain.model.TextSegment
 import com.example.cititor.domain.use_case.GetBookPageUseCase
 import com.example.cititor.domain.use_case.GetBookUseCase
 import com.example.cititor.domain.use_case.UpdateBookProgressUseCase
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 data class ReaderState(
     val book: Book? = null,
-    val pageContent: String = "",
+    val pageSegments: List<TextSegment> = emptyList(),
+    val pageDisplayText: String = "", // For UI display
     val currentPage: Int = 0,
     val isLoading: Boolean = true,
     val highlightedTextRange: IntRange? = null
@@ -30,7 +32,7 @@ class ReaderViewModel @Inject constructor(
     private val getBookPageUseCase: GetBookPageUseCase,
     private val updateBookProgressUseCase: UpdateBookProgressUseCase,
     private val textToSpeechManager: TextToSpeechManager,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReaderState())
@@ -47,29 +49,29 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun startReading() {
-        textToSpeechManager.speak(state.value.pageContent)
+        // Pass the structured data to the TTS manager
+        textToSpeechManager.speak(state.value.pageSegments)
     }
 
     fun nextPage() {
         val book = state.value.book ?: return
         val currentPage = state.value.currentPage
         if (currentPage < book.totalPages - 1) {
-            val newPage = currentPage + 1
-            _state.value = state.value.copy(currentPage = newPage)
-            loadPageContent()
-            saveProgress()
+            loadPage(currentPage + 1)
         }
     }
 
     fun previousPage() {
-        val book = state.value.book ?: return
         val currentPage = state.value.currentPage
         if (currentPage > 0) {
-            val newPage = currentPage - 1
-            _state.value = state.value.copy(currentPage = newPage)
-            loadPageContent()
-            saveProgress()
+            loadPage(currentPage - 1)
         }
+    }
+
+    private fun loadPage(pageNumber: Int) {
+        _state.value = state.value.copy(currentPage = pageNumber)
+        loadPageContent()
+        saveProgress()
     }
 
     private fun loadBook(bookId: Long) {
@@ -77,10 +79,11 @@ class ReaderViewModel @Inject constructor(
             if (book != null) {
                 _state.value = state.value.copy(
                     book = book,
-                    currentPage = book.currentPage,
-                    isLoading = false
+                    currentPage = book.currentPage
                 )
                 loadPageContent()
+            } else {
+                _state.value = state.value.copy(isLoading = false)
             }
         }.launchIn(viewModelScope)
     }
@@ -88,10 +91,25 @@ class ReaderViewModel @Inject constructor(
     private fun loadPageContent() {
         viewModelScope.launch {
             val book = state.value.book
+            val page = state.value.currentPage
             if (book != null) {
                 _state.value = state.value.copy(isLoading = true)
-                val content = getBookPageUseCase(book.filePath, state.value.currentPage)
-                _state.value = state.value.copy(pageContent = content ?: "Error loading page", isLoading = false)
+                val segments = getBookPageUseCase(book.id, page)
+
+                if (segments != null) {
+                    val displayText = segments.joinToString(separator = " ") { it.text }
+                    _state.value = state.value.copy(
+                        pageSegments = segments,
+                        pageDisplayText = displayText,
+                        isLoading = false
+                    )
+                } else {
+                    _state.value = state.value.copy(
+                        pageSegments = emptyList(),
+                        pageDisplayText = "Page content not yet processed. Please try again later.",
+                        isLoading = false
+                    )
+                }
             }
         }
     }

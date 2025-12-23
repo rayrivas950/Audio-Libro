@@ -59,7 +59,7 @@ fun ReaderScreen(
                         .verticalScroll(scrollState)
                 ) {
                     val annotatedText = buildAnnotatedString {
-                        append(state.pageContent)
+                        append(state.pageDisplayText)
                         state.highlightedTextRange?.let {
                             addStyle(
                                 style = SpanStyle(background = Color.Yellow),

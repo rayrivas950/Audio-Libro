@@ -1,9 +1,15 @@
 package com.example.cititor.data.repository
 
+import android.content.Context
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.example.cititor.core.database.dao.BookDao
 import com.example.cititor.core.database.entity.BookEntity
+import com.example.cititor.data.worker.BookProcessingWorker
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.repository.LibraryRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -13,8 +19,11 @@ import javax.inject.Inject
  * This class is responsible for orchestrating data between the local database and the domain layer.
  */
 class LibraryRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val dao: BookDao
 ) : LibraryRepository {
+
+    private val workManager = WorkManager.getInstance(context)
 
     override fun getBooks(): Flow<List<Book>> {
         return dao.getAllBooks().map {
@@ -31,8 +40,20 @@ class LibraryRepositoryImpl @Inject constructor(
     override suspend fun insertBook(book: Book) {
         val existingBook = dao.getBookByFilePath(book.filePath)
         if (existingBook == null) {
-            dao.insertBook(book.toEntity())
+            val newBookId = dao.insertBook(book.toEntity())
+            startBookProcessing(newBookId, book.filePath)
         }
+    }
+
+    private fun startBookProcessing(bookId: Long, bookUri: String) {
+        val workRequest = OneTimeWorkRequestBuilder<BookProcessingWorker>()
+            .setInputData(workDataOf(
+                BookProcessingWorker.KEY_BOOK_ID to bookId,
+                BookProcessingWorker.KEY_BOOK_URI to bookUri
+            ))
+            .build()
+
+        workManager.enqueue(workRequest)
     }
 }
 

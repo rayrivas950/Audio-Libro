@@ -1,5 +1,7 @@
 package com.example.cititor.domain.repository
 
+import com.example.cititor.domain.model.TextSegment
+
 /**
  * Defines the contract for the data layer of the reader feature.
  * This will handle operations related to a single, opened book.
@@ -7,12 +9,12 @@ package com.example.cititor.domain.repository
 interface ReaderRepository {
 
     /**
-     * Retrieves the text content of a specific page from a book.
+     * Retrieves the structured text content of a specific page from a book's pre-processed cache.
      *
-     * @param filePath The path to the book file.
+     * @param bookId The ID of the book.
      * @param pageNumber The number of the page to retrieve (0-indexed).
-     * @return The text content of the page, or null if an error occurs.
+     * @return A list of [TextSegment] objects representing the page's content, or null if not found.
      */
-    suspend fun getPageContent(filePath: String, pageNumber: Int): String?
+    suspend fun getPageContent(bookId: Long, pageNumber: Int): List<TextSegment>?
 
 }
