@@ -2,6 +2,7 @@ package com.example.cititor.data.text_extractor
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.example.cititor.domain.text_extractor.TextExtractor
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
@@ -9,38 +10,79 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PdfExtractor @Inject constructor() : TextExtractor {
 
+    companion object {
+        private const val TAG = "PdfExtractor"
+    }
+
     override suspend fun extractText(context: Context, uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Extracting text from PDF page $page, URI: $uri")
         try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                PDDocument.load(inputStream).use { document ->
+            val inputStream = context.contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                val errorMsg = "Could not open input stream for URI: $uri"
+                Log.e(TAG, errorMsg)
+                return@withContext errorMsg
+            }
+            
+            inputStream.use { stream ->
+                PDDocument.load(stream).use { document ->
+                    Log.d(TAG, "PDF loaded successfully, total pages: ${document.numberOfPages}")
+                    
                     if (page >= 0 && page < document.numberOfPages) {
                         val stripper = PDFTextStripper().apply {
                             startPage = page + 1
                             endPage = page + 1
                         }
-                        stripper.getText(document)
+                        val text = stripper.getText(document)
+                        Log.d(TAG, "Successfully extracted ${text.length} characters from page $page")
+                        text
                     } else {
-                        "Page index out of bounds."
+                        val errorMsg = "Page index out of bounds. Requested: $page, Available: 0-${document.numberOfPages - 1}"
+                        Log.e(TAG, errorMsg)
+                        errorMsg
                     }
                 }
-            } ?: "Could not open input stream."
+            }
         } catch (e: IOException) {
+            val errorMsg = "IOException while extracting text from PDF: ${e.message}"
+            Log.e(TAG, errorMsg, e)
             e.printStackTrace()
-            "Error extracting text from PDF."
+            "Error extracting text from PDF: ${e.message}"
+        } catch (e: Exception) {
+            val errorMsg = "Unexpected error extracting text from PDF: ${e.javaClass.simpleName} - ${e.message}"
+            Log.e(TAG, errorMsg, e)
+            e.printStackTrace()
+            "Error extracting text from PDF: ${e.message}"
         }
     }
 
     override suspend fun getPageCount(context: Context, uri: Uri): Int = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Getting page count for PDF, URI: $uri")
         try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                PDDocument.load(inputStream).use { document ->
-                    document.numberOfPages
+            val inputStream = context.contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                Log.e(TAG, "Could not open input stream for URI: $uri")
+                return@withContext 0
+            }
+            
+            inputStream.use { stream ->
+                PDDocument.load(stream).use { document ->
+                    val pageCount = document.numberOfPages
+                    Log.d(TAG, "PDF has $pageCount pages")
+                    pageCount
                 }
-            } ?: 0
+            }
         } catch (e: IOException) {
+            Log.e(TAG, "IOException while getting page count: ${e.message}", e)
+            e.printStackTrace()
+            0
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error getting page count: ${e.javaClass.simpleName} - ${e.message}", e)
             e.printStackTrace()
             0
         }

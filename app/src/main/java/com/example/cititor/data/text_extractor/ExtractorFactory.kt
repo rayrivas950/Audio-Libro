@@ -3,36 +3,59 @@ package com.example.cititor.data.text_extractor
 import android.app.Application
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import com.example.cititor.domain.text_extractor.TextExtractor
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ExtractorFactory @Inject constructor(
-    private val application: Application
+    private val application: Application,
+    private val pdfExtractor: PdfExtractor,
+    private val epubExtractor: EpubExtractor
 ) {
+
+    companion object {
+        private const val TAG = "ExtractorFactory"
+    }
 
     fun create(filePath: String): TextExtractor? {
         val uri = Uri.parse(filePath)
         val fileName = getFileName(uri)
 
+        Log.d(TAG, "Creating extractor for file: $fileName, URI: $filePath")
+
         // Prioritize the file extension from the display name, as it's the most reliable source.
         if (fileName != null) {
             val lowercasedFileName = fileName.lowercase(Locale.ROOT)
             if (lowercasedFileName.endsWith(".pdf")) {
-                return PdfExtractor()
+                Log.d(TAG, "Detected PDF file by extension")
+                return pdfExtractor
             }
             if (lowercasedFileName.endsWith(".epub")) {
-                return EpubExtractor()
+                Log.d(TAG, "Detected EPUB file by extension")
+                return epubExtractor
             }
         }
 
         // As a fallback, check the MIME type. This can help with URIs that don't expose
         // a display name or for files without a traditional extension.
         val mimeType = application.contentResolver.getType(uri)
+        Log.d(TAG, "Checking MIME type: $mimeType")
         return when (mimeType) {
-            "application/pdf" -> PdfExtractor()
-            "application/epub+zip" -> EpubExtractor()
-            else -> null
+            "application/pdf" -> {
+                Log.d(TAG, "Detected PDF file by MIME type")
+                pdfExtractor
+            }
+            "application/epub+zip" -> {
+                Log.d(TAG, "Detected EPUB file by MIME type")
+                epubExtractor
+            }
+            else -> {
+                Log.w(TAG, "Unsupported file type. FileName: $fileName, MIME: $mimeType")
+                null
+            }
         }
     }
 

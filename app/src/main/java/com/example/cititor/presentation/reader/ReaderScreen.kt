@@ -38,7 +38,7 @@ fun ReaderScreen(
 
     Scaffold(
         floatingActionButton = {
-            if (!state.isLoading && !state.isProcessing) {
+            if (!state.isLoading && !state.isProcessing && state.processingError == null) {
                 FloatingActionButton(onClick = { viewModel.startReading() }) {
                     Icon(Icons.Default.PlayArrow, contentDescription = "Start Reading")
                 }
@@ -66,6 +66,16 @@ fun ReaderScreen(
                         )
                     }
                 }
+            } else if (state.processingError != null) {
+                Text(
+                    text = state.processingError ?: "An unknown error occurred.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
+                )
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     val scrollState = rememberScrollState()

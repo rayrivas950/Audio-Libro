@@ -5,13 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cititor.debug.DebugHelper
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.use_case.AddBookUseCase
 import com.example.cititor.domain.use_case.GetBooksUseCase
 import com.github.mertakdut.Reader
 import com.github.mertakdut.exception.OutOfPagesException
 import com.github.mertakdut.exception.ReadingException
-import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -38,15 +39,28 @@ data class LibraryState(
 class LibraryViewModel @Inject constructor(
     private val getBooksUseCase: GetBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
-    private val application: Application
+    private val application: Application,
+    private val json: Json
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
     val state: StateFlow<LibraryState> = _state
 
     init {
-        PDFBoxResourceLoader.init(application)
         getBooks()
+    }
+    
+    /**
+     * Ejecuta pruebas de diagnóstico para identificar problemas
+     */
+    fun runDiagnosticTests() {
+        viewModelScope.launch {
+            // Test 1: Serialización
+            DebugHelper.testSerialization(application, json)
+            
+            // Test 2: TextAnalyzer
+            DebugHelper.testTextAnalyzer(application, json)
+        }
     }
 
     fun onBookUriSelected(uri: Uri) {

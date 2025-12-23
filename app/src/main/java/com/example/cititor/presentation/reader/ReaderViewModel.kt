@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.example.cititor.core.tts.TextToSpeechManager
+import com.example.cititor.data.worker.BookProcessingWorker
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.model.TextSegment
 import com.example.cititor.domain.use_case.GetBookPageUseCase
@@ -29,7 +30,8 @@ data class ReaderState(
     val pageDisplayText: String = "",
     val currentPage: Int = 0,
     val isLoading: Boolean = true,
-    val isProcessing: Boolean = false, // To track the background worker
+    val isProcessing: Boolean = false,
+    val processingError: String? = null, // To show worker errors
     val highlightedTextRange: IntRange? = null
 )
 
@@ -105,8 +107,13 @@ class ReaderViewModel @Inject constructor(
             .onEach { workInfo ->
                 val isFinished = workInfo.state.isFinished
                 _state.value = state.value.copy(isProcessing = !isFinished)
+
+                if (workInfo.state == WorkInfo.State.FAILED) {
+                    val errorMessage = workInfo.outputData.getString(BookProcessingWorker.KEY_ERROR_MSG)
+                    _state.value = state.value.copy(processingError = "Processing failed: $errorMessage")
+                }
+
                 if (isFinished) {
-                    // Once processing is done, reload the content
                     loadPageContent()
                 }
             }.launchIn(viewModelScope)
@@ -115,7 +122,6 @@ class ReaderViewModel @Inject constructor(
     private fun loadPageContent() {
         viewModelScope.launch {
             if (state.value.isProcessing) {
-                // Don't try to load content while the book is being processed
                 _state.value = state.value.copy(
                     isLoading = false,
                     pageDisplayText = "Analysing book for the first time, please wait..."
@@ -129,17 +135,18 @@ class ReaderViewModel @Inject constructor(
                 _state.value = state.value.copy(isLoading = true)
                 val segments = getBookPageUseCase(book.id, page)
 
-                if (segments != null) {
+                if (segments != null && segments.isNotEmpty()) {
                     val displayText = segments.joinToString(separator = " ") { it.text }
                     _state.value = state.value.copy(
                         pageSegments = segments,
                         pageDisplayText = displayText,
-                        isLoading = false
+                        isLoading = false,
+                        processingError = null // Clear previous errors
                     )
                 } else {
                     _state.value = state.value.copy(
                         pageSegments = emptyList(),
-                        pageDisplayText = "Page content not available.",
+                        pageDisplayText = if (state.value.processingError == null) "Page content not available." else "",
                         isLoading = false
                     )
                 }

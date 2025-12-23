@@ -60,6 +60,11 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideJson(): Json {
-        return Json { isLenient = true; ignoreUnknownKeys = true }
+        return Json {
+            isLenient = true
+            ignoreUnknownKeys = true
+            // CRÍTICO: Habilitar serialización polimórfica para sealed interfaces
+            classDiscriminator = "type"
+        }
     }
 }
