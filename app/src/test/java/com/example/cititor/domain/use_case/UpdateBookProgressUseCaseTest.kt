@@ -32,7 +32,8 @@ class UpdateBookProgressUseCaseTest {
             coverPath = null,
             currentPage = 0,
             totalPages = 100,
-            lastReadTimestamp = 0
+            lastReadTimestamp = 0,
+            processingWorkId = null
         )
         val newPage = 50
 

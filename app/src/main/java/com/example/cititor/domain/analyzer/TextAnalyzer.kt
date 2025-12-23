@@ -23,21 +23,22 @@ object TextAnalyzer {
      */
     fun analyze(rawText: String): List<TextSegment> {
         val text = TextSanitizer.sanitize(rawText)
-        val segments = mutableListOf<TextSegment>()
+        val rawSegments = mutableListOf<TextSegment>()
         var lastIndex = 0
 
+        // Phase 1: Segmentation
         dialogueRegex.findAll(text).forEach { matchResult ->
             // 1. Add any text before the dialogue as a NarrationSegment.
             val narrationText = text.substring(lastIndex, matchResult.range.first).trim()
             if (narrationText.isNotEmpty()) {
-                segments.add(NarrationSegment(text = narrationText))
+                rawSegments.add(NarrationSegment(text = narrationText))
             }
 
             // 2. Add the dialogue itself as a DialogueSegment.
             // The content is in one of the capturing groups.
             val dialogueText = (matchResult.groups[1] ?: matchResult.groups[2] ?: matchResult.groups[3])?.value?.trim()
             if (!dialogueText.isNullOrEmpty()) {
-                segments.add(DialogueSegment(text = dialogueText))
+                rawSegments.add(DialogueSegment(text = dialogueText))
             }
 
             // 3. Update the index to the end of the current match.
@@ -48,10 +49,44 @@ object TextAnalyzer {
         if (lastIndex < text.length) {
             val remainingNarration = text.substring(lastIndex).trim()
             if (remainingNarration.isNotEmpty()) {
-                segments.add(NarrationSegment(text = remainingNarration))
+                rawSegments.add(NarrationSegment(text = remainingNarration))
             }
         }
 
-        return segments
+        // Phase 2: Enrichment (Emotion Detection)
+        val language = detectLanguage(text)
+        return enrichSegments(rawSegments, language)
+    }
+
+    private fun detectLanguage(text: String): String {
+        // Very basic heuristic for now
+        val sample = text.take(500).lowercase()
+        return if (sample.contains(" the ") || sample.contains(" and ") || sample.contains(" is ")) {
+            "en"
+        } else {
+            "es" // Default to Spanish
+        }
+    }
+
+    private fun enrichSegments(segments: List<TextSegment>, language: String): List<TextSegment> {
+        return segments.mapIndexed { index, segment ->
+            if (segment is DialogueSegment) {
+                // Look at context before and after
+                val prevSegment = segments.getOrNull(index - 1) as? NarrationSegment
+                val nextSegment = segments.getOrNull(index + 1) as? NarrationSegment
+                
+                val contextText = (prevSegment?.text ?: "") + " " + (nextSegment?.text ?: "")
+                
+                val (emotion, intensity) = com.example.cititor.domain.analyzer.emotion.EmotionDetector.detect(
+                    dialogueText = segment.text,
+                    contextText = contextText,
+                    languageCode = language
+                )
+
+                segment.copy(emotion = emotion, intensity = intensity)
+            } else {
+                segment
+            }
+        }
     }
 }
