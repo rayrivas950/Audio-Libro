@@ -42,16 +42,15 @@ class BookProcessingWorker @AssistedInject constructor(
         val extractor = extractorFactory.create(bookUri.toString())
 
         if (extractor == null) {
-            // Cannot process this book type
             return@withContext Result.failure()
         }
 
         try {
-            val pageCount = extractor.getPageCount(bookUri)
+            val pageCount = extractor.getPageCount(applicationContext, bookUri)
             val cleanPages = mutableListOf<CleanPageEntity>()
 
             for (i in 0 until pageCount) {
-                val rawText = extractor.extractText(bookUri, i)
+                val rawText = extractor.extractText(applicationContext, bookUri, i)
                 val segments = TextAnalyzer.analyze(rawText)
                 val jsonContent = json.encodeToString(segments)
 

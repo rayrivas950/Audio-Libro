@@ -19,10 +19,10 @@ class ExtractorFactory @Inject constructor(
         if (fileName != null) {
             val lowercasedFileName = fileName.lowercase(Locale.ROOT)
             if (lowercasedFileName.endsWith(".pdf")) {
-                return PdfExtractor(application)
+                return PdfExtractor()
             }
             if (lowercasedFileName.endsWith(".epub")) {
-                return EpubExtractor(application)
+                return EpubExtractor()
             }
         }
 
@@ -30,8 +30,8 @@ class ExtractorFactory @Inject constructor(
         // a display name or for files without a traditional extension.
         val mimeType = application.contentResolver.getType(uri)
         return when (mimeType) {
-            "application/pdf" -> PdfExtractor(application)
-            "application/epub+zip" -> EpubExtractor(application)
+            "application/pdf" -> PdfExtractor()
+            "application/epub+zip" -> EpubExtractor()
             else -> null
         }
     }

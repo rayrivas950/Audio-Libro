@@ -13,5 +13,6 @@ data class Book(
     val coverPath: String?,
     val currentPage: Int,
     val totalPages: Int,
-    val lastReadTimestamp: Long
+    val lastReadTimestamp: Long,
+    val processingWorkId: String? // To track the background processing job
 )

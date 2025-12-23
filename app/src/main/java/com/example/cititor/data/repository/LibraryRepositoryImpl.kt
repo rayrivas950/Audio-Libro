@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import androidx.room.withTransaction
 import com.example.cititor.core.database.CititorDatabase
 import com.example.cititor.core.database.dao.BookDao
 import com.example.cititor.core.database.entity.BookEntity
@@ -37,14 +38,14 @@ class LibraryRepositoryImpl @Inject constructor(
 
     override suspend fun insertBook(book: Book) {
         if (dao.getBookByFilePath(book.filePath) == null) {
-            db.runInTransaction {
+            db.withTransaction {
                 val newBookId = dao.insertBook(book.toEntity())
                 startBookProcessing(newBookId, book.filePath)
             }
         }
     }
 
-    private fun startBookProcessing(bookId: Long, bookUri: String) {
+    private suspend fun startBookProcessing(bookId: Long, bookUri: String) {
         val workRequest = OneTimeWorkRequestBuilder<BookProcessingWorker>()
             .setInputData(workDataOf(
                 BookProcessingWorker.KEY_BOOK_ID to bookId,

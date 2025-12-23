@@ -79,7 +79,8 @@ class LibraryViewModel @Inject constructor(
                             coverPath = null, // Future feature
                             currentPage = 0,
                             totalPages = document.numberOfPages,
-                            lastReadTimestamp = System.currentTimeMillis()
+                            lastReadTimestamp = System.currentTimeMillis(),
+                            processingWorkId = null
                         )
                         addBookUseCase(newBook)
                     }
@@ -126,7 +127,8 @@ class LibraryViewModel @Inject constructor(
                     coverPath = null, // Future feature
                     currentPage = 0,
                     totalPages = sectionCount,
-                    lastReadTimestamp = System.currentTimeMillis()
+                    lastReadTimestamp = System.currentTimeMillis(),
+                    processingWorkId = null
                 )
                 addBookUseCase(newBook)
 

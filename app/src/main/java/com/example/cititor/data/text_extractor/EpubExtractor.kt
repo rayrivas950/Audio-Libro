@@ -1,6 +1,6 @@
 package com.example.cititor.data.text_extractor
 
-import android.app.Application
+import android.content.Context
 import android.net.Uri
 import com.example.cititor.domain.text_extractor.TextExtractor
 import com.github.mertakdut.BookSection
@@ -14,27 +14,23 @@ import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
-class EpubExtractor @Inject constructor(
-    private val application: Application
-) : TextExtractor {
+class EpubExtractor @Inject constructor() : TextExtractor {
 
-    override suspend fun extractText(uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
+    override suspend fun extractText(context: Context, uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
         var tempFile: File? = null
         try {
-            tempFile = File.createTempFile("temp_epub_read", ".epub", application.cacheDir)
-            application.contentResolver.openInputStream(uri)?.use { inputStream ->
+            tempFile = File.createTempFile("temp_epub_read", ".epub", context.cacheDir)
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 FileOutputStream(tempFile).use { outputStream ->
                     inputStream.copyTo(outputStream)
                 }
             }
 
             val reader = Reader()
-            reader.setIsIncludingTextContent(true) // Per the README, to use getSectionTextContent()
+            reader.setIsIncludingTextContent(true)
             reader.setFullContent(tempFile.absolutePath)
 
             val bookSection: BookSection? = reader.readSection(page)
-            
-            // Per the README, this is the correct way to get plain text.
             bookSection?.sectionTextContent ?: "Content not available for this section."
 
         } catch (e: OutOfPagesException) {
@@ -50,11 +46,11 @@ class EpubExtractor @Inject constructor(
         }
     }
 
-    override suspend fun getPageCount(uri: Uri): Int = withContext(Dispatchers.IO) {
+    override suspend fun getPageCount(context: Context, uri: Uri): Int = withContext(Dispatchers.IO) {
         var tempFile: File? = null
         try {
-            tempFile = File.createTempFile("temp_epub_count", ".epub", application.cacheDir)
-            application.contentResolver.openInputStream(uri)?.use { inputStream ->
+            tempFile = File.createTempFile("temp_epub_count", ".epub", context.cacheDir)
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 FileOutputStream(tempFile).use { outputStream ->
                     inputStream.copyTo(outputStream)
                 }
@@ -69,7 +65,6 @@ class EpubExtractor @Inject constructor(
                     reader.readSection(sectionCount)
                     sectionCount++
                 } catch (e: OutOfPagesException) {
-                    // We have reached the end of the book. This is the exit condition.
                     break
                 }
             }

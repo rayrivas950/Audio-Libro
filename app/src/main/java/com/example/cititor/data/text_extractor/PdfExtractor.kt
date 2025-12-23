@@ -1,6 +1,6 @@
 package com.example.cititor.data.text_extractor
 
-import android.app.Application
+import android.content.Context
 import android.net.Uri
 import com.example.cititor.domain.text_extractor.TextExtractor
 import com.tom_roush.pdfbox.pdmodel.PDDocument
@@ -10,13 +10,11 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
 
-class PdfExtractor @Inject constructor(
-    private val application: Application
-) : TextExtractor {
+class PdfExtractor @Inject constructor() : TextExtractor {
 
-    override suspend fun extractText(uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
+    override suspend fun extractText(context: Context, uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
         try {
-            application.contentResolver.openInputStream(uri)?.use { inputStream ->
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 PDDocument.load(inputStream).use { document ->
                     if (page >= 0 && page < document.numberOfPages) {
                         val stripper = PDFTextStripper().apply {
@@ -35,9 +33,9 @@ class PdfExtractor @Inject constructor(
         }
     }
 
-    override suspend fun getPageCount(uri: Uri): Int = withContext(Dispatchers.IO) {
+    override suspend fun getPageCount(context: Context, uri: Uri): Int = withContext(Dispatchers.IO) {
         try {
-            application.contentResolver.openInputStream(uri)?.use { inputStream ->
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 PDDocument.load(inputStream).use { document ->
                     document.numberOfPages
                 }
