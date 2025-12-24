@@ -21,10 +21,19 @@ object TextSanitizer {
             .replace("<em>", "*")
             .replace("</em>", "*")
 
-        // 2. Remove remaining HTML tags.
+        // 2. Normalize special characters that might confuse Piper
+        processedText = processedText
+            .replace("“", "\"")
+            .replace("”", "\"")
+            .replace("«", "\"")
+            .replace("»", "\"")
+            .replace("—", "-") // Long dash to standard dash
+            .replace("–", "-") // En dash to standard dash
+
+        // 3. Remove remaining HTML tags.
         val strippedText = htmlTagRegex.replace(processedText, "")
         
-        // 3. Replace sequences of whitespace characters with a single space and trim the result.
+        // 4. Replace sequences of whitespace characters with a single space and trim the result.
         return extraWhitespaceRegex.replace(strippedText, " ").trim()
     }
 }

@@ -8,6 +8,7 @@ import com.example.cititor.domain.model.DialogueSegment
 import com.example.cititor.domain.model.NarrationSegment
 import com.example.cititor.domain.model.TextSegment
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -76,29 +77,44 @@ class TextToSpeechManager @Inject constructor(
         }
     }
 
+    private val audioChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
+    private var playbackJob: Job? = null
+    private var synthesisJob: Job? = null
+
     fun speak(segments: List<TextSegment>) {
         if (!isInitialized) return
 
+        stop() // Stop any ongoing playback
         _currentSpokenWord.value = null
         
         if (usePiper) {
-            scope.launch {
-                segments.forEach { segment ->
-                    val text = segment.text
-                    // TODO: Map VoiceProfile to speakerId and speed
-                    val speakerId = 0 
-                    val speed = 1.0f
-                    
-                    // Synthesize
-                    val rawAudio = piperTts?.synthesize(text, speed, speakerId)
-                    
-                    if (rawAudio != null) {
-                        // Apply Effects (Pitch, etc.)
-                        // val processedAudio = effectProcessor?.applyPitchShift(rawAudio, 22050, 1.0) 
+            // 1. Consumer: Plays audio from the channel
+            playbackJob = scope.launch {
+                for (audioData in audioChannel) {
+                    audioPlayer?.play(audioData)
+                }
+            }
+
+            // 2. Producer: Synthesizes segments and sends to channel
+            synthesisJob = scope.launch {
+                try {
+                    segments.forEach { segment ->
+                        val text = segment.text
+                        val speakerId = 0 
+                        val speed = 0.9f
                         
-                        // Play
-                        audioPlayer?.play(rawAudio)
+                        Log.d(TAG, "Synthesizing segment: '${text.take(50)}...' at speed $speed")
+                        val rawAudio = piperTts?.synthesize(text, speed, speakerId)
+                        
+                        if (rawAudio != null) {
+                            Log.d(TAG, "Synthesis successful. Sending to pipeline. Size: ${rawAudio.size}")
+                            audioChannel.send(rawAudio)
+                        } else {
+                            Log.e(TAG, "Synthesis FAILED for segment")
+                        }
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Producer error", e)
                 }
             }
         } else {
@@ -112,6 +128,15 @@ class TextToSpeechManager @Inject constructor(
     }
 
     fun stop() {
+        playbackJob?.cancel()
+        synthesisJob?.cancel()
+        
+        // Clear the channel safely
+        while (true) {
+            val result = audioChannel.tryReceive()
+            if (result.isFailure) break
+        }
+        
         if (usePiper) {
             audioPlayer?.stop()
         } else {
@@ -120,6 +145,7 @@ class TextToSpeechManager @Inject constructor(
     }
 
     fun shutdown() {
+        stop()
         if (usePiper) {
             piperTts?.release()
             audioPlayer?.release()

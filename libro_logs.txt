@@ -10763,4 +10763,89 @@
 12-23 22:37:44.798 10012 10048 D BookProcessingWorker: Processing page 170 (Length: 3690)
 12-23 22:37:44.802 10012 10048 D PdfExtractor: Streamed page 169 (3690 chars)
 12-23 22:37:44.839 10012 10048 D BookProcessingWorker: Processing page 171 (Length: 3658)
-1
+12-23 22:37:44.844 10012 10048 D PdfExtractor: Streamed page 170 (3658 chars)
+12-23 22:37:44.888 10012 10048 D BookProcessingWorker: Processing page 172 (Length: 3946)
+12-23 22:37:44.894 10012 10048 D PdfExtractor: Streamed page 171 (3946 chars)
+12-23 22:37:44.921 10012 10048 D BookProcessingWorker: Processing page 173 (Length: 2963)
+12-23 22:37:44.925 10012 10048 D PdfExtractor: Streamed page 172 (2963 chars)
+12-23 22:37:44.946 10012 10048 D BookProcessingWorker: Processing page 174 (Length: 1807)
+12-23 22:37:44.948 10012 10048 D PdfExtractor: Streamed page 173 (1807 chars)
+12-23 22:37:44.950 10012 10048 D PdfExtractor: Successfully finished PDF streaming
+12-23 22:37:44.950 10012 10048 D BookProcessingWorker: Inserting remaining 24 pages...
+12-23 22:37:44.953 10012 10048 D BookProcessingWorker: Saving 61 detected characters for the whole book...
+12-23 22:37:44.957 10012 10048 D BookProcessingWorker: Processing completed successfully. Total pages: 174
+12-23 22:37:44.959 10012 10037 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=5a574622-5f15-49f8-ab28-239a19c21de0, tags={ com.example.cititor.data.worker.BookProcessingWorker } ]
+12-23 22:53:45.283 10167 10205 D BookProcessingWorker: BookProcessingWorker started
+12-23 22:53:45.283 10167 10205 D BookProcessingWorker: Processing book - ID: 2, URI: content://com.android.providers.downloads.documents/document/msf%3A37
+12-23 22:53:45.284 10167 10205 D BookProcessingWorker: URI permissions verified successfully
+12-23 22:53:45.296 10167 10205 D ExtractorFactory: Creating extractor for file: la-psicologia-del-dinero-morgan-housel.epub, URI: content://com.android.providers.downloads.documents/document/msf%3A37
+12-23 22:53:45.296 10167 10205 D ExtractorFactory: Detected EPUB file by extension
+12-23 22:53:45.296 10167 10205 D BookProcessingWorker: Starting streaming extraction and processing...
+12-23 22:53:45.298 10167 10205 D EpubExtractor: Streaming all pages from EPUB, URI: content://com.android.providers.downloads.documents/document/msf%3A37
+12-23 22:53:45.311 10167 10205 W System.err: 	at com.example.cititor.data.text_extractor.EpubExtractor$extractPages$2.invokeSuspend(EpubExtractor.kt:134)
+12-23 22:53:45.311 10167 10205 W System.err: 	at com.example.cititor.data.text_extractor.EpubExtractor$extractPages$2.invoke(Unknown Source:8)
+12-23 22:53:45.311 10167 10205 W System.err: 	at com.example.cititor.data.text_extractor.EpubExtractor$extractPages$2.invoke(Unknown Source:4)
+12-23 22:53:45.311 10167 10205 W System.err: 	at com.example.cititor.data.text_extractor.EpubExtractor.extractPages(EpubExtractor.kt:112)
+12-23 22:53:45.311 10167 10205 W System.err: 	at com.example.cititor.data.worker.BookProcessingWorker$doWork$2.invokeSuspend(BookProcessingWorker.kt:85)
+12-23 22:53:50.904 10167 10205 D BookProcessingWorker: Processing page 1 (Length: 158107)
+12-23 22:53:51.109 10167 10205 D EpubExtractor: Streamed EPUB section 0 (158107 chars)
+12-23 22:53:51.357 10167 10205 D BookProcessingWorker: Processing page 2 (Length: 19323)
+12-23 22:53:51.376 10167 10205 D EpubExtractor: Streamed EPUB section 1 (19323 chars)
+12-23 22:53:51.528 10167 10205 D BookProcessingWorker: Processing page 3 (Length: 14905)
+12-23 22:53:51.543 10167 10205 D EpubExtractor: Streamed EPUB section 2 (14905 chars)
+12-23 22:53:51.580 10167 10205 D BookProcessingWorker: Processing page 4 (Length: 1978)
+12-23 22:53:51.581 10167 10205 D EpubExtractor: Streamed EPUB section 3 (1978 chars)
+12-23 22:53:51.688 10167 10205 D BookProcessingWorker: Processing page 5 (Length: 9949)
+12-23 22:53:51.697 10167 10205 D EpubExtractor: Streamed EPUB section 4 (9949 chars)
+12-23 22:53:51.734 10167 10205 D BookProcessingWorker: Processing page 6 (Length: 2253)
+12-23 22:53:51.741 10167 10205 D EpubExtractor: Streamed EPUB section 5 (2253 chars)
+12-23 22:53:52.161 10167 10205 D BookProcessingWorker: Processing page 7 (Length: 32726)
+12-23 22:53:52.186 10167 10205 D EpubExtractor: Streamed EPUB section 6 (32726 chars)
+12-23 22:53:52.417 10167 10205 D BookProcessingWorker: Processing page 8 (Length: 18068)
+12-23 22:53:52.423 10167 10205 D EpubExtractor: Streamed EPUB section 7 (18068 chars)
+12-23 22:53:52.562 10167 10205 D BookProcessingWorker: Processing page 9 (Length: 12927)
+12-23 22:53:52.572 10167 10205 D EpubExtractor: Streamed EPUB section 8 (12927 chars)
+12-23 22:53:52.648 10167 10205 D BookProcessingWorker: Processing page 10 (Length: 2919)
+12-23 22:53:52.650 10167 10205 D EpubExtractor: Streamed EPUB section 9 (2919 chars)
+12-23 22:53:52.748 10167 10205 D BookProcessingWorker: Processing page 11 (Length: 7291)
+12-23 22:53:52.751 10167 10205 D EpubExtractor: Streamed EPUB section 10 (7291 chars)
+12-23 22:53:52.837 10167 10205 D BookProcessingWorker: Processing page 12 (Length: 3575)
+12-23 22:53:52.839 10167 10205 D EpubExtractor: Streamed EPUB section 11 (3575 chars)
+12-23 22:53:52.893 10167 10205 D BookProcessingWorker: Processing page 13 (Length: 1844)
+12-23 22:53:52.894 10167 10205 D EpubExtractor: Streamed EPUB section 12 (1844 chars)
+12-23 22:53:52.949 10167 10205 D BookProcessingWorker: Processing page 14 (Length: 1525)
+12-23 22:53:52.950 10167 10205 D EpubExtractor: Streamed EPUB section 13 (1525 chars)
+12-23 22:53:53.013 10167 10205 D BookProcessingWorker: Processing page 15 (Length: 1614)
+12-23 22:53:53.014 10167 10205 D EpubExtractor: Streamed EPUB section 14 (1614 chars)
+12-23 22:53:53.318 10167 10205 D BookProcessingWorker: Processing page 16 (Length: 12848)
+12-23 22:53:53.329 10167 10205 D EpubExtractor: Streamed EPUB section 15 (12848 chars)
+12-23 22:53:59.816 10167 10205 D BookProcessingWorker: Processing page 17 (Length: 189267)
+12-23 22:53:59.986 10167 10205 D EpubExtractor: Streamed EPUB section 16 (189267 chars)
+12-23 22:54:00.005 10167 10205 D BookProcessingWorker: Processing page 18 (Length: 1627)
+12-23 22:54:00.007 10167 10205 D EpubExtractor: Streamed EPUB section 17 (1627 chars)
+12-23 22:54:00.119 10167 10205 D BookProcessingWorker: Processing page 19 (Length: 4815)
+12-23 22:54:00.123 10167 10205 D EpubExtractor: Streamed EPUB section 18 (4815 chars)
+12-23 22:54:00.404 10167 10205 D BookProcessingWorker: Processing page 20 (Length: 19741)
+12-23 22:54:00.426 10167 10205 D EpubExtractor: Streamed EPUB section 19 (19741 chars)
+12-23 22:54:00.585 10167 10205 D BookProcessingWorker: Processing page 21 (Length: 18388)
+12-23 22:54:00.603 10167 10205 D EpubExtractor: Streamed EPUB section 20 (18388 chars)
+12-23 22:54:01.257 10167 10205 D BookProcessingWorker: Processing page 22 (Length: 47544)
+12-23 22:54:01.302 10167 10205 D EpubExtractor: Streamed EPUB section 21 (47544 chars)
+12-23 22:54:01.353 10167 10205 D BookProcessingWorker: Processing page 23 (Length: 2527)
+12-23 22:54:01.355 10167 10205 D EpubExtractor: Streamed EPUB section 22 (2527 chars)
+12-23 22:54:01.495 10167 10205 D BookProcessingWorker: Processing page 24 (Length: 10238)
+12-23 22:54:01.504 10167 10205 D EpubExtractor: Streamed EPUB section 23 (10238 chars)
+12-23 22:54:01.597 10167 10205 D BookProcessingWorker: Processing page 25 (Length: 7572)
+12-23 22:54:01.606 10167 10205 D EpubExtractor: Streamed EPUB section 24 (7572 chars)
+12-23 22:54:01.735 10167 10205 D BookProcessingWorker: Processing page 26 (Length: 10904)
+12-23 22:54:01.744 10167 10205 D EpubExtractor: Streamed EPUB section 25 (10904 chars)
+12-23 22:54:02.124 10167 10205 D BookProcessingWorker: Processing page 27 (Length: 12346)
+12-23 22:54:02.136 10167 10205 D EpubExtractor: Streamed EPUB section 26 (12346 chars)
+12-23 22:54:02.194 10167 10205 D BookProcessingWorker: Processing page 28 (Length: 6237)
+12-23 22:54:02.197 10167 10205 D EpubExtractor: Streamed EPUB section 27 (6237 chars)
+12-23 22:54:03.314 10167 10205 D BookProcessingWorker: Processing page 29 (Length: 48955)
+12-23 22:54:03.336 10167 10205 D EpubExtractor: Streamed EPUB section 28 (48955 chars)
+12-23 22:54:03.337 10167 10205 D BookProcessingWorker: Inserting remaining 29 pages...
+12-23 22:54:03.348 10167 10205 D BookProcessingWorker: Saving 8 detected characters for the whole book...
+12-23 22:54:03.351 10167 10205 D BookProcessingWorker: Processing completed successfully. Total pages: 29
+12-23 22:54:03.352 10167 10215 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=899286a7-cee3-49c4-a1b7-d1c12fbbec52, tags={ com.example.cititor.data.worker.BookProcessingWorker } ]

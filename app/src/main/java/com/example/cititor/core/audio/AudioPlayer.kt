@@ -23,6 +23,11 @@ class AudioPlayer {
 
     private fun createAudioTrack() {
         try {
+            // Increase buffer size to avoid underruns (static/noise)
+            // We use 4x the minimum buffer size for stability
+            val optimizedBufferSize = bufferSize * 4
+            Log.d("AudioPlayer", "Creating AudioTrack: MinBufferSize=$bufferSize, OptimizedBufferSize=$optimizedBufferSize")
+
             audioTrack = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
@@ -37,7 +42,7 @@ class AudioPlayer {
                         .setChannelMask(channelConfig)
                         .build()
                 )
-                .setBufferSizeInBytes(bufferSize)
+                .setBufferSizeInBytes(optimizedBufferSize)
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
             
@@ -55,9 +60,39 @@ class AudioPlayer {
         // Note: In STREAM mode, this blocks until data is written.
         // Should be called from a background thread.
         try {
-            audioTrack?.write(pcmData, 0, pcmData.size)
+            // Apply a tiny fade-in/out to avoid clicks between segments
+            applyFade(pcmData)
+            
+            // Ensure track is playing before writing
+            if (audioTrack?.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                audioTrack?.play()
+            }
+
+            // Write in smaller chunks to avoid HAL I/O errors with massive buffers
+            val chunkSize = 4096
+            var offset = 0
+            while (offset < pcmData.size) {
+                val sizeToWrite = minOf(chunkSize, pcmData.size - offset)
+                val result = audioTrack?.write(pcmData, offset, sizeToWrite) ?: -1
+                if (result < 0) {
+                    Log.e("AudioPlayer", "Write error: $result")
+                    break
+                }
+                offset += sizeToWrite
+            }
         } catch (e: Exception) {
             Log.e("AudioPlayer", "Error writing to AudioTrack", e)
+        }
+    }
+
+    private fun applyFade(data: ShortArray) {
+        val fadeLength = (sampleRate * 0.005).toInt() // 5ms fade
+        if (data.size < fadeLength * 2) return
+
+        for (i in 0 until fadeLength) {
+            val factor = i.toFloat() / fadeLength
+            data[i] = (data[i] * factor).toInt().toShort()
+            data[data.size - 1 - i] = (data[data.size - 1 - i] * factor).toInt().toShort()
         }
     }
     

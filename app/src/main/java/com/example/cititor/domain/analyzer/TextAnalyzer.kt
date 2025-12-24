@@ -15,7 +15,7 @@ object TextAnalyzer {
     // It captures the content *inside* the markers.
     // Regex to find common dialogue markers and thoughts (marked with *).
     // It captures the content *inside* the markers.
-    private val dialogueRegex = Regex("“([^”]*)”|«([^»]*)»|—([^—]*)—|\\*([^*]+)\\*")
+    private val dialogueRegex = Regex("“([^”]*)”|«([^»]*)»|—([^—]*)—|\\*([^*]+)\\*|\"([^\"]*)\"")
 
     /**
      * Analyzes a raw string, sanitizes it, and splits it into a list of TextSegments.
@@ -40,8 +40,8 @@ object TextAnalyzer {
                 rawSegments.add(NarrationSegment(text = narrationText))
             }
 
-            // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought)
-            val dialogueText = (matchResult.groups[1] ?: matchResult.groups[2] ?: matchResult.groups[3])?.value?.trim()
+            // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought), 5=Standard Quotes
+            val dialogueText = (matchResult.groups[1] ?: matchResult.groups[2] ?: matchResult.groups[3] ?: matchResult.groups[5])?.value?.trim()
             val thoughtText = matchResult.groups[4]?.value?.trim()
 
             if (thoughtText != null) {
