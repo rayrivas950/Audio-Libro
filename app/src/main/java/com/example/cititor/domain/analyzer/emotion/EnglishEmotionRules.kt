@@ -41,7 +41,49 @@ class EnglishEmotionRules : EmotionRules {
         KeywordRule("scared", Emotion.FEAR, 0.9f),
         KeywordRule("fear", Emotion.FEAR, 0.9f),
         KeywordRule("panic", Emotion.FEAR, 1.0f),
-        KeywordRule("terrified", Emotion.FEAR, 1.0f)
+        KeywordRule("terrified", Emotion.FEAR, 1.0f),
+
+        // Mystery
+        KeywordRule("mysterious", Emotion.MYSTERY, 0.8f),
+        KeywordRule("enigmatic", Emotion.MYSTERY, 0.9f),
+        KeywordRule("strange", Emotion.MYSTERY, 0.5f),
+        KeywordRule("darkness", Emotion.MYSTERY, 0.6f),
+
+        // Sarcasm
+        KeywordRule("sneered", Emotion.SARCASM, 0.9f),
+        KeywordRule("ironic", Emotion.SARCASM, 1.0f),
+        KeywordRule("sarcastic", Emotion.SARCASM, 1.0f),
+        KeywordRule("mocking", Emotion.SARCASM, 0.8f),
+
+        // Pride
+        KeywordRule("proud", Emotion.PRIDE, 0.8f),
+        KeywordRule("arrogant", Emotion.PRIDE, 1.0f),
+        KeywordRule("haughty", Emotion.PRIDE, 0.9f),
+        KeywordRule("triumphant", Emotion.PRIDE, 0.7f),
+
+        // Disgust
+        KeywordRule("disgust", Emotion.DISGUST, 1.0f),
+        KeywordRule("contempt", Emotion.DISGUST, 0.9f),
+        KeywordRule("revolting", Emotion.DISGUST, 1.0f),
+        KeywordRule("disgusted", Emotion.DISGUST, 0.8f),
+
+        // Exhaustion
+        KeywordRule("exhausted", Emotion.EXHAUSTION, 1.0f),
+        KeywordRule("tired", Emotion.EXHAUSTION, 0.8f),
+        KeywordRule("fatigue", Emotion.EXHAUSTION, 0.9f),
+        KeywordRule("panted", Emotion.EXHAUSTION, 0.7f),
+
+        // Confusion
+        KeywordRule("confused", Emotion.CONFUSION, 0.8f),
+        KeywordRule("doubt", Emotion.CONFUSION, 0.7f),
+        KeywordRule("puzzled", Emotion.CONFUSION, 0.9f),
+        KeywordRule("bewildered", Emotion.CONFUSION, 0.9f),
+
+        // Tenderness
+        KeywordRule("tender", Emotion.TENDERNESS, 0.8f),
+        KeywordRule("sweet", Emotion.TENDERNESS, 0.7f),
+        KeywordRule("affection", Emotion.TENDERNESS, 0.9f),
+        KeywordRule("love", Emotion.TENDERNESS, 0.8f)
     )
 
     override val adverbs = mapOf(

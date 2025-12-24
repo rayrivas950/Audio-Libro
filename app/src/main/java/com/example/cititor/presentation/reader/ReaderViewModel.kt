@@ -10,6 +10,7 @@ import com.example.cititor.core.tts.TextToSpeechManager
 import com.example.cititor.data.worker.BookProcessingWorker
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.model.TextSegment
+import com.example.cititor.domain.use_case.GetBookMetadataUseCase
 import com.example.cititor.domain.use_case.GetBookPageUseCase
 import com.example.cititor.domain.use_case.GetBookUseCase
 import com.example.cititor.domain.use_case.UpdateBookProgressUseCase
@@ -32,7 +33,8 @@ data class ReaderState(
     val isLoading: Boolean = true,
     val isProcessing: Boolean = false,
     val processingError: String? = null, // To show worker errors
-    val highlightedTextRange: IntRange? = null
+    val highlightedTextRange: IntRange? = null,
+    val characters: List<com.example.cititor.domain.model.Character> = emptyList()
 )
 
 @HiltViewModel
@@ -40,6 +42,7 @@ class ReaderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getBookUseCase: GetBookUseCase,
     private val getBookPageUseCase: GetBookPageUseCase,
+    private val getBookMetadataUseCase: GetBookMetadataUseCase,
     private val updateBookProgressUseCase: UpdateBookProgressUseCase,
     private val textToSpeechManager: TextToSpeechManager,
     savedStateHandle: SavedStateHandle
@@ -62,7 +65,7 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun startReading() {
-        textToSpeechManager.speak(state.value.pageSegments)
+        textToSpeechManager.speak(state.value.pageSegments, state.value.characters)
     }
 
     fun nextPage() {
@@ -88,6 +91,7 @@ class ReaderViewModel @Inject constructor(
         getBookUseCase(bookId).onEach { book ->
             if (book != null) {
                 _state.value = state.value.copy(book = book, currentPage = book.currentPage)
+                loadMetadata(book.id)
                 observeWorkStatus(book.processingWorkId)
                 loadPageContent()
             } else {
@@ -151,6 +155,13 @@ class ReaderViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    private fun loadMetadata(bookId: Long) {
+        viewModelScope.launch {
+            val characters = getBookMetadataUseCase(bookId)
+            _state.value = _state.value.copy(characters = characters)
         }
     }
 

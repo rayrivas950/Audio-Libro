@@ -5,7 +5,9 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.example.cititor.domain.model.DialogueSegment
+import com.example.cititor.domain.model.Emotion
 import com.example.cititor.domain.model.NarrationSegment
+import com.example.cititor.domain.model.NarrationStyle
 import com.example.cititor.domain.model.TextSegment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -27,7 +29,8 @@ class TextToSpeechManager @Inject constructor(
     private var effectProcessor: com.example.cititor.core.audio.AudioEffectProcessor? = null
     
     private var isInitialized = false
-    private var usePiper = false // Disabled by default for stability until fully verified
+    private var usePiper = true // Set to true to use Piper by default
+    private var masterSpeed = 0.75f // Velocidad base global
 
     private val _currentSpokenWord = MutableStateFlow<IntRange?>(null)
     val currentSpokenWord: StateFlow<IntRange?> = _currentSpokenWord
@@ -81,7 +84,7 @@ class TextToSpeechManager @Inject constructor(
     private var playbackJob: Job? = null
     private var synthesisJob: Job? = null
 
-    fun speak(segments: List<TextSegment>) {
+    fun speak(segments: List<TextSegment>, bookCharacters: List<com.example.cititor.domain.model.Character> = emptyList()) {
         if (!isInitialized) return
 
         stop() // Stop any ongoing playback
@@ -93,6 +96,7 @@ class TextToSpeechManager @Inject constructor(
                 for (audioData in audioChannel) {
                     audioPlayer?.play(audioData)
                 }
+                Log.d(TAG, "Playback consumer finished.")
             }
 
             // 2. Producer: Synthesizes segments and sends to channel
@@ -100,10 +104,38 @@ class TextToSpeechManager @Inject constructor(
                 try {
                     segments.forEach { segment ->
                         val text = segment.text
-                        val speakerId = 0 
-                        val speed = 0.9f
                         
-                        Log.d(TAG, "Synthesizing segment: '${text.take(50)}...' at speed $speed")
+                        // Default parameters (Using Master Speed)
+                        var speed = masterSpeed
+                        var pitch = 1.0f
+                        var speakerId = 0
+                        
+                        // 1. Apply Character Voice Profile if available
+                        if (segment is DialogueSegment && segment.speakerId != null) {
+                            val character = bookCharacters.find { it.id == segment.speakerId }
+                            if (character != null && character.voiceProfile != null) {
+                                val profile = com.example.cititor.domain.model.VoiceProfiles.getById(character.voiceProfile)
+                                speed *= profile.speed
+                                pitch *= profile.pitch
+                                Log.d(TAG, "Applying VoiceProfile '${profile.name}' for character '${character.name}'")
+                            }
+                        }
+
+                        // 2. Apply Emotion Modulation if it's a Dialogue
+                        if (segment is DialogueSegment) {
+                            val (speedMult, pitchMult) = getEmotionMultipliers(segment.emotion, segment.intensity)
+                            speed *= speedMult
+                            pitch *= pitchMult
+                            // TODO: Map speakerId to Piper speaker index
+                        } else if (segment is NarrationSegment) {
+                            if (segment.style == NarrationStyle.THOUGHT) {
+                                speed *= 0.85f // Thoughts are usually slower
+                                pitch *= 1.05f // And slightly higher pitch
+                            }
+                        }
+                        
+                        Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Emotion: ${if (segment is com.example.cititor.domain.model.DialogueSegment) segment.emotion else "NARRATION"} | Speed: $speed | Pitch: $pitch")
+                        
                         val rawAudio = piperTts?.synthesize(text, speed, speakerId)
                         
                         if (rawAudio != null) {
@@ -125,6 +157,37 @@ class TextToSpeechManager @Inject constructor(
                 androidTts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
             }
         }
+    }
+
+    fun setMasterSpeed(speed: Float) {
+        this.masterSpeed = speed.coerceIn(0.1f, 2.0f)
+        Log.d(TAG, "Master speed updated to: $masterSpeed")
+    }
+
+    private fun getEmotionMultipliers(emotion: Emotion, intensity: Float): Pair<Float, Float> {
+        val (baseSpeedMult, basePitchMult) = when (emotion) {
+            Emotion.NEUTRAL -> 1.0f to 1.0f
+            Emotion.JOY -> 1.1f to 1.1f
+            Emotion.SADNESS -> 0.8f to 0.9f
+            Emotion.ANGER -> 1.2f to 0.8f
+            Emotion.FEAR -> 1.3f to 1.2f
+            Emotion.SURPRISE -> 1.2f to 1.2f
+            Emotion.URGENCY -> 1.4f to 1.0f
+            Emotion.WHISPER -> 0.7f to 1.0f
+            Emotion.MYSTERY -> 0.85f to 0.85f
+            Emotion.SARCASM -> 1.0f to 1.15f
+            Emotion.PRIDE -> 0.95f to 0.85f
+            Emotion.DISGUST -> 0.9f to 0.9f
+            Emotion.EXHAUSTION -> 0.75f to 0.9f
+            Emotion.CONFUSION -> 0.9f to 1.1f
+            Emotion.TENDERNESS -> 0.85f to 1.05f
+        }
+
+        // Apply intensity: 0.0 means neutral, 1.0 means full effect
+        val finalSpeedMult = 1.0f + (baseSpeedMult - 1.0f) * intensity
+        val finalPitchMult = 1.0f + (basePitchMult - 1.0f) * intensity
+
+        return finalSpeedMult to finalPitchMult
     }
 
     fun stop() {

@@ -11,5 +11,12 @@ enum class Emotion(val key: String) {
     FEAR("fear"),
     SURPRISE("surprise"),
     URGENCY("urgency"),
-    WHISPER("whisper");
+    WHISPER("whisper"),
+    MYSTERY("mystery"),
+    SARCASM("sarcasm"),
+    PRIDE("pride"),
+    DISGUST("disgust"),
+    EXHAUSTION("exhaustion"),
+    CONFUSION("confusion"),
+    TENDERNESS("tenderness");
 }
