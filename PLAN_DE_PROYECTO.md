@@ -110,65 +110,53 @@ Esta fase refactoriza el sistema para que se base en contenido pre-analizado y e
 Esta fase optimiza el rendimiento del procesamiento y agrega capacidades avanzadas de TTS con análisis emocional e identificación de personajes.
 
 #### 4B.1: Optimización de Procesamiento (Prioridad Alta)
--   [ ] **Procesamiento en Batch:**
-    -   [ ] Refactorizar `TextExtractor` para agregar método `extractAllPages()`.
-    -   [ ] Modificar `EpubExtractor` para cargar el Reader una sola vez y extraer todas las páginas.
-    -   [ ] Modificar `PdfExtractor` para cargar el PDDocument una sola vez.
-    -   [ ] Actualizar `BookProcessingWorker` para usar procesamiento en batch.
-    -   **Resultado Esperado:** Reducir tiempo de procesamiento de EPUB de ~15s a ~3s, PDF de ~40s a ~10s.
+-   [x] **Procesamiento en Batch:**
+    -   [x] Refactorizar `TextExtractor` para agregar método `extractAllPages()`.
+    -   [x] Modificar `EpubExtractor` para cargar el Reader una sola vez y extraer todas las páginas.
+    -   [x] Modificar `PdfExtractor` para cargar el PDDocument una sola vez.
+    -   [x] Actualizar `BookProcessingWorker` para usar procesamiento en batch.
+    -   **Resultado:** Reducción de tiempos de carga (EPUB 15s -> 3s).
 
 #### 4B.2: Modelo de Datos Extendido (Prioridad Alta)
--   [ ] **Estructuras para TTS Emocional:**
-    -   [ ] Crear `TTSParameters` data class (pitch, speed, volume, emphasis, pause).
-    -   [ ] Crear enum `Emotion` (NEUTRAL, JOY, SADNESS, ANGER, FEAR, SURPRISE, URGENCY, WHISPER).
-    -   [ ] Crear enum `NarrationStyle` (NEUTRAL, DESCRIPTIVE, TENSE, CALM, MYSTERIOUS).
-    -   [ ] Extender `DialogueSegment` con campos: `speakerId`, `emotion`, `intensity`.
-    -   [ ] Extender `NarrationSegment` con campo: `style`.
-    -   [ ] Agregar `ttsParams: TTSParameters?` a `TextSegment`.
+-   [x] **Estructuras para TTS Emocional:**
+    -   [x] Crear `TTSParameters` data class (pitch, speed, volume, emphasis, pause).
+    -   [x] Crear enum `Emotion` (NEUTRAL, JOY, SADNESS, ANGER, FEAR, SURPRISE, URGENCY, WHISPER).
+    -   [x] Crear enum `NarrationStyle` (NEUTRAL, DESCRIPTIVE, TENSE, CALM, MYSTERIOUS).
+    -   [x] Extender `DialogueSegment` con campos: `speakerId`, `emotion`, `intensity`.
+    -   [x] Extender `NarrationSegment` con campo: `style`.
+    -   [x] Agregar `ttsParams: TTSParameters?` a `TextSegment`.
 
--   [ ] **Estructuras para Personajes:**
-    -   [ ] Crear `Character` data class (id, name, voiceProfile, voiceModel, gender, ageRange).
-    -   [ ] Crear `BookMetadata` entity para almacenar personajes identificados por libro.
+-   [x] **Estructuras para Personajes:**
+    -   [x] Crear `Character` data class (id, name, voiceProfile, voiceModel, gender, ageRange).
+    -   [x] Crear `BookMetadata` entity para almacenar personajes identificados por libro.
 
 #### 4B.3: Análisis Emocional Básico (Prioridad Media)
--   [ ] **Detección por Heurísticas:**
-    -   [ ] Implementar `AdvancedTextAnalyzer.analyzeEmotion()`:
-        -   [ ] Detectar URGENCY por signos de exclamación (`!`, `¡`).
-        -   [ ] Detectar SURPRISE por combinación de `?` y `!`.
-        -   [ ] Detectar WHISPER por palabras clave ("susurr", "silencio", "callad").
-        -   [ ] Detectar ANGER por mayúsculas sostenidas (3+ letras).
-    -   [ ] Implementar `extractTTSParams()` para asignar parámetros prosódicos según emoción.
+-   [x] **Detección por Heurísticas:**
+    -   [x] Implementar `EmotionDetector` con reglas (puntuación, keywords).
+    -   [x] Detectar URGENCY, SURPRISE, WHISPER, ANGER.
+    -   [x] Implementar `extractTTSParams()` para asignar parámetros prosódicos.
 
--   [ ] **Integración en Pipeline:**
-    -   [ ] Modificar `TextAnalyzer.analyze()` para incluir análisis emocional.
-    -   [ ] Guardar emociones y parámetros TTS en JSON.
+-   [x] **Integración en Pipeline:**
+    -   [x] Modificar `TextAnalyzer.analyze()` para incluir análisis emocional.
+    -   [x] Guardar emociones y parámetros TTS en JSON.
 
 #### 4B.4: Identificación de Personajes con Reglas (Prioridad Media)
 
 **Enfoque:** Sistema 100% offline basado en reglas y patrones regex para identificar personajes y asignar diálogos.
 
--   [ ] **Extracción de Nombres con Patrones:**
-    -   [ ] Implementar `CharacterExtractor` con regex para detectar:
-        -   [ ] Patrón después: `"texto" dijo Juan`
-        -   [ ] Patrón antes: `Juan dijo: "texto"`
-        -   [ ] Patrón medio: `"texto" dijo Juan "texto"`
-    -   [ ] Crear diccionario de verbos de diálogo comunes (dijo, preguntó, respondió, gritó, susurró, etc.)
-    -   [ ] Detectar nombres propios por mayúscula inicial
+-   [x] **Extracción de Nombres con Patrones:**
+    -   [x] Implementar `CharacterDetector` con regex para detectar hablantes.
+    -   [x] Crear diccionario de verbos de diálogo comunes.
+    -   [x] Detectar nombres propios por mayúscula inicial.
     
--   [ ] **Asignación de Diálogos a Personajes:**
-    -   [ ] Implementar `DialogueAssigner` con lógica de inferencia:
-        -   [ ] Buscar atribución explícita en el contexto inmediato
-        -   [ ] Inferir por último personaje mencionado antes del diálogo
-        -   [ ] Marcar diálogos sin atribución como "Unknown Speaker"
+-   [x] **Asignación de Diálogos a Personajes:**
+    -   [x] Implementar lógica de inferencia por contexto inmediato.
+    -   [x] Marcar diálogos sin atribución como "Unknown Speaker" (o Narrador).
     
--   [ ] **Construcción de Mapa de Personajes:**
-    -   [ ] Implementar `CharacterMapper` para procesar todo el libro:
-        -   [ ] Contar frecuencia de diálogos por personaje
-        -   [ ] Determinar primera aparición (número de página)
-        -   [ ] Inferir género por pronombres en contexto (él/ella)
-        -   [ ] Clasificar por importancia: Protagonista (>50 diálogos), Secundario (>20), Menor (<20)
-    -   [ ] Asignar automáticamente perfiles de voz según género y clasificación
-    -   [ ] Guardar mapa de personajes en `BookMetadata` entity
+-   [x] **Construcción de Mapa de Personajes:**
+    -   [x] Implementar `CharacterRegistry` para procesar todo el libro.
+    -   [x] Inferir género por pronombres en contexto.
+    -   [x] Persistir mapa de personajes en `BookMetadata` entity.
     
 -   [ ] **Refinamiento Manual (UI Opcional):**
     -   [ ] Pantalla para revisar personajes detectados

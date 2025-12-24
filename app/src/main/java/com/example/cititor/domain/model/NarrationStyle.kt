@@ -8,5 +8,6 @@ enum class NarrationStyle(val key: String) {
     DESCRIPTIVE("descriptive"),
     TENSE("tense"),
     CALM("calm"),
-    MYSTERIOUS("mysterious");
+    MYSTERIOUS("mysterious"),
+    THOUGHT("thought");
 }

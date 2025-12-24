@@ -2,6 +2,7 @@ package com.example.cititor.domain.analyzer.character
 
 import com.example.cititor.domain.model.Character
 import com.example.cititor.domain.model.Gender
+import com.example.cititor.domain.analyzer.voice.VoiceInferenceEngine
 import java.util.UUID
 
 class CharacterRegistry {
@@ -32,12 +33,17 @@ class CharacterRegistry {
         }
         
         // 2. Crear nuevo
-        val newChar = Character(
+        val tempChar = Character(
             id = UUID.randomUUID().toString(),
             name = normalizedName,
             gender = gender,
             aliases = setOf(normalizedName)
         )
+        
+        // Inferir voz
+        val voiceProfile = VoiceInferenceEngine().inferProfile(tempChar)
+        val newChar = tempChar.copy(voiceProfile = voiceProfile.id)
+        
         register(newChar)
         return newChar
     }
