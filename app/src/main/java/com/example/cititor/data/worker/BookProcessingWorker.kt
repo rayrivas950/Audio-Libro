@@ -75,81 +75,60 @@ class BookProcessingWorker @AssistedInject constructor(
         }
 
         try {
-            Log.d(TAG, "Extracting all pages in batch...")
-            val allPagesText = extractor.extractAllPages(applicationContext, bookUri)
-            val pageCount = allPagesText.size
-            Log.d(TAG, "Extracted $pageCount pages")
+            Log.d(TAG, "Starting streaming extraction and processing...")
             
-            if (pageCount <= 0) {
-                val errorMsg = "Could not read any pages from the document. The file might be empty, corrupted, or password-protected."
-                Log.e(TAG, errorMsg)
-                return@withContext Result.failure(workDataOf(KEY_ERROR_MSG to errorMsg))
-            }
+            val characterRegistry = com.example.cititor.domain.analyzer.character.CharacterRegistry()
+            val cleanPagesBatch = mutableListOf<CleanPageEntity>()
+            val batchSize = 75
+            var totalProcessed = 0
 
-            val cleanPages = mutableListOf<CleanPageEntity>()
-            val allCharacters = mutableMapOf<String, com.example.cititor.domain.model.Character>()
-
-            allPagesText.forEachIndexed { i, rawText ->
-                Log.d(TAG, "Processing page ${i + 1}/$pageCount")
-                
+            extractor.extractPages(applicationContext, bookUri) { index, rawText ->
                 try {
-                    Log.d(TAG, "Extracted ${rawText.length} characters from page $i")
+                    Log.d(TAG, "Processing page ${index + 1} (Length: ${rawText.length})")
                     
-                    val (segments, characters) = TextAnalyzer.analyze(rawText)
-                    Log.d(TAG, "Analyzed into ${segments.size} segments and found ${characters.size} characters")
-                    
-                    // Accumulate characters
-                    characters.forEach { char ->
-                        allCharacters[char.id] = char
-                    }
+                    // Analyze page using the GLOBAL character registry
+                    val (segments, _) = TextAnalyzer.analyze(rawText, characterRegistry)
                     
                     val jsonContent = json.encodeToString(segments)
-
-                    cleanPages.add(
+                    cleanPagesBatch.add(
                         CleanPageEntity(
                             bookId = bookId,
-                            pageNumber = i,
+                            pageNumber = index,
                             content = jsonContent
                         )
                     )
+                    totalProcessed++
+
+                    // Batch insert to DB every 75 pages
+                    if (cleanPagesBatch.size >= batchSize) {
+                        Log.d(TAG, "Batch limit reached ($batchSize). Inserting into database...")
+                        cleanPageDao.insertAll(cleanPagesBatch.toList())
+                        cleanPagesBatch.clear()
+                    }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error processing page $i", e)
-                    // Continue with next page instead of failing completely
-                    cleanPages.add(
-                        CleanPageEntity(
-                            bookId = bookId,
-                            pageNumber = i,
-                            content = json.encodeToString(emptyList<com.example.cititor.domain.model.TextSegment>())
-                        )
-                    )
+                    Log.e(TAG, "Error processing page $index", e)
                 }
             }
 
-            Log.d(TAG, "Inserting ${cleanPages.size} pages into database...")
-            cleanPageDao.insertAll(cleanPages)
+            // Insert remaining pages
+            if (cleanPagesBatch.isNotEmpty()) {
+                Log.d(TAG, "Inserting remaining ${cleanPagesBatch.size} pages...")
+                cleanPageDao.insertAll(cleanPagesBatch)
+            }
             
-            // Save detected characters metadata
+            // Save detected characters metadata (Global for the whole book)
+            val allCharacters = characterRegistry.getAll()
             if (allCharacters.isNotEmpty()) {
-                Log.d(TAG, "Saving ${allCharacters.size} detected characters...")
+                Log.d(TAG, "Saving ${allCharacters.size} detected characters for the whole book...")
                 val metadataEntity = com.example.cititor.core.database.entity.BookMetadataEntity(
                     bookId = bookId,
-                    charactersJson = json.encodeToString(allCharacters.values.toList())
+                    charactersJson = json.encodeToString(allCharacters)
                 )
                 bookMetadataDao.insertMetadata(metadataEntity)
             }
             
-            Log.d(TAG, "Processing completed successfully")
-
+            Log.d(TAG, "Processing completed successfully. Total pages: $totalProcessed")
             Result.success()
-        } catch (e: SecurityException) {
-            val errorMsg = "Permission denied accessing file: ${e.message ?: "Unknown security error"}"
-            Log.e(TAG, errorMsg, e)
-            Result.failure(workDataOf(KEY_ERROR_MSG to errorMsg))
-        } catch (e: NullPointerException) {
-            val errorMsg = "Null pointer error (possibly file stream issue): ${e.message ?: "Unknown NPE"}"
-            Log.e(TAG, errorMsg, e)
-            e.printStackTrace()
-            Result.failure(workDataOf(KEY_ERROR_MSG to errorMsg))
         } catch (e: Exception) {
             val errorMsg = "Processing error: ${e.javaClass.simpleName} - ${e.message ?: "Unknown error"}"
             Log.e(TAG, errorMsg, e)

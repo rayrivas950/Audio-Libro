@@ -10,6 +10,7 @@ import com.example.cititor.domain.model.TextSegment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
@@ -17,41 +18,61 @@ import javax.inject.Inject
 
 class TextToSpeechManager @Inject constructor(
     @ApplicationContext private val context: Context
-) : TextToSpeech.OnInitListener {
+) {
 
-    private var tts: TextToSpeech? = null
+    private var androidTts: TextToSpeech? = null
+    private var piperTts: com.example.cititor.core.tts.piper.PiperTTSEngine? = null
+    private var audioPlayer: com.example.cititor.core.audio.AudioPlayer? = null
+    private var effectProcessor: com.example.cititor.core.audio.AudioEffectProcessor? = null
+    
     private var isInitialized = false
+    private var usePiper = false // Disabled by default for stability until fully verified
 
     private val _currentSpokenWord = MutableStateFlow<IntRange?>(null)
     val currentSpokenWord: StateFlow<IntRange?> = _currentSpokenWord
+    
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
 
     companion object {
         private const val TAG = "TTSManager"
-        private const val NORMAL_PITCH = 1.0f
-        private const val DIALOGUE_PITCH = 1.1f
     }
 
     init {
-        tts = TextToSpeech(context, this)
+        initialize()
+    }
+    
+    private fun initialize() {
+        // Start Piper initialization in background (Phase 2.3: Null AssetManager)
+        scope.launch {
+            try {
+                Log.d(TAG, "Phase 2.3: Initializing native Piper engine with null AssetManager...")
+                val engine = com.example.cititor.core.tts.piper.PiperTTSEngine(context)
+                engine.initialize() 
+                
+                piperTts = engine
+                audioPlayer = com.example.cititor.core.audio.AudioPlayer()
+                effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor()
+                
+                usePiper = true // PHASE 3: ENABLE PIPER!
+                isInitialized = true
+                Log.d(TAG, "Phase 3: Piper TTS ACTIVE and ready for synthesis.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize Piper in background, falling back to Android TTS", e)
+                usePiper = false
+                initAndroidTts()
+            }
+        }
+        
+        // Also prepare Android TTS as immediate fallback
+        initAndroidTts()
     }
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            Log.d(TAG, "TTS Initialization successful.")
-            isInitialized = true
-            tts?.language = Locale.getDefault()
-            tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {}
-                override fun onDone(utteranceId: String?) {}
-                override fun onError(utteranceId: String?) {}
-                
-                // WARNING: This will be broken until we add offset logic.
-                override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
-                     _currentSpokenWord.value = IntRange(start, end)
-                }
-            })
-        } else {
-            Log.e(TAG, "TTS Initialization failed with status: $status")
+    private fun initAndroidTts() {
+        androidTts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                androidTts?.language = Locale.getDefault()
+                isInitialized = true
+            }
         }
     }
 
@@ -59,29 +80,51 @@ class TextToSpeechManager @Inject constructor(
         if (!isInitialized) return
 
         _currentSpokenWord.value = null
-        // Clear any previous items in the queue before starting.
-        tts?.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
-
-        segments.forEach {
-            val utteranceId = UUID.randomUUID().toString()
-            when (it) {
-                is NarrationSegment -> {
-                    tts?.setPitch(NORMAL_PITCH)
-                    tts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
+        
+        if (usePiper) {
+            scope.launch {
+                segments.forEach { segment ->
+                    val text = segment.text
+                    // TODO: Map VoiceProfile to speakerId and speed
+                    val speakerId = 0 
+                    val speed = 1.0f
+                    
+                    // Synthesize
+                    val rawAudio = piperTts?.synthesize(text, speed, speakerId)
+                    
+                    if (rawAudio != null) {
+                        // Apply Effects (Pitch, etc.)
+                        // val processedAudio = effectProcessor?.applyPitchShift(rawAudio, 22050, 1.0) 
+                        
+                        // Play
+                        audioPlayer?.play(rawAudio)
+                    }
                 }
-                is DialogueSegment -> {
-                    tts?.setPitch(DIALOGUE_PITCH)
-                    tts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
-                }
+            }
+        } else {
+            // Fallback to Android TTS
+            androidTts?.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
+            segments.forEach {
+                val utteranceId = UUID.randomUUID().toString()
+                androidTts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
             }
         }
     }
 
     fun stop() {
-        tts?.stop()
+        if (usePiper) {
+            audioPlayer?.stop()
+        } else {
+            androidTts?.stop()
+        }
     }
 
     fun shutdown() {
-        tts?.shutdown()
+        if (usePiper) {
+            piperTts?.release()
+            audioPlayer?.release()
+        } else {
+            androidTts?.shutdown()
+        }
     }
 }

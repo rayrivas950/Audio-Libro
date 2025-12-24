@@ -205,38 +205,48 @@ Esta fase optimiza el rendimiento del procesamiento y agrega capacidades avanzad
 -   [ ] **Investigación de Tecnologías:**
     -   [ ] Evaluar Piper TTS (recomendado - ligero, natural).
     -   [ ] Evaluar Coqui TTS (más control emocional, más pesado).
-    -   [ ] Comparar calidad de voces en español.
+#### 4B.5. Asignación de Voces (Completado)
+- [x] **Modelo de Voz:**
+    - [x] Crear `VoiceProfile` data class (id, name, pitch, speed).
+    - [x] Definir arquetipos: Héroe, Villano, Niño, Anciano, Gigante, Misterioso.
+- [x] **Inferencia de Voz:**
+    - [x] Implementar `VoiceInferenceEngine` basado en género, edad y keywords físicas.
+    - [x] Manejo automático de personajes "Misteriosos" (Sombra, Encapuchado).
+- [x] **Escenarios Avanzados:**
+    - [x] Detección de Pensamientos (`THOUGHT`) mediante cursivas.
+    - [x] Manejo de Tartamudeo (preservación de guiones).
 
--   [ ] **Integración de Piper TTS:**
-    -   [ ] Agregar dependencia de Piper TTS.
-    -   [ ] Descargar modelos de voces en español (~50MB por voz).
-    -   [ ] Implementar `PiperTTSEngine` con aplicación de `TTSParameters`.
+#### 4B.6. Análisis Emocional Avanzado con ML (Pendiente - Fase Futura)
+- [ ] **Integración de Modelos ML:**
+    - [ ] Evaluar modelos de análisis de sentimientos (BERT, DistilBERT).
+    - [ ] Implementar análisis de contexto (tensión, calma, misterio).
+    - [ ] Optimizar para ejecución en dispositivo (TensorFlow Lite).
 
--   [ ] **Pre-generación de Audio:**
-    -   [ ] Crear `AudioGenerationWorker` para generar audio en background.
-    -   [ ] Implementar caché de audio en almacenamiento local.
-    -   [ ] Agregar preferencias de usuario (pre-generar audio sí/no).
+### Fase 5: Integración de Motor de Audio (Piper + TarsosDSP)
 
--   [ ] **Reproducción Híbrida:**
-    -   [ ] Usar audio pre-generado si está disponible.
-    -   [ ] Fallback a TTS en vivo si no hay audio en caché.
+Esta fase se centra en reemplazar el TTS nativo con un motor de alta calidad y capacidades de post-procesamiento.
 
-#### 4B.6: Análisis Emocional Avanzado con ML (Prioridad Baja - Fase 3)
--   [ ] **Integración de Modelos ML:**
-    -   [ ] Evaluar modelos de análisis de sentimientos (BERT, DistilBERT).
-    -   [ ] Implementar análisis de contexto (tensión, calma, misterio).
-    -   [ ] Optimizar para ejecución en dispositivo (TensorFlow Lite).
+1.  **Integración de Piper TTS (Base):**
+    *   [ ] Integrar librería nativa de Piper para Android.
+    *   [ ] Implementar descarga y gestión de modelos de voz en español (es_ES, es_MX).
+    *   [ ] Crear `PiperTTSEngine` que reemplace al `AndroidTTSEngine` actual.
 
-### Fase 5: Funcionalidad Avanzada y TTS con Identidad
+2.  **Procesamiento de Audio (DSP):**
+    *   [ ] Integrar librería **TarsosDSP**.
+    *   [ ] Implementar `AudioEffectProcessor` para aplicar efectos en tiempo real/post-proceso.
+    *   [ ] Crear efectos específicos:
+        *   **Pitch Shifting:** Para Gigantes (bajo) y Niños (alto).
+        *   **Time Stretching:** Para hablar lento o rápido sin cambiar tono.
+        *   **Reverb/Echo:** Para pensamientos y voces etéreas.
 
-1.  **Sincronización Audio-Texto:**
-    -   [ ] Implementar la lógica del marcador visual que se sincroniza con el audio.
-2.  **Búsqueda Interna:**
-    -   [ ] Implementar la búsqueda de texto completo dentro de un libro abierto.
-3.  **Gestión de Voces por Personaje:**
-    -   [ ] Implementar UI para revisar y editar personajes identificados.
-    -   [ ] Permitir al usuario asignar manualmente voces a personajes.
-    -   [ ] Guardar preferencias de voz por personaje.
+3.  **Conexión con Lógica de Voces:**
+    *   [ ] Mapear `VoiceProfile` (creado en Fase 4B) a parámetros de Piper + Tarsos.
+    *   [ ] Ejemplo: `VoiceProfile.GIANT` -> Piper Voice A + Pitch -4 semitonos + Speed 0.8.
+
+4.  **Gestión de Voces por Personaje (UI):**
+    *   [ ] Implementar UI para revisar y editar personajes identificados.
+    *   [ ] Permitir al usuario asignar manualmente voces a personajes.
+    *   [ ] Guardar preferencias de voz por personaje.
 
 ## 5. Calidad y Pruebas
 
@@ -272,7 +282,12 @@ Esta sección documenta las decisiones técnicas tomadas para acelerar el desarr
 
 - **TTS Nativo de Android:**
     - **Deuda:** El TTS actual usa el motor nativo de Android, que tiene calidad variable según el dispositivo.
-    - **Plan de Pago:** En Fase 4B.5, integrar Piper TTS para calidad consistente y offline.
+    - **Plan de Pago:** En Fase 5, integrar Piper TTS para calidad consistente y offline.
+
+- **Dependencia de Sherpa-ONNX:**
+    - **Deuda:** Se utiliza `sherpa-onnx` como intermediario para ejecutar modelos de Piper, lo que añade una dependencia externa.
+    - **Motivo:** Acelerar la implementación evitando la compilación manual de `espeak-ng` y ONNX Runtime para Android en esta etapa.
+    - **Plan de Pago:** En una fase futura de optimización, implementar la integración directa de Piper (compilando C++ nativo y JNI) para eliminar la dependencia de Sherpa y tener control total del stack de audio.
 
 ## 9. Métricas de Rendimiento
 

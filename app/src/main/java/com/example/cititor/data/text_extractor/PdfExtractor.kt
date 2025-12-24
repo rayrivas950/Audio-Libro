@@ -61,50 +61,47 @@ class PdfExtractor @Inject constructor() : TextExtractor {
         }
     }
 
-    override suspend fun extractAllPages(context: Context, uri: Uri): List<String> = 
-        withContext(Dispatchers.IO) {
-            Log.d(TAG, "Extracting all pages from PDF in batch, URI: $uri")
-            val pages = mutableListOf<String>()
+    override suspend fun extractPages(
+        context: Context,
+        uri: Uri,
+        onPageExtracted: suspend (Int, String) -> Unit
+    ) = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Streaming all pages from PDF, URI: $uri")
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                Log.e(TAG, "Could not open input stream for URI: $uri")
+                return@withContext
+            }
             
-            try {
-                val inputStream = context.contentResolver.openInputStream(uri)
-                if (inputStream == null) {
-                    Log.e(TAG, "Could not open input stream for URI: $uri")
-                    return@withContext emptyList()
-                }
-                
-                inputStream.use { stream ->
-                    PDDocument.load(stream).use { document ->
-                        val pageCount = document.numberOfPages
-                        Log.d(TAG, "PDF loaded, extracting $pageCount pages")
-                        
-                        // Extract ALL pages in a loop
-                        for (i in 0 until pageCount) {
-                            try {
-                                val stripper = PDFTextStripper().apply {
-                                    startPage = i + 1
-                                    endPage = i + 1
-                                }
-                                val text = stripper.getText(document)
-                                pages.add(text)
-                                Log.d(TAG, "Extracted ${text.length} chars from page $i")
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error extracting page $i", e)
-                                pages.add("") // Empty page on error
-                            }
+            inputStream.use { stream ->
+                PDDocument.load(stream).use { document ->
+                    val pageCount = document.numberOfPages
+                    Log.d(TAG, "PDF loaded, streaming $pageCount pages")
+                    
+                    val stripper = PDFTextStripper()
+                    for (i in 0 until pageCount) {
+                        try {
+                            stripper.startPage = i + 1
+                            stripper.endPage = i + 1
+                            val text = stripper.getText(document)
+                            onPageExtracted(i, text)
+                            Log.d(TAG, "Streamed page $i (${text.length} chars)")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error streaming page $i", e)
+                            onPageExtracted(i, "") // Callback with empty on error
                         }
                     }
                 }
-                Log.d(TAG, "Successfully extracted ${pages.size} pages in batch")
-                
-            } catch (e: IOException) {
-                Log.e(TAG, "IOException while batch extracting PDF", e)
-            } catch (e: Exception) {
-                Log.e(TAG, "Unexpected error while batch extracting PDF", e)
             }
+            Log.d(TAG, "Successfully finished PDF streaming")
             
-            pages
+        } catch (e: IOException) {
+            Log.e(TAG, "IOException during PDF streaming", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error during PDF streaming", e)
         }
+    }
 
     override suspend fun getPageCount(context: Context, uri: Uri): Int = withContext(Dispatchers.IO) {
         Log.d(TAG, "Getting page count for PDF, URI: $uri")

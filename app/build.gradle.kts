@@ -93,6 +93,11 @@ dependencies {
     implementation(libs.pdfbox)
     implementation(libs.epub.parser)
 
+    // Audio (TTS & DSP)
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+    implementation(libs.tarsos.dsp)
+    implementation(libs.tarsos.dsp.jvm)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -22,9 +22,13 @@ object TextAnalyzer {
      * Returns the segments and the list of characters detected in this chunk.
      *
      * @param rawText The raw text from a book page.
+     * @param characterRegistry An optional registry to maintain character consistency across pages.
      * @return A Pair containing the list of [TextSegment] and a list of [Character] detected.
      */
-    fun analyze(rawText: String): Pair<List<TextSegment>, List<com.example.cititor.domain.model.Character>> {
+    fun analyze(
+        rawText: String, 
+        characterRegistry: com.example.cititor.domain.analyzer.character.CharacterRegistry = com.example.cititor.domain.analyzer.character.CharacterRegistry()
+    ): Pair<List<TextSegment>, List<com.example.cititor.domain.model.Character>> {
         val text = TextSanitizer.sanitize(rawText)
         val rawSegments = mutableListOf<TextSegment>()
         var lastIndex = 0
@@ -58,7 +62,7 @@ object TextAnalyzer {
 
         // Phase 2: Enrichment (Emotion & Character Detection)
         val language = detectLanguage(text)
-        return enrichSegments(rawSegments, language)
+        return enrichSegments(rawSegments, language, characterRegistry)
     }
 
     private fun detectLanguage(text: String): String {
@@ -72,9 +76,9 @@ object TextAnalyzer {
 
     private fun enrichSegments(
         segments: List<TextSegment>, 
-        language: String
+        language: String,
+        characterRegistry: com.example.cititor.domain.analyzer.character.CharacterRegistry
     ): Pair<List<TextSegment>, List<com.example.cititor.domain.model.Character>> {
-        val characterRegistry = com.example.cititor.domain.analyzer.character.CharacterRegistry()
         val characterDetector = com.example.cititor.domain.analyzer.character.CharacterDetector()
 
         val enrichedSegments = segments.mapIndexed { index, segment ->

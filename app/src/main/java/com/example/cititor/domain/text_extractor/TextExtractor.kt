@@ -13,11 +13,15 @@ interface TextExtractor {
     suspend fun extractText(context: Context, uri: Uri, page: Int): String
     
     /**
-     * Extracts text from all pages/sections in a single batch operation.
-     * More efficient than calling extractText() multiple times.
+     * Extracts text from all pages/sections in a streaming fashion.
+     * Calls [onPageExtracted] for each page to avoid loading all text into memory.
      */
-    suspend fun extractAllPages(context: Context, uri: Uri): List<String>
-    
+    suspend fun extractPages(
+        context: Context, 
+        uri: Uri, 
+        onPageExtracted: suspend (pageIndex: Int, text: String) -> Unit
+    )
+
     /**
      * Gets the total number of pages/sections in the document.
      */

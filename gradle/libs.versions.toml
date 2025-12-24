@@ -45,6 +45,10 @@ coroutinesTest = "1.7.3"
 # Lifecycle
 lifecycleRuntimeKtx = "2.6.1"
 
+# Audio
+sherpaOnnx = "1.12.20"
+tarsosDsp = "2.5"
+
 [libraries]
 # Base
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -84,6 +88,11 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 pdfbox = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
 epub-parser = { group = "com.github.mertakdut", name = "EpubParser", version.ref = "epubParser" }
+
+# Audio (TTS & DSP)
+# sherpa-onnx se maneja como fileTree en build.gradle.kts por ser AAR local
+tarsos-dsp = { group = "be.tarsos.dsp", name = "core", version.ref = "tarsosDsp" }
+tarsos-dsp-jvm = { group = "be.tarsos.dsp", name = "jvm", version.ref = "tarsosDsp" }
 
 # Lifecycle
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
