@@ -248,6 +248,29 @@ Esta fase se centra en reemplazar el TTS nativo con un motor de alta calidad y c
     *   [ ] Permitir al usuario asignar manualmente voces a personajes.
     *   [ ] Guardar preferencias de voz por personaje.
 
+### Fase 10: Expresividad Humana y Prosodia (Motor de Prosodia Extensible)
+
+Esta fase eleva la calidad de la síntesis de "funcional" a "artística", permitiendo que la app adapte su estilo de lectura según el género del libro.
+
+1.  **Arquitectura Modular (`domain.analyzer.prosody`):**
+    *   [ ] Implementar interfaz `ProsodyProfile` para definir comportamientos vocales.
+    *   [ ] Crear `ProsodyEngine` como orquestador de capas de expresión.
+
+2.  **Implementación de Perfiles de Género:**
+    *   [ ] **Perfil Épico/Literario:** Énfasis en drama, micro-respiros y variaciones de ritmo.
+    *   [ ] **Perfil Técnico:** Enfoque en claridad, pausas rítmicas y énfasis en términos complejos.
+    *   [ ] **Perfil Legal/Solemne:** Ritmo pausado, pausas largas tras artículos y tono autoritario.
+    *   [ ] **Perfil Histórico:** Énfasis en fechas y nombres, ritmo reflexivo.
+
+3.  **Detección Inteligente:**
+    *   [ ] Implementar `GenreDetector` para asignar perfiles automáticamente basándose en el vocabulario del libro.
+
+4.  **Rasgos de Expresividad:**
+    *   [ ] **Micro-respiros:** Inserción de inhalaciones sutiles.
+    *   [ ] **Curvas de Entonación:** Inflexiones automáticas en `?`, `!` y finales de párrafo.
+    *   [ ] **Énfasis Léxico:** Contraste de velocidad entre palabras de función y de contenido.
+    *   [ ] **Pausas Dramáticas:** Silencios estratégicos para generar expectativa.
+
 ## 5. Calidad y Pruebas
 
 El desarrollo seguirá una estricta disciplina de pruebas.
