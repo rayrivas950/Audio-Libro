@@ -78,6 +78,9 @@ class BookProcessingWorker @AssistedInject constructor(
             Log.d(TAG, "Starting streaming extraction and processing...")
             
             val characterRegistry = com.example.cititor.domain.analyzer.character.CharacterRegistry()
+            val properNames = mutableSetOf<String>()
+            val properNameRegex = Regex("""\s([A-ZÁÉÍÓÚ][a-záéíóúñ]{2,})""")
+            
             val cleanPagesBatch = mutableListOf<CleanPageEntity>()
             val batchSize = 75
             var totalProcessed = 0
@@ -86,6 +89,11 @@ class BookProcessingWorker @AssistedInject constructor(
                 try {
                     Log.d(TAG, "Processing page ${index + 1} (Length: ${rawText.length})")
                     
+                    // Collect potential proper names (Places/Characters)
+                    properNameRegex.findAll(rawText).forEach { match ->
+                        properNames.add(match.groupValues[1])
+                    }
+
                     // Analyze page using the GLOBAL character registry
                     val (segments, _) = TextAnalyzer.analyze(rawText, characterRegistry)
                     
@@ -116,16 +124,18 @@ class BookProcessingWorker @AssistedInject constructor(
                 cleanPageDao.insertAll(cleanPagesBatch)
             }
             
-            // Save detected characters metadata (Global for the whole book)
+            // Save detected characters and proper names metadata
             val allCharacters = characterRegistry.getAll()
-            if (allCharacters.isNotEmpty()) {
-                Log.d(TAG, "Saving ${allCharacters.size} detected characters for the whole book...")
-                val metadataEntity = com.example.cititor.core.database.entity.BookMetadataEntity(
-                    bookId = bookId,
-                    charactersJson = json.encodeToString(allCharacters)
-                )
-                bookMetadataDao.insertMetadata(metadataEntity)
-            }
+            // Also add character names to properNames set
+            allCharacters.forEach { properNames.add(it.name) }
+
+            Log.d(TAG, "Saving metadata for the whole book (${allCharacters.size} characters, ${properNames.size} proper names)...")
+            val metadataEntity = com.example.cititor.core.database.entity.BookMetadataEntity(
+                bookId = bookId,
+                charactersJson = json.encodeToString(allCharacters),
+                properNamesJson = json.encodeToString(properNames)
+            )
+            bookMetadataDao.insertMetadata(metadataEntity)
             
             Log.d(TAG, "Processing completed successfully. Total pages: $totalProcessed")
             Result.success()

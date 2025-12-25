@@ -34,7 +34,8 @@ data class ReaderState(
     val isProcessing: Boolean = false,
     val processingError: String? = null, // To show worker errors
     val highlightedTextRange: IntRange? = null,
-    val characters: List<com.example.cititor.domain.model.Character> = emptyList()
+    val characters: List<com.example.cititor.domain.model.Character> = emptyList(),
+    val properNames: Set<String> = emptySet()
 )
 
 @HiltViewModel
@@ -65,7 +66,7 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun startReading() {
-        textToSpeechManager.speak(state.value.pageSegments, state.value.characters)
+        textToSpeechManager.speak(state.value.pageSegments, state.value.characters, state.value.properNames)
     }
 
     fun nextPage() {
@@ -160,8 +161,11 @@ class ReaderViewModel @Inject constructor(
 
     private fun loadMetadata(bookId: Long) {
         viewModelScope.launch {
-            val characters = getBookMetadataUseCase(bookId)
-            _state.value = _state.value.copy(characters = characters)
+            val metadata = getBookMetadataUseCase(bookId)
+            _state.value = _state.value.copy(
+                characters = metadata.characters,
+                properNames = metadata.properNames
+            )
         }
     }
 

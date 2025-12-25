@@ -84,7 +84,7 @@ class TextToSpeechManager @Inject constructor(
     private var playbackJob: Job? = null
     private var synthesisJob: Job? = null
 
-    fun speak(segments: List<TextSegment>, bookCharacters: List<com.example.cititor.domain.model.Character> = emptyList()) {
+    fun speak(segments: List<TextSegment>, bookCharacters: List<com.example.cititor.domain.model.Character> = emptyList(), properNames: Set<String> = emptySet()) {
         if (!isInitialized) return
 
         stop() // Stop any ongoing playback
@@ -102,9 +102,21 @@ class TextToSpeechManager @Inject constructor(
             // 2. Producer: Synthesizes segments and sends to channel
             synthesisJob = scope.launch {
                 try {
+                    var lastSpeakerId: String? = null
+                    
                     segments.forEach { segment ->
                         val text = segment.text
                         
+                        // Detect Speaker Change
+                        val currentSpeakerId = if (segment is DialogueSegment) segment.speakerId else "NARRATOR"
+                        if (lastSpeakerId != null && lastSpeakerId != currentSpeakerId) {
+                            Log.d(TAG, "Speaker change detected: $lastSpeakerId -> $currentSpeakerId. Inserting transition pause.")
+                            val sampleRate = piperTts?.getSampleRate() ?: 22050
+                            val transitionSilence = generateSilence(400L, sampleRate)
+                            audioChannel.send(transitionSilence)
+                        }
+                        lastSpeakerId = currentSpeakerId
+
                         // Default parameters (Using Master Speed)
                         var speed = masterSpeed
                         var pitch = 1.0f
@@ -150,6 +162,13 @@ class TextToSpeechManager @Inject constructor(
                                 pitch *= 1.05f // And slightly higher pitch
                             }
                         }
+
+                        // 3.5. Proper Name Emphasis (Places or Characters)
+                        // If segment contains capitalized words in the middle, slow down slightly for clarity
+                        if (containsProperNames(text, properNames)) {
+                            speed *= 0.92f // 8% slower for segments with important names
+                            Log.d(TAG, "Proper name detected in: '$text'. Slowing down for emphasis.")
+                        }
                         
                         // 4. Safety Clamping
                         val finalSpeed = speed.coerceIn(0.6f, 1.6f)
@@ -169,6 +188,18 @@ class TextToSpeechManager @Inject constructor(
                             if (rawAudio != null) {
                                 Log.d(TAG, "Synthesis successful. Sending to pipeline. Size: ${rawAudio.size}")
                                 audioChannel.send(rawAudio)
+                                
+                                // 5. Insert Natural Pause based on punctuation (Literary Standards)
+                                val pauseDurationMs = when {
+                                    text.endsWith(",") || text.endsWith(";") || text.endsWith(":") -> 400L
+                                    text.endsWith(".") || text.endsWith("!") || text.endsWith("?") -> 800L
+                                    text.length > 80 -> 350L // Breath after long sentences (Threshold reduced to 80)
+                                    else -> 200L 
+                                }
+                                
+                                val sampleRate = piperTts?.getSampleRate() ?: 22050
+                                val silence = generateSilence(pauseDurationMs, sampleRate)
+                                audioChannel.send(silence)
                             }
                         } else {
                             Log.e(TAG, "Synthesis FAILED for segment")
@@ -217,6 +248,25 @@ class TextToSpeechManager @Inject constructor(
         val finalPitchMult = 1.0f + (basePitchMult - 1.0f) * intensity
 
         return finalSpeedMult to finalPitchMult
+    }
+
+    private fun generateSilence(durationMs: Long, sampleRate: Int): FloatArray {
+        val numSamples = (sampleRate * (durationMs / 1000.0)).toInt()
+        return FloatArray(numSamples) // All zeros = Silence
+    }
+
+    private fun containsProperNames(text: String, dictionary: Set<String>): Boolean {
+        if (dictionary.isEmpty()) {
+            // Fallback to heuristic if dictionary is not yet available
+            val properNameRegex = Regex("""\s[A-ZÁÉÍÓÚ][a-záéíóúñ]+""")
+            return properNameRegex.containsMatchIn(text)
+        }
+        
+        // Check if any word in the dictionary is present in the text
+        // We use a simple word boundary check
+        return dictionary.any { name ->
+            text.contains(name, ignoreCase = false)
+        }
     }
 
     fun stop() {

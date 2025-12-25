@@ -8,12 +8,14 @@ import javax.inject.Inject
 class GetBookMetadataUseCase @Inject constructor(
     private val bookMetadataDao: BookMetadataDao
 ) {
-    suspend operator fun invoke(bookId: Long): List<Character> {
-        val entity = bookMetadataDao.getMetadata(bookId) ?: return emptyList()
+    suspend operator fun invoke(bookId: Long): com.example.cititor.domain.model.BookMetadata {
+        val entity = bookMetadataDao.getMetadata(bookId) ?: return com.example.cititor.domain.model.BookMetadata(emptyList(), emptySet())
         return try {
-            Json.decodeFromString<List<Character>>(entity.charactersJson)
+            val characters = Json.decodeFromString<List<Character>>(entity.charactersJson)
+            val properNames = Json.decodeFromString<Set<String>>(entity.properNamesJson)
+            com.example.cititor.domain.model.BookMetadata(characters, properNames)
         } catch (e: Exception) {
-            emptyList()
+            com.example.cititor.domain.model.BookMetadata(emptyList(), emptySet())
         }
     }
 }

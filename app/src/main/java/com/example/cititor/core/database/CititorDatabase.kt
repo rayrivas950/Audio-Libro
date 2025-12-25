@@ -11,7 +11,7 @@ import com.example.cititor.core.database.entity.CleanPageEntity
 
 @Database(
     entities = [BookEntity::class, CleanPageEntity::class, BookMetadataEntity::class],
-    version = 4, // Schema updated to include BookMetadataEntity
+    version = 5, // Schema updated to include properNamesJson in BookMetadataEntity
     exportSchema = false
 )
 abstract class CititorDatabase : RoomDatabase() {
