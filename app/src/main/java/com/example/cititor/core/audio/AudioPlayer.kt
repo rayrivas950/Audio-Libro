@@ -24,8 +24,8 @@ class AudioPlayer {
     private fun createAudioTrack() {
         try {
             // Increase buffer size to avoid underruns (static/noise)
-            // We use 4x the minimum buffer size for stability
-            val optimizedBufferSize = bufferSize * 4
+            // We use 12x the minimum buffer size for maximum stability on all devices
+            val optimizedBufferSize = bufferSize * 12
             Log.d("AudioPlayer", "Creating AudioTrack: MinBufferSize=$bufferSize, OptimizedBufferSize=$optimizedBufferSize")
 
             audioTrack = AudioTrack.Builder()
@@ -69,7 +69,7 @@ class AudioPlayer {
             }
 
             // Write in smaller chunks to avoid HAL I/O errors with massive buffers
-            val chunkSize = 4096
+            val chunkSize = 2048 // Smaller chunks for smoother delivery
             var offset = 0
             while (offset < pcmData.size) {
                 val sizeToWrite = minOf(chunkSize, pcmData.size - offset)
@@ -77,8 +77,12 @@ class AudioPlayer {
                 if (result < 0) {
                     Log.e("AudioPlayer", "Write error: $result")
                     break
+                } else if (result == 0) {
+                    // Buffer full, wait a bit
+                    Thread.sleep(5)
+                    continue
                 }
-                offset += sizeToWrite
+                offset += result
             }
         } catch (e: Exception) {
             Log.e("AudioPlayer", "Error writing to AudioTrack", e)
@@ -86,7 +90,7 @@ class AudioPlayer {
     }
 
     private fun applyFade(data: ShortArray) {
-        val fadeLength = (sampleRate * 0.005).toInt() // 5ms fade
+        val fadeLength = (sampleRate * 0.010).toInt() // 10ms fade for smoother transitions
         if (data.size < fadeLength * 2) return
 
         for (i in 0 until fadeLength) {

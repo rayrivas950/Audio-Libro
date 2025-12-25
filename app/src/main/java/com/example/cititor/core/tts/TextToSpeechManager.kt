@@ -30,7 +30,7 @@ class TextToSpeechManager @Inject constructor(
     
     private var isInitialized = false
     private var usePiper = true // Set to true to use Piper by default
-    private var masterSpeed = 0.75f // Velocidad base global
+    private var masterSpeed = 0.85f // Subido de 0.75 a 0.85 para evitar "estiramiento"
 
     private val _currentSpokenWord = MutableStateFlow<IntRange?>(null)
     val currentSpokenWord: StateFlow<IntRange?> = _currentSpokenWord
@@ -110,18 +110,35 @@ class TextToSpeechManager @Inject constructor(
                         var pitch = 1.0f
                         var speakerId = 0
                         
-                        // 1. Apply Character Voice Profile if available
-                        if (segment is DialogueSegment && segment.speakerId != null) {
-                            val character = bookCharacters.find { it.id == segment.speakerId }
-                            if (character != null && character.voiceProfile != null) {
-                                val profile = com.example.cititor.domain.model.VoiceProfiles.getById(character.voiceProfile)
-                                speed *= profile.speed
-                                pitch *= profile.pitch
-                                Log.d(TAG, "Applying VoiceProfile '${profile.name}' for character '${character.name}'")
+                        // 1. Resolve Voice Profile
+                        val profile = when {
+                            segment is DialogueSegment && segment.speakerId != null -> {
+                                val character = bookCharacters.find { it.id == segment.speakerId }
+                                when {
+                                    character == null -> com.example.cititor.domain.model.VoiceProfiles.DEFAULT
+                                    character.isProtagonist && character.gender == com.example.cititor.domain.model.Gender.MALE -> 
+                                        com.example.cititor.domain.model.VoiceProfiles.HERO_MALE
+                                    character.isProtagonist && character.gender == com.example.cititor.domain.model.Gender.FEMALE -> 
+                                        com.example.cititor.domain.model.VoiceProfiles.HERO_FEMALE
+                                    character.voiceProfile != null -> 
+                                        com.example.cititor.domain.model.VoiceProfiles.getById(character.voiceProfile)
+                                    else -> com.example.cititor.domain.model.VoiceProfiles.DEFAULT
+                                }
                             }
+                            segment is NarrationSegment -> com.example.cititor.domain.model.VoiceProfiles.NARRATOR
+                            else -> com.example.cititor.domain.model.VoiceProfiles.DEFAULT
                         }
 
-                        // 2. Apply Emotion Modulation if it's a Dialogue
+                        // 2. Apply Profile Base Parameters
+                        speed *= profile.speed
+                        pitch *= profile.pitch
+                        
+                        if (segment is DialogueSegment) {
+                            val charName = bookCharacters.find { it.id == segment.speakerId }?.name ?: "Unknown"
+                            Log.d(TAG, "Applying VoiceProfile '${profile.name}' for character '$charName'")
+                        }
+
+                        // 3. Apply Emotion Modulation if it's a Dialogue
                         if (segment is DialogueSegment) {
                             val (speedMult, pitchMult) = getEmotionMultipliers(segment.emotion, segment.intensity)
                             speed *= speedMult
@@ -134,13 +151,25 @@ class TextToSpeechManager @Inject constructor(
                             }
                         }
                         
-                        Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Emotion: ${if (segment is com.example.cititor.domain.model.DialogueSegment) segment.emotion else "NARRATION"} | Speed: $speed | Pitch: $pitch")
+                        // 4. Safety Clamping
+                        val finalSpeed = speed.coerceIn(0.6f, 1.6f)
+                        val finalPitch = pitch.coerceIn(0.5f, 1.5f)
                         
-                        val rawAudio = piperTts?.synthesize(text, speed, speakerId)
+                        Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Emotion: ${if (segment is DialogueSegment) segment.emotion else "NARRATION"} | Speed: $finalSpeed | Pitch: $finalPitch")
+                        
+                        var rawAudio = piperTts?.synthesize(text, finalSpeed, speakerId)
                         
                         if (rawAudio != null) {
-                            Log.d(TAG, "Synthesis successful. Sending to pipeline. Size: ${rawAudio.size}")
-                            audioChannel.send(rawAudio)
+                            // Apply Pitch Shift if needed
+                            if (finalPitch != 1.0f) {
+                                val sampleRate = piperTts?.getSampleRate() ?: 22050
+                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, sampleRate, finalPitch.toDouble())
+                            }
+                            
+                            if (rawAudio != null) {
+                                Log.d(TAG, "Synthesis successful. Sending to pipeline. Size: ${rawAudio.size}")
+                                audioChannel.send(rawAudio)
+                            }
                         } else {
                             Log.e(TAG, "Synthesis FAILED for segment")
                         }
