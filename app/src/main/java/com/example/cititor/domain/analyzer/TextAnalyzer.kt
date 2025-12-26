@@ -14,7 +14,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class TextAnalyzer @Inject constructor(
-    private val dialogueResolver: DialogueResolver
+    private val dialogueResolver: DialogueResolver,
+    private val intentionAnalyzer: IntentionAnalyzer
 ) {
 
     // Regex to find common dialogue markers and thoughts (marked with * or ').
@@ -40,15 +41,17 @@ class TextAnalyzer @Inject constructor(
             if (isThought) {
                 segments.add(NarrationSegment(
                     text = content, 
+                    intention = ProsodyIntention.THOUGHT,
                     style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
                 ))
             } else {
-                // Resolve the speaker using our modular resolver with current context
+                // Resolve the speaker and intention for the dialogue
                 val speakerId = dialogueResolver.resolveSpeaker(
                     segment = DialogueSegment(text = content), 
                     context = segments.toList()
                 )
-                segments.add(DialogueSegment(text = content, speakerId = speakerId))
+                val intention = intentionAnalyzer.identifyIntention(content)
+                segments.add(DialogueSegment(text = content, speakerId = speakerId, intention = intention))
             }
 
             lastIndex = matchResult.range.last + 1
@@ -72,10 +75,13 @@ class TextAnalyzer @Inject constructor(
             val suffix = if (index < paragraphs.size - 1) "\n\n" else if (text.endsWith("\n\n")) "\n\n" else ""
             val fullParagraph = p + suffix
             
+            // Map intention for each paragraph
+            val intention = intentionAnalyzer.identifyIntention(p)
+            
             if (isSectionIndicator(p)) {
-                NarrationSegment(text = fullParagraph, style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR)
+                NarrationSegment(text = fullParagraph, intention = intention, style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR)
             } else {
-                NarrationSegment(text = fullParagraph, style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL)
+                NarrationSegment(text = fullParagraph, intention = intention, style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL)
             }
         }.filter { it.text.isNotEmpty() }
     }

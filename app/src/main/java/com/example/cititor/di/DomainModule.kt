@@ -17,4 +17,10 @@ object DomainModule {
     fun provideDialogueResolver(): DialogueResolver {
         return SimpleDialogueResolver()
     }
+
+    @Provides
+    @Singleton
+    fun provideIntentionAnalyzer(): com.example.cititor.domain.analyzer.IntentionAnalyzer {
+        return com.example.cititor.domain.analyzer.IntentionAnalyzer()
+    }
 }

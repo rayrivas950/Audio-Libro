@@ -65,23 +65,36 @@ class PatternProsodyEngine : ProsodyEngine {
             }
         }
         
-        // --- 3. Pattern-based rules (Grammar) ---
+        // --- 3. Intention-based Rules (Semantic Map) ---
+        when (segment.intention) {
+            com.example.cititor.domain.model.ProsodyIntention.WHISPER -> {
+                speed *= 0.92f
+                pitch *= 0.95f
+                // Volume would be adjusted here if supported by Piper, 
+                // or via GainEffect in AudioEffectProcessor
+            }
+            com.example.cititor.domain.model.ProsodyIntention.SHOUT -> {
+                speed *= 1.10f
+                pitch *= 1.10f
+            }
+            com.example.cititor.domain.model.ProsodyIntention.SUSPENSE -> {
+                speed *= 0.88f
+                pitch *= 0.97f
+            }
+            com.example.cititor.domain.model.ProsodyIntention.THOUGHT -> {
+                pitch *= 1.05f
+            }
+            else -> {}
+        }
+
+        // --- 4. Pattern-based rules (Grammar Fallback) ---
         val trimmed = segment.text.trim()
         
-        // Raise pitch for questions
-        if (trimmed.endsWith("?") || trimmed.endsWith("¿")) {
-            pitch *= 1.08f
-        }
-        
-        // More intensity for exclamations
-        if (trimmed.endsWith("!") || trimmed.endsWith("¡")) {
-            speed *= 1.05f
-            pitch *= 1.03f
-        }
-        
-        // Slow down for very short interjections
-        if (trimmed.length < 15 && !trimmed.contains(" ")) {
-            speed *= 0.85f
+        // Raise pitch for questions (if not already handled by intention)
+        if (segment.intention == com.example.cititor.domain.model.ProsodyIntention.NEUTRAL) {
+            if (trimmed.endsWith("?") || trimmed.endsWith("¿")) {
+                pitch *= 1.08f
+            }
         }
 
         return TTSParameters(
