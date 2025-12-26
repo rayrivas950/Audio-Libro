@@ -44,10 +44,8 @@ object TextAnalyzer {
                     style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
                 ))
             } else {
-                // Split long dialogues into intelligent segments for better pauses
-                splitIntoIntelligentSegments(content).forEach { part ->
-                    rawSegments.add(DialogueSegment(text = part))
-                }
+                // Simplified dialogue segments for factory reset
+                rawSegments.add(DialogueSegment(text = content))
             }
 
             lastIndex = matchResult.range.last + 1
@@ -89,7 +87,7 @@ object TextAnalyzer {
                 
                 val contextText = (prevSegment?.text ?: "") + " " + (nextSegment?.text ?: "")
                 
-                // 1. Emotion Detection
+                // 1. Emotion Detection (Still kept for UI markers, though TTS is currently neutralized)
                 val (emotion, intensity) = com.example.cititor.domain.analyzer.emotion.EmotionDetector.detect(
                     dialogueText = segment.text,
                     contextText = contextText,
@@ -123,81 +121,21 @@ object TextAnalyzer {
         
         // Split by \n\n but keep track of them
         val paragraphs = text.split("\n\n")
-        return paragraphs.flatMapIndexed { index, p ->
+        return paragraphs.mapIndexed { index, p ->
             val suffix = if (index < paragraphs.size - 1) "\n\n" else if (text.endsWith("\n\n")) "\n\n" else ""
             val fullParagraph = p + suffix
             
             if (isSectionIndicator(p)) {
-                listOf(NarrationSegment(text = fullParagraph, style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR))
+                NarrationSegment(text = fullParagraph, style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR)
             } else {
-                // Split paragraph into intelligent segments (sentences, commas, etc.)
-                splitIntoIntelligentSegments(fullParagraph).map { part ->
-                    NarrationSegment(text = part, style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL)
-                }
+                NarrationSegment(text = fullParagraph, style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL)
             }
         }.filter { it.text.isNotEmpty() }
-    }
-
-    private fun splitIntoIntelligentSegments(text: String): List<String> {
-        if (text.isBlank()) return emptyList()
-
-        // 1. Split by major punctuation: . ! ? , ; :
-        // We use a regex that keeps the punctuation with the preceding text
-        val punctRegex = Regex("""[^,.!?;:]+[,.!?;:]+(?:\s+|$)""")
-        var segments = punctRegex.findAll(text).map { it.value }.toMutableList()
-        
-        val lastMatchEnd = punctRegex.findAll(text).lastOrNull()?.range?.last ?: -1
-        if (lastMatchEnd < text.length - 1) {
-            segments.add(text.substring(lastMatchEnd + 1))
-        }
-        
-        if (segments.isEmpty()) segments.add(text)
-
-        // 2. Further split long segments by syntactic weight (Aires de lectura)
-        return segments.flatMap { segment ->
-            if (segment.length > 45) {
-                splitBySyntacticWeight(segment)
-            } else {
-                listOf(segment)
-            }
-        }.filter { it.isNotBlank() }
-    }
-
-    private fun splitBySyntacticWeight(text: String): List<String> {
-        if (text.length <= 45) return listOf(text)
-
-        // Using lookbehind to split AFTER the space that follows a conjunction or preposition
-        // BUT we keep the space in the result to avoid collapsing words in the UI
-        val splitRegex = Regex("""(?<=\s(y|o|u|e|ni|pero|mas|sino|aunque|porque|pues|si|cuando|donde|como|que|cual|quien|de|en|a|por|con|para|sobre|entre|hacia|hasta|durante|mediante|tras)\s)""")
-        
-        val parts = text.split(splitRegex).filter { it.isNotBlank() }
-        if (parts.size <= 1) return listOf(text)
-
-        val result = mutableListOf<String>()
-        var currentSegment = StringBuilder()
-
-        for (part in parts) {
-            if (currentSegment.length + part.length > 80 && currentSegment.isNotEmpty()) {
-                result.add(currentSegment.toString())
-                currentSegment = StringBuilder(part)
-            } else {
-                // We don't need to add a space here because 'part' already contains the space 
-                // thanks to the lookbehind and the way we split (lookbehind keeps the separator in the first part)
-                currentSegment.append(part)
-            }
-        }
-
-        if (currentSegment.isNotEmpty()) {
-            result.add(currentSegment.toString())
-        }
-
-        return result
     }
 
     private fun isSectionIndicator(text: String): Boolean {
         val trimmed = text.trim()
         // Roman numerals (I, V, X...) or standalone digits (1, 2, 3...)
-        // Optional trailing dot or parenthesis
         val romanRegex = Regex("""^(?i)M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})[\.\)]?$""")
         val digitRegex = Regex("""^\d+[\.\)]?$""")
         return trimmed.isNotEmpty() && (romanRegex.matches(trimmed) || digitRegex.matches(trimmed))
