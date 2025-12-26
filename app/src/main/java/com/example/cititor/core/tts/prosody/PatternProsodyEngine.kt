@@ -74,12 +74,23 @@ class PatternProsodyEngine : ProsodyEngine {
                 // or via GainEffect in AudioEffectProcessor
             }
             com.example.cititor.domain.model.ProsodyIntention.SHOUT -> {
-                speed *= 1.10f
+                speed *= 1.12f
                 pitch *= 1.10f
             }
             com.example.cititor.domain.model.ProsodyIntention.SUSPENSE -> {
+                speed *= 0.85f
+                pitch *= 0.96f
+            }
+            com.example.cititor.domain.model.ProsodyIntention.TENSION -> {
+                speed *= 1.08f
+            }
+            com.example.cititor.domain.model.ProsodyIntention.ADRENALINE -> {
+                speed *= 1.15f
+                pitch *= 1.04f
+            }
+            com.example.cititor.domain.model.ProsodyIntention.SOLEMN -> {
                 speed *= 0.88f
-                pitch *= 0.97f
+                pitch *= 0.92f
             }
             com.example.cititor.domain.model.ProsodyIntention.THOUGHT -> {
                 pitch *= 1.05f

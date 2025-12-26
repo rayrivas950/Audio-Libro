@@ -13,5 +13,7 @@ enum class ProsodyIntention {
     SHOUT,      // "gritó", "exclamó", "!!"
     SUSPENSE,   // "...", slow down
     TENSION,    // Short sentences, faster pace
-    THOUGHT     // Internal monologue, usually slightly higher pitch
+    THOUGHT,    // Internal monologue
+    ADRENALINE, // High energy, quick pace (action scenes)
+    SOLEMN      // Deep, slow, formal (important speeches or moments)
 }
