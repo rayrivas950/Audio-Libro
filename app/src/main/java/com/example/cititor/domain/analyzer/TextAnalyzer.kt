@@ -43,12 +43,12 @@ class TextAnalyzer @Inject constructor(
                     style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
                 ))
             } else {
-                val dialogue = DialogueSegment(text = content)
-                // We resolve the speaker using our modular resolver
-                // Note: speakerId is currently not in DialogueSegment model after purge, 
-                // but we are preparing the architecture. 
-                // For now, let's just use the logic to show how it fits.
-                segments.add(dialogue)
+                // Resolve the speaker using our modular resolver with current context
+                val speakerId = dialogueResolver.resolveSpeaker(
+                    segment = DialogueSegment(text = content), 
+                    context = segments.toList()
+                )
+                segments.add(DialogueSegment(text = content, speakerId = speakerId))
             }
 
             lastIndex = matchResult.range.last + 1

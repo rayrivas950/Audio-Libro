@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 sealed interface TextSegment {
     val text: String
     val ttsParams: TTSParameters?
+    val speakerId: String?
 }
 
 /**
@@ -21,6 +22,7 @@ sealed interface TextSegment {
 data class NarrationSegment(
     override val text: String,
     override val ttsParams: TTSParameters? = null,
+    override val speakerId: String? = "Narrator",
     val style: NarrationStyle = NarrationStyle.NEUTRAL
 ) : TextSegment
 
@@ -32,5 +34,5 @@ data class NarrationSegment(
 data class DialogueSegment(
     override val text: String,
     override val ttsParams: TTSParameters? = null,
-    val speakerId: String? = null
+    override val speakerId: String? = null
 ) : TextSegment

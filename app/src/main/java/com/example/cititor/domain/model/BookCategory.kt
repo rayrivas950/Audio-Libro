@@ -12,5 +12,7 @@ enum class BookCategory {
     LEGAL,       // Formal, precise, specific pausing
     EPIC,        // Dramatic, higher dynamic range in pitch
     CHILDREN,    // Expressive, slower, higher pitch variations
-    JOURNALISM   // Informative, steady rhythm
+    JOURNALISM,  // Informative, steady rhythm
+    PHILOSOPHY,  // Thoughtful, moderate pace
+    COOKING      // Descriptive, clear, focused on steps
 }

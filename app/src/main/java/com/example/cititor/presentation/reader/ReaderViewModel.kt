@@ -13,7 +13,6 @@ import com.example.cititor.core.tts.TextToSpeechManager
 import com.example.cititor.data.worker.BookProcessingWorker
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.model.TextSegment
-import com.example.cititor.domain.use_case.GetBookMetadataUseCase
 import com.example.cititor.domain.use_case.GetBookPageUseCase
 import com.example.cititor.domain.use_case.GetBookUseCase
 import com.example.cititor.domain.use_case.UpdateBookProgressUseCase

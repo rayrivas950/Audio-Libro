@@ -22,22 +22,36 @@ class PatternProsodyEngine : ProsodyEngine {
         // --- 1. Base Adjustment by Category ---
         when (category) {
             BookCategory.TECHNICAL -> {
-                speed *= 0.95f // Clear and steady
-                pitch = 0.98f  // Slightly deeper, more formal
+                // Technical manuals: slower, neutral pitch, very clear
+                speed *= 0.90f 
+                pitch = 0.95f 
             }
             BookCategory.LEGAL -> {
-                speed *= 0.90f // Very deliberate
-                pitch = 0.95f  // Deep and formal
+                // Legal texts: slow, deep, formal, authoritative
+                speed *= 0.85f 
+                pitch = 0.90f 
             }
             BookCategory.EPIC -> {
-                speed *= 1.05f // Energetic
-                pitch = 1.05f  // Higher dynamic range
+                // Fantasy/Epic: faster, higher pitch, more dramatic
+                speed *= 1.08f 
+                pitch = 1.05f 
             }
             BookCategory.CHILDREN -> {
-                speed *= 0.88f // Slow and clear
-                pitch = 1.15f  // Higher and friendly
+                // Children's stories: very slow, high-pitched, friendly
+                speed *= 0.82f 
+                pitch = 1.15f 
             }
-            else -> {} // Fiction/Journalism use master defaults
+            BookCategory.PHILOSOPHY -> {
+                // Philosophy: moderate speed, slightly lower pitch, thoughtful
+                speed *= 0.94f
+                pitch = 0.97f
+            }
+            BookCategory.COOKING -> {
+                // Cooking: clear, slightly higher speed for steps, neutral pitch
+                speed *= 1.02f
+                pitch = 1.0f
+            }
+            else -> {} // Fiction/Journalism use defaults
         }
 
         // --- 2. Differentiation by segment type ---

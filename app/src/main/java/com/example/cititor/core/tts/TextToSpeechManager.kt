@@ -161,7 +161,14 @@ class TextToSpeechManager @Inject constructor(
                         
                         val adjustedSpeed = params.speed ?: masterSpeed
                         val adjustedPitch = params.pitch ?: 1.0f
-                        val speakerId = 0 // Multi-speaker support will be added modularly
+                        
+                        // Map the speakerId (String) to a Piper Speaker ID (Int)
+                        // Narrator is usually 0, and we can assign others modularly.
+                        val speakerId = when (segment.speakerId) {
+                            "Narrator" -> 0
+                            "Character_Generic" -> 1 
+                            else -> 0
+                        }
                         
                         var rawAudio: FloatArray? = null
                         if (!usePiper) {
