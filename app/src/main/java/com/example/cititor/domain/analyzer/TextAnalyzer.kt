@@ -2,6 +2,7 @@ package com.example.cititor.domain.analyzer
 
 import com.example.cititor.domain.model.DialogueSegment
 import com.example.cititor.domain.model.NarrationSegment
+import com.example.cititor.domain.model.ProsodyIntention
 import com.example.cititor.domain.model.TextSegment
 import com.example.cititor.domain.sanitizer.TextSanitizer
 

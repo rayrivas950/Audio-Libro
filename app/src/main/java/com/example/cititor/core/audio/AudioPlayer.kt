@@ -8,20 +8,30 @@ import android.util.Log
 class AudioPlayer {
 
     private var audioTrack: AudioTrack? = null
-    private val sampleRate = 22050 // Default for Piper medium models
+    private var sampleRate = 22050 // Default, will be updated by configure()
     private val channelConfig = AudioFormat.CHANNEL_OUT_MONO
     private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-    private val bufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+    private var bufferSize = 0
 
     init {
+        // Deferred initialization
+    }
+
+    fun configure(targetSampleRate: Int) {
+        if (this.sampleRate == targetSampleRate && audioTrack != null) return
+        
+        Log.d("AudioPlayer", "Re-configuring AudioPlayer to native rate: $targetSampleRate Hz")
+        this.sampleRate = targetSampleRate
+        release()
         createAudioTrack()
     }
 
     private fun createAudioTrack() {
         try {
+            bufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
             // High stability buffer
             val optimizedBufferSize = bufferSize * 12
-            Log.d("AudioPlayer", "Creating AudioTrack: OptimizedBufferSize=$optimizedBufferSize")
+            Log.d("AudioPlayer", "Creating AudioTrack: Rate=$sampleRate, Buffer=$optimizedBufferSize")
 
             audioTrack = AudioTrack.Builder()
                 .setAudioAttributes(

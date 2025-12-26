@@ -177,7 +177,21 @@ class TextToSpeechManager @Inject constructor(
                             androidTts?.speak(text, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
                         } else {
                             Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $adjustedSpeed | Pitch: $adjustedPitch")
+                            
+                            // 1. Get native sample rate from model
+                            val nativeRate = piperTts?.getSampleRate() ?: 22050
+                            
+                            // 2. Configure player to match exactly (Bit-Perfect)
+                            audioPlayer?.configure(nativeRate)
+
                             rawAudio = piperTts?.synthesize(text, adjustedSpeed, speakerId)
+                            
+                            // 3. Inject Silence Pre-Roll (100ms) to prevent cut-off words
+                            if (rawAudio != null) {
+                                val silenceSamples = (nativeRate * 0.1).toInt() // 100ms
+                                val silence = FloatArray(silenceSamples) { 0f }
+                                rawAudio = silence + rawAudio!!
+                            }
                         }
                         
                         if (rawAudio != null) {
