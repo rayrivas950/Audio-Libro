@@ -222,54 +222,54 @@ Esta fase optimiza el rendimiento del procesamiento y agrega capacidades avanzad
     - [ ] Implementar análisis de contexto (tensión, calma, misterio).
     - [ ] Optimizar para ejecución en dispositivo (TensorFlow Lite).
 
-### Fase 5: Integración de Motor de Audio (Piper + TarsosDSP)
+### Fase 5: Integración de Motor de Audio (Piper + TarsosDSP) - ✅ COMPLETADA
+ 
+ Esta fase se centra en reemplazar el TTS nativo con un motor de alta calidad y capacidades de post-procesamiento.
+ 
+ 1.  **Integración de Piper TTS (Base):**
+-   [x] Integrar librería nativa de Piper para Android.
+-   [x] Implementar descarga y gestión de modelos de voz en español (es_ES, es_MX).
+-   [x] Crear `PiperTTSEngine` que reemplace al `AndroidTTSEngine` actual.
+ 
+ 2.  **Procesamiento de Audio (DSP):**
+-   [x] Integrar librería **TarsosDSP**.
+-   [x] Implementar `AudioEffectProcessor` para aplicar efectos en tiempo real/post-proceso.
+-   [x] Crear efectos específicos:
+-       [x] **Pitch Shifting:** Para Gigantes (bajo) y Niños (alto).
+-       [x] **Time Stretching:** Para hablar lento o rápido sin cambiar tono.
+-       [x] **Reverb/Echo:** Para pensamientos y voces etéreas.
+ 
+ 3.  **Conexión con Lógica de Voces:**
+-   [x] Mapear `VoiceProfile` (creado en Fase 4B) a parámetros de Piper + Tarsos.
+-   [x] Ejemplo: `VoiceProfile.GIANT` -> Piper Voice A + Pitch -4 semitonos + Speed 0.8.
+ 
+ 4.  **Gestión de Voces por Personaje (UI):**
+-   [ ] Implementar UI para revisar y editar personajes identificados.
+-   [ ] Permitir al usuario asignar manualmente voces a personajes.
+-   [ ] Guardar preferencias de voz por personaje.
 
-Esta fase se centra en reemplazar el TTS nativo con un motor de alta calidad y capacidades de post-procesamiento.
-
-1.  **Integración de Piper TTS (Base):**
-    *   [ ] Integrar librería nativa de Piper para Android.
-    *   [ ] Implementar descarga y gestión de modelos de voz en español (es_ES, es_MX).
-    *   [ ] Crear `PiperTTSEngine` que reemplace al `AndroidTTSEngine` actual.
-
-2.  **Procesamiento de Audio (DSP):**
-    *   [ ] Integrar librería **TarsosDSP**.
-    *   [ ] Implementar `AudioEffectProcessor` para aplicar efectos en tiempo real/post-proceso.
-    *   [ ] Crear efectos específicos:
-        *   **Pitch Shifting:** Para Gigantes (bajo) y Niños (alto).
-        *   **Time Stretching:** Para hablar lento o rápido sin cambiar tono.
-        *   **Reverb/Echo:** Para pensamientos y voces etéreas.
-
-3.  **Conexión con Lógica de Voces:**
-    *   [ ] Mapear `VoiceProfile` (creado en Fase 4B) a parámetros de Piper + Tarsos.
-    *   [ ] Ejemplo: `VoiceProfile.GIANT` -> Piper Voice A + Pitch -4 semitonos + Speed 0.8.
-
-4.  **Gestión de Voces por Personaje (UI):**
-    *   [ ] Implementar UI para revisar y editar personajes identificados.
-    *   [ ] Permitir al usuario asignar manualmente voces a personajes.
-    *   [ ] Guardar preferencias de voz por personaje.
-
-### Fase 10: Expresividad Humana y Prosodia (Motor de Prosodia Extensible)
-
-Esta fase eleva la calidad de la síntesis de "funcional" a "artística", permitiendo que la app adapte su estilo de lectura según el género del libro.
-
-1.  **Arquitectura Modular (`domain.analyzer.prosody`):**
-    *   [ ] Implementar interfaz `ProsodyProfile` para definir comportamientos vocales.
-    *   [ ] Crear `ProsodyEngine` como orquestador de capas de expresión.
-
-2.  **Implementación de Perfiles de Género:**
-    *   [ ] **Perfil Épico/Literario:** Énfasis en drama, micro-respiros y variaciones de ritmo.
-    *   [ ] **Perfil Técnico:** Enfoque en claridad, pausas rítmicas y énfasis en términos complejos.
-    *   [ ] **Perfil Legal/Solemne:** Ritmo pausado, pausas largas tras artículos y tono autoritario.
-    *   [ ] **Perfil Histórico:** Énfasis en fechas y nombres, ritmo reflexivo.
-
-3.  **Detección Inteligente:**
-    *   [ ] Implementar `GenreDetector` para asignar perfiles automáticamente basándose en el vocabulario del libro.
-
-4.  **Rasgos de Expresividad:**
-    *   [ ] **Micro-respiros:** Inserción de inhalaciones sutiles.
-    *   [ ] **Curvas de Entonación:** Inflexiones automáticas en `?`, `!` y finales de párrafo.
-    *   [ ] **Énfasis Léxico:** Contraste de velocidad entre palabras de función y de contenido.
-    *   [ ] **Pausas Dramáticas:** Silencios estratégicos para generar expectativa.
+### Fase 10: Expresividad Humana y Prosodia (Motor de Prosodia Extensible) - 🚧 EN CURSO
+ 
+ Esta fase eleva la calidad de la síntesis de "funcional" a "artística", permitiendo que la app adapte su estilo de lectura según el género del libro.
+ 
+ 1.  **Arquitectura Modular (`domain.analyzer.prosody`):**
+-   [ ] Implementar interfaz `ProsodyProfile` para definir comportamientos vocales.
+-   [ ] Crear `ProsodyEngine` como orquestador de capas de expresión.
+ 
+ 2.  **Implementación de Perfiles de Género:**
+-   [ ] **Perfil Épico/Literario:** Énfasis en drama, micro-respiros y variaciones de ritmo.
+-   [ ] **Perfil Técnico:** Enfoque en claridad, pausas rítmicas y énfasis en términos complejos.
+-   [ ] **Perfil Legal/Solemne:** Ritmo pausado, pausas largas tras artículos y tono autoritario.
+-   [ ] **Perfil Histórico:** Énfasis en fechas y nombres, ritmo reflexivo.
+ 
+ 3.  **Detección Inteligente:**
+-   [ ] Implementar `GenreDetector` para asignar perfiles automáticamente basándose en el vocabulario del libro.
+ 
+ 4.  **Rasgos de Expresividad:**
+-   [x] **Micro-respiros:** Inserción de inhalaciones sutiles (Pausas de conjunción).
+-   [x] **Curvas de Entonación:** Inflexiones automáticas en `?`, `!` y finales de párrafo (Pausas inteligentes).
+-   [x] **Énfasis Léxico:** Contraste de velocidad entre palabras de función y de contenido (Nombres propios).
+-   [x] **Pausas Dramáticas:** Silencios estratégicos para generar expectativa (Acotaciones y listas).
 
 ## 5. Calidad y Pruebas
 

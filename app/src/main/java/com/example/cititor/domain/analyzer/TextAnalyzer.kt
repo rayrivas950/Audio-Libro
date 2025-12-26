@@ -166,45 +166,31 @@ object TextAnalyzer {
     private fun splitBySyntacticWeight(text: String): List<String> {
         if (text.length <= 45) return listOf(text)
 
-        // Syntactic Weight Rules (Regexes with priority)
-        // 1. Conjunctions (y, o, pero, etc.) - Weight 100
-        // 2. Prepositions (de, con, en, etc.) - Weight 50
-        val markers = listOf(
-            Regex("""\s+(y|o|u|e|pero|aunque|mas|sino)\s+""") to 100,
-            Regex("""\s+(de|con|en|por|para|a|hacia|sobre)\s+""") to 50
-        )
+        // Using lookbehind to split AFTER the space that follows a conjunction or preposition
+        // This preserves the words and the spaces.
+        val splitRegex = Regex("""(?<=\s(y|o|u|e|ni|pero|mas|sino|aunque|porque|pues|si|cuando|donde|como|que|cual|quien|de|en|a|por|con|para|sobre|entre|hacia|hasta|durante|mediante|tras))\s+""")
+        
+        val parts = text.split(splitRegex).filter { it.isNotBlank() }
+        if (parts.size <= 1) return listOf(text)
 
-        var bestMatch: MatchResult? = null
-        var highestScore = -1.0
+        val result = mutableListOf<String>()
+        var currentSegment = StringBuilder()
 
-        val middle = text.length / 2.0
-        val tolerance = text.length * 0.3 // Look in the middle 60% of the text
-
-        for ((regex, weight) in markers) {
-            regex.findAll(text).forEach { match ->
-                val pos = match.range.first
-                if (Math.abs(pos - middle) < tolerance) {
-                    // Score = weight / distance_from_center
-                    // We favor higher weight markers even if they are slightly off-center
-                    val distanceFactor = 1.0 / (1.0 + Math.abs(pos - middle) / text.length)
-                    val score = weight * distanceFactor
-                    if (score > highestScore) {
-                        highestScore = score
-                        bestMatch = match
-                    }
-                }
+        for (part in parts) {
+            if (currentSegment.length + part.length > 80 && currentSegment.isNotEmpty()) {
+                result.add(currentSegment.toString())
+                currentSegment = StringBuilder(part)
+            } else {
+                if (currentSegment.isNotEmpty()) currentSegment.append(" ")
+                currentSegment.append(part)
             }
         }
 
-        return if (bestMatch != null) {
-            val splitPoint = bestMatch!!.range.last + 1
-            val first = text.substring(0, splitPoint).trim()
-            val second = text.substring(splitPoint).trim()
-            // Recursively split if still too long
-            splitBySyntacticWeight(first) + splitBySyntacticWeight(second)
-        } else {
-            listOf(text)
+        if (currentSegment.isNotEmpty()) {
+            result.add(currentSegment.toString())
         }
+
+        return result
     }
 
     private fun isSectionIndicator(text: String): Boolean {

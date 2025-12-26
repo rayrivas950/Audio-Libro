@@ -50,6 +50,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Do not compress Piper TTS models and data.
+    // This is crucial for AssetManager.openFd() to work, avoiding slow fallbacks.
+    aaptOptions {
+        noCompress += "piper"
+    }
 }
 
 dependencies {

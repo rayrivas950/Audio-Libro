@@ -68,10 +68,10 @@ class EpubExtractor @Inject constructor() : TextExtractor {
                 return@withContext errorMsg
             }
             
-            val content = bookSection?.sectionTextContent
+            val content = bookSection?.sectionContent
             
             if (content != null) {
-                Log.d(TAG, "Successfully extracted ${content.length} characters from section $page")
+                Log.d(TAG, "Successfully extracted ${content.length} characters from section $page (HTML)")
                 content
             } else {
                 val errorMsg = "Content not available for section $page"
@@ -142,7 +142,7 @@ class EpubExtractor @Inject constructor() : TextExtractor {
             while (true) {
                 try {
                     val section = reader.readSection(sectionIndex)
-                    val text = section?.sectionTextContent ?: ""
+                    val text = section?.sectionContent ?: ""
                     onPageExtracted(sectionIndex, text)
                     Log.d(TAG, "Streamed EPUB section $sectionIndex (${text.length} chars)")
                     sectionIndex++

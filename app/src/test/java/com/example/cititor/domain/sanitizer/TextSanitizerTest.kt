@@ -42,10 +42,39 @@ class TextSanitizerTest {
     }
 
     @Test
-    fun `test spaced name collapse - should collapse A N D R E Z`() {
-        val text = "A N D R E Z estaba allí."
-        val sanitized = TextSanitizer.sanitize(text)
+    fun `test witcher regression - should preserve spaces and paragraphs in Witcher sample`() {
+        // Simulating the "dirty" text seen in some extractions (EPUB/PDF glitches)
+        // Note: Some spaces are missing here to see if we can "heal" them or at least not make them worse.
+        // Actually, the goal is to ENSURE that if the input has spaces, we don't remove them,
+        // and if it has paragraph breaks, we don't join them incorrectly.
         
-        assertTrue("Should collapse A N D R E Z", sanitized.contains("ANDREZ"))
+        val input = """
+            El brujo
+            I
+            
+            Después dijeron que aquel hombre había venido desde el norte por la Puerta de los Cordeleros.
+            Entró a pie, llevando de las riendas a su caballo.
+            Era por la tarde y los tenderetes de los cordeleros y de los talabarteros estaban ya cerrados y la callejuela se encontraba vacía.
+            La tarde era calurosa pero aquel hombre traía un capote negro sobre los hombros.
+            Llamaba la atención.
+            
+            Se detuvo ante la venta del Viejo Narakort, se mantuvo de pie un instante, escuchó el rumor de las voces.
+        """.trimIndent()
+
+        val sanitized = TextSanitizer.sanitize(input)
+        
+        // Check for paragraph separation (double newline)
+        assertTrue("Header 'El brujo' should be separated", sanitized.contains("El brujo\n\nI"))
+        assertTrue("Section 'I' should be separated from text", sanitized.contains("I\n\nDespués"))
+        
+        // Check that sentences starting with Uppercase after a break ARE separate paragraphs 
+        // if they are short (like titles or section markers)
+        assertTrue("Main paragraph should be separated from second paragraph", 
+            sanitized.contains("Llamaba la atención.\n\nSe detuvo"))
+
+        // Check for space preservation (ensure no "porla" or "asu")
+        assertTrue("Should contain 'por la'", sanitized.contains("por la"))
+        assertTrue("Should contain 'a su'", sanitized.contains("a su"))
+        assertTrue("Should contain 'y los'", sanitized.contains("y los"))
     }
 }

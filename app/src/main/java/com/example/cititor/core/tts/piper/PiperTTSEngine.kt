@@ -78,9 +78,9 @@ class PiperTTSEngine(private val context: Context) {
             // Ensure files are readable
             if (!modelFile.canRead()) throw IOException("Cannot read model file")
 
-            Log.d("PiperTTSEngine", "Phase 2.3: Initializing native OfflineTts with null AssetManager (Filesystem mode)...")
+            Log.d("PiperTTSEngine", "Phase 2.3: Initializing native OfflineTts (Filesystem mode)...")
             tts = OfflineTts(null, config)
-            Log.d("PiperTTSEngine", "Piper TTS initialized successfully (Native engine loaded from filesystem via null assets)")
+            Log.d("PiperTTSEngine", "Piper TTS initialized successfully (Native engine loaded from filesystem)")
 
         } catch (e: Exception) {
             Log.e("PiperTTSEngine", "Failed to initialize Piper TTS", e)

@@ -14,7 +14,7 @@ object TextSanitizer {
      * @return A plain text string, ready for TTS processing or display.
      */
     fun sanitize(text: String): String {
-        // 1. Handle block-level HTML tags BEFORE stripping to preserve structure
+        // 1. Pre-process block-level HTML tags to preserve structure
         var processedText = text
             .replace("(?i)<p[^>]*>".toRegex(), "\n\n")
             .replace("(?i)<br[^>]*>".toRegex(), "\n")
@@ -29,7 +29,7 @@ object TextSanitizer {
             .replace("<em>", "*")
             .replace("</em>", "*")
 
-        // 3. Normalize special characters that might confuse Piper
+        // 3. Normalize special characters
         processedText = processedText
             .replace("“", "\"")
             .replace("”", "\"")
@@ -37,23 +37,22 @@ object TextSanitizer {
             .replace("»", "\"")
             .replace("–", "-")
 
-        // 4. Remove remaining HTML tags.
-        val strippedText = htmlTagRegex.replace(processedText, "")
+        // 4. Remove remaining HTML tags, but REPLACE WITH SPACE to avoid word collapsing
+        // e.g. "por</span><span>la" -> "por la" instead of "porla"
+        val strippedText = htmlTagRegex.replace(processedText, " ")
         
-        // 5. Normalizar saltos de línea y agrupar párrafos duros (\n\n)
+        // 5. Normalizar saltos de línea
         val normalizedLineEndings = strippedText.replace("\r\n", "\n").replace("\r", "\n")
         
-        // Colapsar 3 o más saltos de línea en 2 (párrafo estándar)
-        var paragraphGrouped = normalizedLineEndings.replace(Regex("""\n{3,}"""), "\n\n")
+        // 6. Fix missing space after punctuation (very common in bad extractions)
+        // e.g. "Cordeleros.Entró" -> "Cordeleros. Entró"
+        val punctSpaceRegex = Regex("""([\.!\?])([A-ZÁÉÍÓÚÑ])""")
+        var fixedPunctuation = punctSpaceRegex.replace(normalizedLineEndings, "$1 $2")
 
-        // 6. Saneamiento de nombres espaciados (Solo si hay al menos 3 letras seguidas de espacio)
-        // Ejemplo: "A N D R E Z" -> "ANDREZ"
-        val spacedNameRegex = Regex("""([A-ZÁÉÍÓÚÑ]\s){2,}[A-ZÁÉÍÓÚÑ]""")
-        paragraphGrouped = spacedNameRegex.replace(paragraphGrouped) { match ->
-            match.value.replace(" ", "")
-        }
+        // 7. Colapsar 3 o más saltos de línea en 2 (párrafo estándar)
+        val paragraphGrouped = fixedPunctuation.replace(Regex("""\n{3,}"""), "\n\n")
 
-        // 7. Healing de párrafos (Unir líneas cortadas por el PDF que pertenecen al mismo párrafo)
+        // 8. Healing de párrafos (Unir líneas cortadas por el PDF que pertenecen al mismo párrafo)
         val paragraphs = paragraphGrouped.split("\n\n")
         val healedParagraphs = paragraphs.map { paragraph ->
             val lines = paragraph.split("\n")
@@ -72,7 +71,6 @@ object TextSanitizer {
                     if (shouldJoinLines(current, next)) {
                         result.append(" ")
                     } else {
-                        // Si no deben unirse (ej: diálogo), forzamos un salto de párrafo
                         result.append("\n\n") 
                     }
                 }
@@ -80,8 +78,8 @@ object TextSanitizer {
             result.toString()
         }.map { it.trim() }.filter { it.isNotBlank() }
 
-        // Unimos todo con doble salto, asegurando que no haya triples saltos por la lógica anterior
         return healedParagraphs.joinToString("\n\n")
+            .replace(Regex("""[ \t]+"""), " ") // Colapsar espacios múltiples horizontales
             .replace(Regex("""\n{3,}"""), "\n\n")
             .trim()
     }

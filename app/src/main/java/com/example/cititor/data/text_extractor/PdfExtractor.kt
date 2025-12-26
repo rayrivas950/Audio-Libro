@@ -81,10 +81,9 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     val pageCount = document.numberOfPages
                     Log.d(TAG, "PDF loaded, streaming $pageCount pages")
                     
-                    val stripper = PDFTextStripper().apply {
-                        sortByPosition = true
-                        lineSeparator = "\n"
-                    }
+                    val stripper = PDFTextStripper()
+                    stripper.sortByPosition = true
+                    stripper.lineSeparator = "\n"
                     for (i in 0 until pageCount) {
                         try {
                             stripper.startPage = i + 1
