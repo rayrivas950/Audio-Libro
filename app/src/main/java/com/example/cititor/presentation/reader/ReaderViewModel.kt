@@ -36,9 +36,7 @@ data class ReaderState(
     val isLoading: Boolean = true,
     val isProcessing: Boolean = false,
     val processingError: String? = null, // To show worker errors
-    val highlightedTextRange: IntRange? = null,
-    val characters: List<com.example.cititor.domain.model.Character> = emptyList(),
-    val properNames: Set<String> = emptySet()
+    val highlightedTextRange: IntRange? = null
 )
 
 @HiltViewModel
@@ -46,7 +44,6 @@ class ReaderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getBookUseCase: GetBookUseCase,
     private val getBookPageUseCase: GetBookPageUseCase,
-    private val getBookMetadataUseCase: GetBookMetadataUseCase,
     private val updateBookProgressUseCase: UpdateBookProgressUseCase,
     private val textToSpeechManager: TextToSpeechManager,
     savedStateHandle: SavedStateHandle
@@ -69,7 +66,7 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun startReading() {
-        textToSpeechManager.speak(state.value.pageSegments, state.value.characters, state.value.properNames)
+        textToSpeechManager.speak(state.value.pageSegments)
     }
 
     fun nextPage() {
@@ -95,7 +92,6 @@ class ReaderViewModel @Inject constructor(
         getBookUseCase(bookId).onEach { book ->
             if (book != null) {
                 _state.value = state.value.copy(book = book, currentPage = book.currentPage)
-                loadMetadata(book.id)
                 observeWorkStatus(book.processingWorkId)
                 loadPageContent()
             } else {
@@ -160,16 +156,6 @@ class ReaderViewModel @Inject constructor(
                     )
                 }
             }
-        }
-    }
-
-    private fun loadMetadata(bookId: Long) {
-        viewModelScope.launch {
-            val metadata = getBookMetadataUseCase(bookId)
-            _state.value = _state.value.copy(
-                characters = metadata.characters,
-                properNames = metadata.properNames
-            )
         }
     }
 

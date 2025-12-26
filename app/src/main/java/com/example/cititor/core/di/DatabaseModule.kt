@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import com.example.cititor.core.database.CititorDatabase
 import com.example.cititor.core.database.dao.BookDao
-import com.example.cititor.core.database.dao.BookMetadataDao
 import com.example.cititor.core.database.dao.CleanPageDao
 import com.example.cititor.core.security.SecurityManager
 import dagger.Module
@@ -58,11 +57,6 @@ object DatabaseModule {
         return database.cleanPageDao()
     }
 
-    @Provides
-    @Singleton
-    fun provideBookMetadataDao(database: CititorDatabase): BookMetadataDao {
-        return database.bookMetadataDao()
-    }
 
     @Provides
     @Singleton

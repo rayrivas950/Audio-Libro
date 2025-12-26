@@ -32,7 +32,5 @@ data class NarrationSegment(
 data class DialogueSegment(
     override val text: String,
     override val ttsParams: TTSParameters? = null,
-    val speakerId: String? = null,
-    val emotion: Emotion = Emotion.NEUTRAL,
-    val intensity: Float = 1.0f
+    val speakerId: String? = null
 ) : TextSegment

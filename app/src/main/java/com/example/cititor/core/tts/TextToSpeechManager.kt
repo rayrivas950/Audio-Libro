@@ -4,10 +4,6 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import com.example.cititor.domain.model.DialogueSegment
-import com.example.cititor.domain.model.Emotion
-import com.example.cititor.domain.model.NarrationSegment
-import com.example.cititor.domain.model.NarrationStyle
 import com.example.cititor.domain.model.TextSegment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -27,7 +23,6 @@ class TextToSpeechManager @Inject constructor(
     private var piperTts: com.example.cititor.core.tts.piper.PiperTTSEngine? = null
     private var audioPlayer: com.example.cititor.core.audio.AudioPlayer? = null
     private var effectProcessor: com.example.cititor.core.audio.AudioEffectProcessor? = null
-    private val consistencyMonitor = com.example.cititor.domain.analyzer.prosody.ConsistencyMonitor()
     
     private var isInitialized = false
     private var usePiper = true // Set to true to use Piper by default
@@ -91,13 +86,12 @@ class TextToSpeechManager @Inject constructor(
     private var playbackJob: Job? = null
     private var synthesisJob: Job? = null
 
-    fun speak(segments: List<TextSegment>, bookCharacters: List<com.example.cititor.domain.model.Character> = emptyList(), properNames: Set<String> = emptySet()) {
+    fun speak(segments: List<TextSegment>) {
         if (!isInitialized) return
 
         stop() // Stop any ongoing playback
         _currentSpokenWord.value = null
         _isSpeaking.value = true
-        consistencyMonitor.reset()
         
         // Recreate channel for each session with higher capacity for lookahead
         val currentChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 30)
@@ -147,26 +141,19 @@ class TextToSpeechManager @Inject constructor(
             // 2. Producer: Synthesizes segments and sends to channel
             synthesisJob = scope.launch {
                 try {
-                    var lastSpeakerId: String? = null
-                    
                     segments.forEachIndexed { index, segment ->
                         if (!isSpeaking.value) return@forEachIndexed
                         
                         val text = segment.text
-                        val nextSegment = segments.getOrNull(index + 1)
                         
                         // Update current segment for UI highlighting
                         _currentSegment.value = segment
-                        
-                        // Speaker transition logic removed for factory reset
-                        lastSpeakerId = if (segment is DialogueSegment) segment.speakerId else "NARRATOR"
 
                         // Default parameters (Using Master Speed only)
                         val speed = masterSpeed
                         val pitch = 1.0f
                         val speakerId = 0
                         
-                        // Profile, Emotion and Emphasis logic removed for factory reset
                         val adjustedSpeed = speed
                         val adjustedPitch = pitch
                         
@@ -177,36 +164,17 @@ class TextToSpeechManager @Inject constructor(
                             androidTts?.speak(text, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
                         } else {
                             Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $adjustedSpeed | Pitch: $adjustedPitch")
-                            if (segment is NarrationSegment && segment.style == NarrationStyle.CHAPTER_INDICATOR) {
-                                Log.d(TAG, "Skipping synthesis for chapter indicator: $text")
-                            } else {
-                                rawAudio = piperTts?.synthesize(text, adjustedSpeed, speakerId)
-                            }
+                            rawAudio = piperTts?.synthesize(text, adjustedSpeed, speakerId)
                         }
                         
                         if (rawAudio != null) {
-                            // Apply Naturalization (EQ + Normalization)
-                            rawAudio = effectProcessor?.applyNaturalization(rawAudio) ?: rawAudio
-
-                            // Apply Pitch Shift if needed
-                            if (adjustedPitch != 1.0f) {
-                                val sampleRate = piperTts?.getSampleRate() ?: 22050
-                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, sampleRate, adjustedPitch.toDouble())
-                            }
-                            
-                            if (rawAudio != null) {
-                                currentChannel.send(rawAudio)
-                                
-                                // Intelligent Pause logic removed for factory reset
-                                // Piper handles basic punctuation pauses naturally.
-                            }
+                            // Naturalization and Pitch Shift removed for factory reset to ensures cleanest raw output from Piper
+                            currentChannel.send(rawAudio)
                         }
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Producer error", e)
                 } finally {
-                    // Synthesis finished, but playback might still be ongoing.
-                    // We close the local channel reference to signal the consumer.
                     currentChannel.close()
                 }
             }
