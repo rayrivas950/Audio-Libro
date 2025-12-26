@@ -35,7 +35,6 @@ object TextSanitizer {
             .replace("”", "\"")
             .replace("«", "\"")
             .replace("»", "\"")
-            .replace("—", "-")
             .replace("–", "-")
 
         // 4. Remove remaining HTML tags.
