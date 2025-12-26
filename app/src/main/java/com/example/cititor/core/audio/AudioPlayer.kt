@@ -53,12 +53,11 @@ class AudioPlayer {
     }
 
     fun play(samples: FloatArray) {
+        if (samples.isEmpty()) return
+        
         // Convert FloatArray (-1.0 to 1.0) to ShortArray (PCM 16-bit)
         val pcmData = floatArrayToShortArray(samples)
         
-        // Write to AudioTrack
-        // Note: In STREAM mode, this blocks until data is written.
-        // Should be called from a background thread.
         try {
             // Apply a tiny fade-in/out to avoid clicks between segments
             applyFade(pcmData)
@@ -69,13 +68,18 @@ class AudioPlayer {
             }
 
             // Write in smaller chunks to avoid HAL I/O errors with massive buffers
-            val chunkSize = 2048 // Smaller chunks for smoother delivery
+            val chunkSize = 2048 
             var offset = 0
             while (offset < pcmData.size) {
+                // Check if thread is interrupted (job cancelled)
+                if (Thread.currentThread().isInterrupted) break
+
                 val sizeToWrite = minOf(chunkSize, pcmData.size - offset)
                 val result = audioTrack?.write(pcmData, offset, sizeToWrite) ?: -1
+                
                 if (result < 0) {
-                    Log.e("AudioPlayer", "Write error: $result")
+                    Log.e("AudioPlayer", "Write error: $result. Attempting to recover AudioTrack...")
+                    recoverAudioTrack()
                     break
                 } else if (result == 0) {
                     // Buffer full, wait a bit
@@ -86,6 +90,17 @@ class AudioPlayer {
             }
         } catch (e: Exception) {
             Log.e("AudioPlayer", "Error writing to AudioTrack", e)
+        }
+    }
+
+    private fun recoverAudioTrack() {
+        try {
+            audioTrack?.stop()
+            audioTrack?.release()
+            createAudioTrack()
+            Log.d("AudioPlayer", "AudioTrack recovered successfully.")
+        } catch (e: Exception) {
+            Log.e("AudioPlayer", "Failed to recover AudioTrack", e)
         }
     }
 
