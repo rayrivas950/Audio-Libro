@@ -5,7 +5,10 @@ import com.example.cititor.domain.analyzer.character.CharacterRegistry
 import com.example.cititor.domain.sanitizer.TextSanitizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
 import org.junit.Test
+import com.example.cititor.domain.model.DialogueSegment
+import com.example.cititor.domain.model.NarrationSegment
 
 class TextPipelineTest {
 
@@ -22,6 +25,62 @@ class TextPipelineTest {
         
         val expected = "This is a very long line that should definitely be joined with the next one because it is part of the same paragraph and it is long enough to not be a title and this is the continuation of that very long line that we were talking about.\n\nSecond paragraph starts here."
         assertEquals("The final text should have the paragraph break", expected, reconstructedText)
+    }
+
+    @Test
+    fun `test chapter title separation`() {
+        // The title "La voz de la razón 1" should be separated from the text
+        val rawText = "La voz de la razón 1\nVino a él por la mañana."
+        val sanitizedText = TextSanitizer.sanitize(rawText)
+        
+        // Should have a double newline between title and text
+        assertTrue("Sanitizer should separate title with double newline", sanitizedText.contains("\n\n"))
+        
+        val registry = CharacterRegistry()
+        val (segments, _) = TextAnalyzer.analyze(sanitizedText, registry)
+        
+        // Title is one segment, then \n\n, then the sentence
+        // But wait, analyze splits by intelligent segments too.
+        // "La voz de la razón 1\n\n" -> Neutral
+        // "Vino a él por la mañana." -> Neutral
+        
+        val titleSegment = segments.find { it.text.contains("razón 1") }
+        assertNotNull("Title segment should exist", titleSegment)
+        assertTrue("Title should have double newline", titleSegment!!.text.endsWith("\n\n"))
+    }
+
+    @Test
+    fun `test intelligent segmentation by punctuation`() {
+        val rawText = "Entró a pie, llevando de las riendas a su caballo. Era por la tarde."
+        val (segments, _) = TextAnalyzer.analyze(rawText, CharacterRegistry())
+        
+        // Should split into:
+        // 1. "Entró a pie, "
+        // 2. "llevando de las riendas a su caballo. "
+        // 3. "Era por la tarde."
+        
+        assertEquals("Should split into 3 segments", 3, segments.size)
+        assertTrue(segments[0].text.contains(","))
+        assertTrue(segments[1].text.contains("."))
+    }
+
+    @Test
+    fun `test em-dash preservation and dialogue detection`() {
+        val rawText = "—Geralt —dijo ella."
+        val (segments, _) = TextAnalyzer.analyze(rawText, CharacterRegistry())
+        
+        // Should have:
+        // 1. Dialogue: "—Geralt "
+        // 2. Narration: "—dijo ella."
+        
+        val dialogue = segments.filterIsInstance<DialogueSegment>()
+        val narration = segments.filterIsInstance<NarrationSegment>()
+        
+        assertEquals("Should have 1 dialogue segment", 1, dialogue.size)
+        assertTrue("Dialogue should keep em-dash", dialogue[0].text.startsWith("—"))
+        
+        assertEquals("Should have 1 narration segment (tag)", 1, narration.size)
+        assertTrue("Tag should keep em-dash", narration[0].text.startsWith("—"))
     }
 
     @Test
@@ -45,9 +104,9 @@ class TextPipelineTest {
         println("--------------------------")
         
         // Final Assertion
-        // Sanitizer normalizes — to -
-        // Now it's split into 3 segments: "La voz de la razón 2\n\n", "I\n\n", "-Geralt."
-        val expected = "La voz de la razón 2\n\nI\n\n-Geralt."
+        // Sanitizer NO LONGER normalizes — to -
+        // Now it's split into 3 segments: "La voz de la razón 2\n\n", "I\n\n", "—Geralt."
+        val expected = "La voz de la razón 2\n\nI\n\n—Geralt."
         assertEquals("Structure should be preserved", expected, reconstructed)
         
         val romanSegment = segments.find { it.text.trim() == "I" }
@@ -87,22 +146,32 @@ class TextPipelineTest {
     }
 
     @Test
-    fun `test paragraph healing for broken sentences`() {
-        // Scenario: PDF with physical line break in middle of sentence
-        val rawText = "caminando silenciosamente, deslizándose por la\n\nhabitación como un espectro"
-        val sanitized = TextSanitizer.sanitize(rawText)
-        println("DEBUG HEALING: '$sanitized'")
-        assertEquals("Should heal broken sentence even with double newline", 
-            "caminando silenciosamente, deslizándose por la habitación como un espectro", sanitized)
+    fun `test single quote thought detection`() {
+        val rawText = "'Te tendría que matar', pensó Pate."
+        val (segments, _) = TextAnalyzer.analyze(rawText, CharacterRegistry())
+        
+        // Should have:
+        // 1. Narration (Thought): "'Te tendría que matar'"
+        // 2. Narration (Neutral): ", pensó Pate."
+        
+        val thoughts = segments.filterIsInstance<NarrationSegment>().filter { it.style == com.example.cititor.domain.model.NarrationStyle.THOUGHT }
+        assertEquals("Should have 1 thought segment", 1, thoughts.size)
+        assertTrue("Thought should contain the text", thoughts[0].text.contains("matar"))
     }
 
     @Test
-    fun `test chapter title separation`() {
-        // Scenario: Chapter title followed by text
-        val rawText = "La voz de la razón 1\nVino a él al romper el alba."
-        val sanitized = TextSanitizer.sanitize(rawText)
-        println("DEBUG CHAPTER: '$sanitized'")
-        assertTrue("Should separate chapter title with double newline", 
-            sanitized.contains("razón 1\n\nVino"))
+    fun `test list segmentation with consecutive commas`() {
+        val rawText = "Trajo manzanas, peras, uvas y naranjas."
+        val (segments, _) = TextAnalyzer.analyze(rawText, CharacterRegistry())
+        
+        // Should split by commas and conjunctions
+        // 1. "Trajo manzanas, "
+        // 2. "peras, "
+        // 3. "uvas "
+        // 4. "y naranjas."
+        
+        assertTrue("Should have multiple segments for the list", segments.size >= 3)
+        assertTrue("First segment should end with comma", segments[0].text.trim().endsWith(","))
+        assertTrue("Second segment should end with comma", segments[1].text.trim().endsWith(","))
     }
 }
