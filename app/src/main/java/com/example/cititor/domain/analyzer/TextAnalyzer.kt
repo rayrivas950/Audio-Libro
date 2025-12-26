@@ -167,8 +167,8 @@ object TextAnalyzer {
         if (text.length <= 45) return listOf(text)
 
         // Using lookbehind to split AFTER the space that follows a conjunction or preposition
-        // This preserves the words and the spaces.
-        val splitRegex = Regex("""(?<=\s(y|o|u|e|ni|pero|mas|sino|aunque|porque|pues|si|cuando|donde|como|que|cual|quien|de|en|a|por|con|para|sobre|entre|hacia|hasta|durante|mediante|tras))\s+""")
+        // BUT we keep the space in the result to avoid collapsing words in the UI
+        val splitRegex = Regex("""(?<=\s(y|o|u|e|ni|pero|mas|sino|aunque|porque|pues|si|cuando|donde|como|que|cual|quien|de|en|a|por|con|para|sobre|entre|hacia|hasta|durante|mediante|tras)\s)""")
         
         val parts = text.split(splitRegex).filter { it.isNotBlank() }
         if (parts.size <= 1) return listOf(text)
@@ -181,7 +181,8 @@ object TextAnalyzer {
                 result.add(currentSegment.toString())
                 currentSegment = StringBuilder(part)
             } else {
-                if (currentSegment.isNotEmpty()) currentSegment.append(" ")
+                // We don't need to add a space here because 'part' already contains the space 
+                // thanks to the lookbehind and the way we split (lookbehind keeps the separator in the first part)
                 currentSegment.append(part)
             }
         }

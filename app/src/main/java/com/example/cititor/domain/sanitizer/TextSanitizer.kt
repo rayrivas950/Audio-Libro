@@ -37,6 +37,11 @@ object TextSanitizer {
             .replace("»", "\"")
             .replace("–", "-")
 
+        // 3b. Protect complex dialogue markers stuck to punctuation (e.g. "noche.—")
+        // We force a double newline to ensure they are treated as separate paragraphs
+        val compositeDialogueRegex = Regex("""([\.!\?])\s*([—\-"«“])""")
+        processedText = compositeDialogueRegex.replace(processedText, "$1\n\n$2")
+
         // 4. Remove remaining HTML tags, but REPLACE WITH SPACE to avoid word collapsing
         // e.g. "por</span><span>la" -> "por la" instead of "porla"
         val strippedText = htmlTagRegex.replace(processedText, " ")
@@ -116,7 +121,14 @@ object TextSanitizer {
         
         // If current ends with sentence punctuation
         val sentencePunctuation = setOf('.', '!', '?', '"', '»', '”', '—')
-        if (sentencePunctuation.contains(lastChar)) return false
+        if (sentencePunctuation.contains(lastChar)) {
+            // SPECIAL CASE: If it ends with —. or —? or —! (End of an acotación)
+            // it SHOULD join with the next line of the same paragraph.
+            if (current.length >= 2 && current[current.length - 2] == '—') {
+                return true
+            }
+            return false
+        }
 
         // 5. Heuristics for Titles vs Paragraphs
         // If current is short and doesn't have punctuation, it's likely a title/header

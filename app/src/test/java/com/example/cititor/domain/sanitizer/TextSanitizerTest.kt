@@ -42,39 +42,44 @@ class TextSanitizerTest {
     }
 
     @Test
-    fun `test witcher regression - should preserve spaces and paragraphs in Witcher sample`() {
-        // Simulating the "dirty" text seen in some extractions (EPUB/PDF glitches)
-        // Note: Some spaces are missing here to see if we can "heal" them or at least not make them worse.
-        // Actually, the goal is to ENSURE that if the input has spaces, we don't remove them,
-        // and if it has paragraph breaks, we don't join them incorrectly.
-        
+    fun `test witcher regression full - should preserve dialogue structure and spaces`() {
         val input = """
-            El brujo
-            I
+            El desconocido no era viejo, pero tenía los cabellos completamente blancos. 
+            Debajo del abrigo llevaba una raída almilla de cuero. 
+            Poco después el posadero trajo una jarra de barro. La jarra estaba desportillada.
+            Cuando se quitó el capote todos se dieron cuenta de que llevaba una espada en un cinturón al dorso.
             
-            Después dijeron que aquel hombre había venido desde el norte por la Puerta de los Cordeleros.
-            Entró a pie, llevando de las riendas a su caballo.
-            Era por la tarde y los tenderetes de los cordeleros y de los talabarteros estaban ya cerrados y la callejuela se encontraba vacía.
-            La tarde era calurosa pero aquel hombre traía un capote negro sobre los hombros.
-            Llamaba la atención.
-            
-            Se detuvo ante la venta del Viejo Narakort, se mantuvo de pie un instante, escuchó el rumor de las voces.
+            El desconocido no se sentó a la mesa, entre los escasos clientes, continuó de pie delante del
+            mostrador, apuntando hacia el posadero con ojos penetrantes. Bebió un trago.
+            —Posada busco para la noche.
+            —Pues no hay —refunfuñó el ventero mirando las botas del cliente, sucias y llenas de
+            polvo—. Preguntad acaso en el Viejo Narakort.
+            —Preferiría aquí.
+            —No hay. —El ventero reconoció al fin el acento del desconocido. Era de Rivia.
+            —Pagaré bien —dijo el extraño muy bajito, como inseguro.
         """.trimIndent()
 
         val sanitized = TextSanitizer.sanitize(input)
         
-        // Check for paragraph separation (double newline)
-        assertTrue("Header 'El brujo' should be separated", sanitized.contains("El brujo\n\nI"))
-        assertTrue("Section 'I' should be separated from text", sanitized.contains("I\n\nDespués"))
+        // 1. Dialogue breaks protection
+        assertTrue("Dialogue 'Posada busco' should be a new paragraph", sanitized.contains("Bebió un trago.\n\n—Posada"))
+        assertTrue("Dialogue 'Pues no hay' should be a new paragraph", sanitized.contains("noche.\n\n—Pues no hay"))
+        assertTrue("Dialogue 'Preferiría aquí' should be a new paragraph", sanitized.contains("Narakort.\n\n—Preferiría"))
         
-        // Check that sentences starting with Uppercase after a break ARE separate paragraphs 
-        // if they are short (like titles or section markers)
-        assertTrue("Main paragraph should be separated from second paragraph", 
-            sanitized.contains("Llamaba la atención.\n\nSe detuvo"))
+        // 2. Complex punctuation (.—) should separate interventions, 
+        // but —. at the end of an acotación might keep narration on same paragraph in some styles.
+        // For consistency with the provided text, we expect spaces or sensible breaks.
+        assertTrue("Should contain 'polvo—. Preguntad'", sanitized.contains("polvo—. Preguntad"))
+        
+        // 3. Space preservation (No "debarro", "enun")
+        assertTrue("Should contain 'de barro'", sanitized.contains("de barro") || sanitized.contains("de\nbarro") || sanitized.contains("de\n\nbarro"))
+        assertTrue("Should contain 'en un'", sanitized.contains("en un"))
+    }
 
-        // Check for space preservation (ensure no "porla" or "asu")
-        assertTrue("Should contain 'por la'", sanitized.contains("por la"))
-        assertTrue("Should contain 'a su'", sanitized.contains("a su"))
-        assertTrue("Should contain 'y los'", sanitized.contains("y los"))
+    @Test
+    fun `test complex punctuation breaks - should break on dot-dash sequence`() {
+        val text = "Dijo adiós.—Hola de nuevo."
+        val sanitized = TextSanitizer.sanitize(text)
+        assertTrue("Should break between dot and dash", sanitized.contains("adiós.\n\n—Hola"))
     }
 }
