@@ -23,26 +23,8 @@ class TextToSpeechManager @Inject constructor(
     private var androidTts: TextToSpeech? = null
     private var piperTts: com.example.cititor.core.tts.piper.PiperTTSEngine? = null
     private var audioPlayer: com.example.cititor.core.audio.AudioPlayer? = null
-    private var effectProcessor: com.example.cititor.core.audio.AudioEffectProcessor? = null
-    
-    private var isInitialized = false
-    private var usePiper = true // Set to true to use Piper by default
-    private var masterSpeed = 0.94f // Incrementado un 10% (de 0.85 a 0.94) para una narración más ágil
-
-    private val _isSpeaking = MutableStateFlow(false)
-    val isSpeaking: StateFlow<Boolean> = _isSpeaking
-
-    private val _currentSegment = MutableStateFlow<TextSegment?>(null)
-    val currentSegment: StateFlow<TextSegment?> = _currentSegment
-
-    private val _currentSpokenWord = MutableStateFlow<IntRange?>(null)
-    val currentSpokenWord: StateFlow<IntRange?> = _currentSpokenWord
-    
-    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
-
-    companion object {
-        private const val TAG = "TTSManager"
-    }
+    private var audioLogger: com.example.cititor.core.debug.AudioLogger? = null
+    private val DEBUG_SAVE_AUDIO = true // Set to true to debug audio quality
 
     init {
         initialize()
@@ -59,12 +41,12 @@ class TextToSpeechManager @Inject constructor(
                 piperTts = engine
                 audioPlayer = com.example.cititor.core.audio.AudioPlayer()
                 effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor(
-                    effects = listOf(
-                        // Add effects here modularly, e.g.:
-                        // com.example.cititor.core.audio.effects.NormalizationEffect(0.7f),
-                        // com.example.cititor.core.audio.effects.HighCutFilterEffect(7500f)
-                    )
+                    effects = listOf()
                 )
+                
+                if (DEBUG_SAVE_AUDIO) {
+                    audioLogger = com.example.cititor.core.debug.AudioLogger(context)
+                }
                 
                 usePiper = true // PHASE 3: ENABLE PIPER!
                 isInitialized = true
@@ -80,34 +62,29 @@ class TextToSpeechManager @Inject constructor(
         initAndroidTts()
     }
 
-    private fun initAndroidTts() {
-        androidTts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                androidTts?.language = Locale.getDefault()
-                isInitialized = true
-            }
-        }
-    }
-
-    private var audioChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
-    private var playbackJob: Job? = null
-    private var synthesisJob: Job? = null
+    // ... (rest of class)
 
     fun speak(segments: List<TextSegment>, category: com.example.cititor.domain.model.BookCategory = com.example.cititor.domain.model.BookCategory.FICTION) {
         if (!isInitialized) return
 
         stop() // Stop any ongoing playback
+        if (DEBUG_SAVE_AUDIO) {
+             // Close previous session if any
+             audioLogger?.closeSession()
+        }
+
         _currentSpokenWord.value = null
         _isSpeaking.value = true
         
-        // Recreate channel for each session with higher capacity for lookahead
+        // ... (channel creation) ...
         val currentChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 30)
         audioChannel = currentChannel
 
         if (usePiper) {
             // 1. Consumer: Plays audio from the channel
             playbackJob = scope.launch {
-                try {
+               // ... (consumer logic unchanged) ...
+               try {
                     val buffer = mutableListOf<FloatArray>()
                     var prebuffering = true
                     val threshold = 15
@@ -120,11 +97,13 @@ class TextToSpeechManager @Inject constructor(
                                 prebuffering = false
                                 for (data in buffer) {
                                     audioPlayer?.play(data)
+                                    if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(data)
                                 }
                                 buffer.clear()
                             }
                         } else {
                             audioPlayer?.play(audioData)
+                            if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(audioData)
                         }
                     }
                     
@@ -133,10 +112,14 @@ class TextToSpeechManager @Inject constructor(
                         Log.d(TAG, "Channel closed before threshold. Playing remaining ${buffer.size} segments.")
                         for (data in buffer) {
                             audioPlayer?.play(data)
+                            if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(data)
                         }
                     }
                 } finally {
                     Log.d(TAG, "Playback consumer finished.")
+                    if (DEBUG_SAVE_AUDIO) {
+                         audioLogger?.closeSession()
+                    }
                     // Only reset state if this is still the active session
                     if (audioChannel === currentChannel) {
                         _isSpeaking.value = false
@@ -147,52 +130,57 @@ class TextToSpeechManager @Inject constructor(
 
             // 2. Producer: Synthesizes segments and sends to channel
             synthesisJob = scope.launch {
+                var sessionStarted = false
                 try {
                     segments.forEachIndexed { index, segment ->
                         if (!isSpeaking.value) return@forEachIndexed
-                        
+                        // ... (synthesis logic) ...
                         val text = segment.text
-                        
-                        // Update current segment for UI highlighting
-                        _currentSegment.value = segment
+                         // Update current segment for UI highlighting
+                         _currentSegment.value = segment
 
-                        // Use modular ProsodyEngine to decide how to speak
-                        val params = prosodyEngine.calculateParameters(segment, masterSpeed, category)
-                        
-                        val adjustedSpeed = params.speed ?: masterSpeed
-                        val adjustedPitch = params.pitch ?: 1.0f
-                        
-                        // Map the speakerId (String) to a Piper Speaker ID (Int)
-                        // Narrator is usually 0, and we can assign others modularly.
-                        val speakerId = when (segment.speakerId) {
-                            "Narrator" -> 0
-                            "Character_Generic" -> 1 
-                            else -> 0
-                        }
-                        
-                        var rawAudio: FloatArray? = null
-                        if (!usePiper) {
-                            androidTts?.setSpeechRate(adjustedSpeed)
-                            androidTts?.setPitch(adjustedPitch)
-                            androidTts?.speak(text, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
-                        } else {
-                            Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $adjustedSpeed | Pitch: $adjustedPitch")
-                            
-                            // 1. Get native sample rate from model
-                            val nativeRate = piperTts?.getSampleRate() ?: 22050
-                            
-                            // 2. Configure player to match exactly (Bit-Perfect)
-                            audioPlayer?.configure(nativeRate)
+                         // Use modular ProsodyEngine to decide how to speak
+                         val params = prosodyEngine.calculateParameters(segment, masterSpeed, category)
+                         
+                         val adjustedSpeed = params.speed ?: masterSpeed
+                         val adjustedPitch = params.pitch ?: 1.0f
+                         
+                         // Map the speakerId (String) to a Piper Speaker ID (Int)
+                         // Narrator is usually 0, and we can assign others modularly.
+                         val speakerId = when (segment.speakerId) {
+                             "Narrator" -> 0
+                             "Character_Generic" -> 1 
+                             else -> 0
+                         }
+                         
+                         var rawAudio: FloatArray? = null
+                         if (!usePiper) {
+                             androidTts?.setSpeechRate(adjustedSpeed)
+                             androidTts?.setPitch(adjustedPitch)
+                             androidTts?.speak(text, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
+                         } else {
+                             Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $adjustedSpeed | Pitch: $adjustedPitch")
+                             
+                             // 1. Get native sample rate from model
+                             val nativeRate = piperTts?.getSampleRate() ?: 22050
+                             
+                             if (!sessionStarted && DEBUG_SAVE_AUDIO) {
+                                 audioLogger?.startSession(nativeRate)
+                                 sessionStarted = true
+                             }
 
-                            rawAudio = piperTts?.synthesize(text, adjustedSpeed, speakerId)
-                            
-                            // 3. Inject Silence Pre-Roll (100ms) to prevent cut-off words
-                            if (rawAudio != null) {
-                                val silenceSamples = (nativeRate * 0.1).toInt() // 100ms
-                                val silence = FloatArray(silenceSamples) { 0f }
-                                rawAudio = silence + rawAudio!!
-                            }
-                        }
+                             // 2. Configure player to match exactly (Bit-Perfect)
+                             audioPlayer?.configure(nativeRate)
+ 
+                             rawAudio = piperTts?.synthesize(text, adjustedSpeed, speakerId)
+                             
+                             // 3. Inject Silence Pre-Roll (100ms) to prevent cut-off words
+                             if (rawAudio != null) {
+                                 val silenceSamples = (nativeRate * 0.1).toInt() // 100ms
+                                 val silence = FloatArray(silenceSamples) { 0f }
+                                 rawAudio = silence + rawAudio!!
+                             }
+                         }
                         
                         if (rawAudio != null) {
                             // Apply modular effects chain with segment context (shouts, whispers, etc)
@@ -214,12 +202,12 @@ class TextToSpeechManager @Inject constructor(
                 }
             }
         } else {
-            // Fallback to Android TTS
-            androidTts?.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
-            segments.forEach {
-                val utteranceId = java.util.UUID.randomUUID().toString()
-                androidTts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
-            }
+             // Fallback logic ...
+             androidTts?.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
+             segments.forEach {
+                 val utteranceId = java.util.UUID.randomUUID().toString()
+                 androidTts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
+             }
         }
     }
 
