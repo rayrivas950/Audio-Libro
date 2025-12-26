@@ -8,14 +8,35 @@ import com.example.cititor.core.audio.effects.AudioEffect
 class AudioEffectProcessor(
     private val effects: List<AudioEffect> = emptyList()
 ) {
+    private val dynamicEffects = mutableMapOf<com.example.cititor.domain.model.ProsodyIntention, List<AudioEffect>>()
+
+    init {
+        // Register intention-specific effects
+        dynamicEffects[com.example.cititor.domain.model.ProsodyIntention.SHOUT] = listOf(
+            com.example.cititor.core.audio.effects.DynamicLimiterEffect(threshold = 0.85f)
+        )
+        dynamicEffects[com.example.cititor.domain.model.ProsodyIntention.WHISPER] = listOf(
+            com.example.cititor.core.audio.effects.WhisperFilterEffect(cutoff = 2500f)
+        )
+    }
 
     /**
-     * Applies the chain of registered naturalization effects.
+     * Applies the chain of registered naturalization effects based on intention.
      */
-    fun applyNaturalization(samples: FloatArray): FloatArray {
+    fun applyNaturalization(
+        samples: FloatArray, 
+        intention: com.example.cititor.domain.model.ProsodyIntention = com.example.cititor.domain.model.ProsodyIntention.NEUTRAL
+    ): FloatArray {
         if (samples.isEmpty()) return samples
         
         var processed = samples
+        
+        // 1. Apply intention-specific effects first (e.g., whisper texture)
+        dynamicEffects[intention]?.forEach { effect ->
+            processed = effect.process(processed)
+        }
+
+        // 2. Apply master chain (normalization, high-cut)
         for (effect in effects) {
             processed = effect.process(processed)
         }

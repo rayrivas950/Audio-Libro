@@ -181,8 +181,8 @@ class TextToSpeechManager @Inject constructor(
                         }
                         
                         if (rawAudio != null) {
-                            // Apply modular effects chain
-                            rawAudio = effectProcessor?.applyNaturalization(rawAudio) ?: rawAudio
+                            // Apply modular effects chain with segment context (shouts, whispers, etc)
+                            rawAudio = effectProcessor?.applyNaturalization(rawAudio, segment.intention) ?: rawAudio
 
                             // Apply Pitch Shift if the prosody engine requires it
                             if (adjustedPitch != 1.0f) {
