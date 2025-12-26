@@ -14,5 +14,6 @@ data class Book(
     val currentPage: Int,
     val totalPages: Int,
     val lastReadTimestamp: Long,
-    val processingWorkId: String? // To track the background processing job
+    val processingWorkId: String?, // To track the background processing job
+    val category: BookCategory = BookCategory.FICTION
 )

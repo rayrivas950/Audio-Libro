@@ -5,11 +5,17 @@ import com.example.cititor.domain.model.NarrationSegment
 import com.example.cititor.domain.model.TextSegment
 import com.example.cititor.domain.sanitizer.TextSanitizer
 
+import javax.inject.Inject
+import javax.inject.Singleton
+
 /**
  * Analyzes a given text to structure it into segments (e.g., narration, dialogue).
  * This is the core of the content analysis engine.
  */
-object TextAnalyzer {
+@Singleton
+class TextAnalyzer @Inject constructor(
+    private val dialogueResolver: DialogueResolver
+) {
 
     // Regex to find common dialogue markers and thoughts (marked with * or ').
     private val dialogueRegex = Regex("""“([^”]*)”|«([^»]*)»|(—\s*[A-ZÁÉÍÓÚÑ][^—\n]*(?=—|\n|$))|\*([^*]+)\*|"([^"]*)"|'([^']*)'""")
@@ -37,7 +43,12 @@ object TextAnalyzer {
                     style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
                 ))
             } else {
-                segments.add(DialogueSegment(text = content))
+                val dialogue = DialogueSegment(text = content)
+                // We resolve the speaker using our modular resolver
+                // Note: speakerId is currently not in DialogueSegment model after purge, 
+                // but we are preparing the architecture. 
+                // For now, let's just use the logic to show how it fits.
+                segments.add(dialogue)
             }
 
             lastIndex = matchResult.range.last + 1

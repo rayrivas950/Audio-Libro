@@ -93,7 +93,7 @@ class TextToSpeechManager @Inject constructor(
     private var playbackJob: Job? = null
     private var synthesisJob: Job? = null
 
-    fun speak(segments: List<TextSegment>) {
+    fun speak(segments: List<TextSegment>, category: com.example.cititor.domain.model.BookCategory = com.example.cititor.domain.model.BookCategory.FICTION) {
         if (!isInitialized) return
 
         stop() // Stop any ongoing playback
@@ -157,7 +157,7 @@ class TextToSpeechManager @Inject constructor(
                         _currentSegment.value = segment
 
                         // Use modular ProsodyEngine to decide how to speak
-                        val params = prosodyEngine.calculateParameters(segment, masterSpeed)
+                        val params = prosodyEngine.calculateParameters(segment, masterSpeed, category)
                         
                         val adjustedSpeed = params.speed ?: masterSpeed
                         val adjustedPitch = params.pitch ?: 1.0f
@@ -180,7 +180,7 @@ class TextToSpeechManager @Inject constructor(
                             // Apply Pitch Shift if the prosody engine requires it
                             if (adjustedPitch != 1.0f) {
                                 val sampleRate = piperTts?.getSampleRate() ?: 22050
-                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, sampleRate, adjustedPitch.toDouble())
+                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, sampleRate, adjustedPitch.toDouble()) ?: rawAudio
                             }
                             
                             currentChannel.send(rawAudio)

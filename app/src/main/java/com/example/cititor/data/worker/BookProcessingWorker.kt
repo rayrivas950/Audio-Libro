@@ -24,6 +24,7 @@ class BookProcessingWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val extractorFactory: ExtractorFactory,
     private val cleanPageDao: CleanPageDao,
+    private val textAnalyzer: TextAnalyzer,
     private val json: Json
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -98,7 +99,7 @@ class BookProcessingWorker @AssistedInject constructor(
                     val filteredLines = lines.filter { it.isEmpty() || it !in noiseBlacklist }
                     val cleanText = filteredLines.joinToString("\n")
                     
-                    val segments = TextAnalyzer.analyze(cleanText)
+                    val segments = textAnalyzer.analyze(cleanText)
                     val jsonContent = json.encodeToString(segments)
                     
                     cleanPagesBatch.add(

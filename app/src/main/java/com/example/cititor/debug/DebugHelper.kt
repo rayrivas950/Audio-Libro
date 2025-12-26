@@ -85,7 +85,9 @@ object DebugHelper {
                 Nadie respondió. "Sal de ahí" insistió.
             """.trimIndent()
             
-            val segments = TextAnalyzer.analyze(testText)
+            // For testing in a static helper, we manually instantiate with simple resolver
+            val analyzer = TextAnalyzer(com.example.cititor.domain.analyzer.SimpleDialogueResolver())
+            val segments = analyzer.analyze(testText)
             results.add("✅ Analyzed: ${segments.size} segments")
             Log.d(TAG, "TextAnalyzer produced ${segments.size} segments")
             

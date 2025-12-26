@@ -66,7 +66,10 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun startReading() {
-        textToSpeechManager.speak(state.value.pageSegments)
+        val book = state.value.book
+        if (book != null) {
+            textToSpeechManager.speak(state.value.pageSegments, book.category)
+        }
     }
 
     fun nextPage() {
