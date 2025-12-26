@@ -72,7 +72,6 @@ class EpubExtractor @Inject constructor() : TextExtractor {
             
             if (content != null) {
                 Log.d(TAG, "Successfully extracted ${content.length} characters from section $page")
-                Log.d(TAG, "Content preview: ${content.take(200)}")
                 content
             } else {
                 val errorMsg = "Content not available for section $page"

@@ -1,5 +1,8 @@
 package com.example.cititor.presentation.reader
 
+import android.util.Log
+import androidx.compose.runtime.State
+
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -141,7 +144,8 @@ class ReaderViewModel @Inject constructor(
                 val segments = getBookPageUseCase(book.id, page)
 
                 if (segments != null && segments.isNotEmpty()) {
-                    val displayText = segments.joinToString(separator = " ") { it.text }
+                    val displayText = segments.joinToString(separator = "") { it.text }
+                    Log.d("ReaderViewModel", "Page $page loaded. Length: ${displayText.length}, Newlines: ${displayText.count { it == '\n' }}")
                     _state.value = state.value.copy(
                         pageSegments = segments,
                         pageDisplayText = displayText,

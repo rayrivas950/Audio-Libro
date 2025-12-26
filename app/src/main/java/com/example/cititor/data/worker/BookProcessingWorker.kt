@@ -85,17 +85,60 @@ class BookProcessingWorker @AssistedInject constructor(
             val batchSize = 75
             var totalProcessed = 0
 
-            extractor.extractPages(applicationContext, bookUri) { index, rawText ->
+            // --- Phase 1: Noise Detection (Pre-analysis) ---
+            Log.d(TAG, "Phase 1: Detecting repetitive noise (headers/footers)...")
+            val lineFrequency = mutableMapOf<String, Int>()
+            val pageLines = mutableListOf<List<String>>()
+            var totalPages = 0
+
+            extractor.extractPages(applicationContext, bookUri) { _, rawText ->
+                val lines = rawText.lines().map { it.trim() }
+                
+                // Store lines for Phase 2
+                pageLines.add(lines)
+                
+                // Track frequency of first 2 and last 2 NON-EMPTY lines
+                val nonEmptyLines = lines.filter { it.isNotEmpty() }
+                val candidates = mutableSetOf<String>()
+                if (nonEmptyLines.size >= 1) {
+                    candidates.add(nonEmptyLines.first())
+                    candidates.add(nonEmptyLines.last())
+                }
+                if (nonEmptyLines.size >= 4) {
+                    candidates.add(nonEmptyLines[1])
+                    candidates.add(nonEmptyLines[nonEmptyLines.size - 2])
+                }
+                
+                candidates.forEach { line ->
+                    lineFrequency[line] = (lineFrequency[line] ?: 0) + 1
+                }
+                totalPages++
+            }
+
+            val noiseBlacklist = lineFrequency.filter { it.value > (totalPages * 0.3) && it.key.length > 3 }.keys
+            Log.d(TAG, "Noise detection complete. Found ${noiseBlacklist.size} repetitive lines to filter.")
+            noiseBlacklist.forEach { Log.d(TAG, "Blacklisted: '$it'") }
+
+            // --- Phase 2: Full Analysis & Saving ---
+            Log.d(TAG, "Phase 2: Full analysis and saving to database...")
+            pageLines.forEachIndexed { index, lines ->
                 try {
-                    Log.d(TAG, "Processing page ${index + 1} (Length: ${rawText.length})")
+                    // Filter noise lines but KEEP empty lines (paragraphs)
+                    val filteredLines = lines.filter { it.isEmpty() || it !in noiseBlacklist }
+                    val cleanText = filteredLines.joinToString("\n")
                     
-                    // Collect potential proper names (Places/Characters)
-                    properNameRegex.findAll(rawText).forEach { match ->
+                    Log.d(TAG, "Page $index - Raw lines: ${lines.size}, Filtered: ${filteredLines.size}")
+                    if (index == 0) {
+                        Log.d(TAG, "Page 0 Preview: ${cleanText.take(200).replace("\n", "\\n")}")
+                    }
+
+                    // Collect potential proper names
+                    properNameRegex.findAll(cleanText).forEach { match ->
                         properNames.add(match.groupValues[1])
                     }
 
-                    // Analyze page using the GLOBAL character registry
-                    val (segments, _) = TextAnalyzer.analyze(rawText, characterRegistry)
+                    // Analyze page
+                    val (segments, _) = TextAnalyzer.analyze(cleanText, characterRegistry)
                     
                     val jsonContent = json.encodeToString(segments)
                     cleanPagesBatch.add(
@@ -107,9 +150,7 @@ class BookProcessingWorker @AssistedInject constructor(
                     )
                     totalProcessed++
 
-                    // Batch insert to DB every 75 pages
                     if (cleanPagesBatch.size >= batchSize) {
-                        Log.d(TAG, "Batch limit reached ($batchSize). Inserting into database...")
                         cleanPageDao.insertAll(cleanPagesBatch.toList())
                         cleanPagesBatch.clear()
                     }

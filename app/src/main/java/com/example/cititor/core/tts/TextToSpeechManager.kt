@@ -176,7 +176,12 @@ class TextToSpeechManager @Inject constructor(
                         
                         Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Emotion: ${if (segment is DialogueSegment) segment.emotion else "NARRATION"} | Speed: $finalSpeed | Pitch: $finalPitch")
                         
-                        var rawAudio = piperTts?.synthesize(text, finalSpeed, speakerId)
+                        var rawAudio: FloatArray? = null
+                        if (segment is NarrationSegment && segment.style == NarrationStyle.CHAPTER_INDICATOR) {
+                            Log.d(TAG, "Skipping synthesis for chapter indicator: $text")
+                        } else {
+                            rawAudio = piperTts?.synthesize(text, finalSpeed, speakerId)
+                        }
                         
                         if (rawAudio != null) {
                             // Apply Pitch Shift if needed
@@ -190,12 +195,7 @@ class TextToSpeechManager @Inject constructor(
                                 audioChannel.send(rawAudio)
                                 
                                 // 5. Insert Natural Pause based on punctuation (Literary Standards)
-                                val pauseDurationMs = when {
-                                    text.endsWith(",") || text.endsWith(";") || text.endsWith(":") -> 400L
-                                    text.endsWith(".") || text.endsWith("!") || text.endsWith("?") -> 800L
-                                    text.length > 80 -> 350L // Breath after long sentences (Threshold reduced to 80)
-                                    else -> 200L 
-                                }
+                                val pauseDurationMs = getPauseDuration(text)
                                 
                                 val sampleRate = piperTts?.getSampleRate() ?: 22050
                                 val silence = generateSilence(pauseDurationMs, sampleRate)
@@ -222,6 +222,16 @@ class TextToSpeechManager @Inject constructor(
     fun setMasterSpeed(speed: Float) {
         this.masterSpeed = speed.coerceIn(0.1f, 2.0f)
         Log.d(TAG, "Master speed updated to: $masterSpeed")
+    }
+
+    private fun getPauseDuration(text: String): Long {
+        return when {
+            text.contains("\n") -> 1000L // Line break or Paragraph break
+            text.contains(".") || text.contains("!") || text.contains("?") -> 800L
+            text.contains(",") || text.contains(";") || text.contains(":") -> 400L
+            text.length > 80 -> 350L
+            else -> 200L
+        }
     }
 
     private fun getEmotionMultipliers(emotion: Emotion, intensity: Float): Pair<Float, Float> {

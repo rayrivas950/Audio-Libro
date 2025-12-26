@@ -35,28 +35,31 @@ object TextAnalyzer {
 
         // Phase 1: Segmentation
         dialogueRegex.findAll(text).forEach { matchResult ->
-            val narrationText = text.substring(lastIndex, matchResult.range.first).trim()
+            val narrationText = text.substring(lastIndex, matchResult.range.first).trim(' ', '\t')
             if (narrationText.isNotEmpty()) {
-                rawSegments.add(NarrationSegment(text = narrationText))
+                // Split narration into paragraphs to detect chapter indicators and apply pauses
+                splitIntoParagraphSegments(narrationText).forEach { rawSegments.add(it) }
             }
 
             // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought), 5=Standard Quotes
-            val dialogueText = (matchResult.groups[1] ?: matchResult.groups[2] ?: matchResult.groups[3] ?: matchResult.groups[5])?.value?.trim()
             val thoughtText = matchResult.groups[4]?.value?.trim()
 
             if (thoughtText != null) {
-                rawSegments.add(NarrationSegment(text = thoughtText, style = com.example.cititor.domain.model.NarrationStyle.THOUGHT))
-            } else if (!dialogueText.isNullOrEmpty()) {
-                rawSegments.add(DialogueSegment(text = dialogueText))
+                rawSegments.add(NarrationSegment(
+                    text = matchResult.value, 
+                    style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
+                ))
+            } else {
+                rawSegments.add(DialogueSegment(text = matchResult.value))
             }
 
             lastIndex = matchResult.range.last + 1
         }
 
         if (lastIndex < text.length) {
-            val remainingNarration = text.substring(lastIndex).trim()
+            val remainingNarration = text.substring(lastIndex).trim(' ', '\t')
             if (remainingNarration.isNotEmpty()) {
-                rawSegments.add(NarrationSegment(text = remainingNarration))
+                splitIntoParagraphSegments(remainingNarration).forEach { rawSegments.add(it) }
             }
         }
 
@@ -116,5 +119,44 @@ object TextAnalyzer {
         }
         
         return Pair(enrichedSegments, characterRegistry.getAll())
+    }
+
+    private fun splitIntoParagraphSegments(text: String): List<NarrationSegment> {
+        if (text.isEmpty()) return emptyList()
+        
+        // Split by \n\n but keep track of them
+        val paragraphs = text.split("\n\n")
+        return paragraphs.mapIndexed { index, p ->
+            // If it's not the last one, we add back the \n\n that was removed by split
+            // If it IS the last one, we check if the original text ended with \n\n
+            val suffix = if (index < paragraphs.size - 1) {
+                "\n\n"
+            } else if (text.endsWith("\n\n")) {
+                "\n\n"
+            } else ""
+            
+            val segmentText = p + suffix
+            NarrationSegment(
+                text = segmentText,
+                style = getNarrationStyle(p)
+            )
+        }.filter { it.text.isNotEmpty() }
+    }
+
+    private fun getNarrationStyle(text: String): com.example.cititor.domain.model.NarrationStyle {
+        val trimmed = text.trim()
+        return when {
+            isSectionIndicator(trimmed) -> com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+            else -> com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+        }
+    }
+
+    private fun isSectionIndicator(text: String): Boolean {
+        val trimmed = text.trim()
+        // Roman numerals (I, V, X...) or standalone digits (1, 2, 3...)
+        // Optional trailing dot or parenthesis
+        val romanRegex = Regex("""^(?i)M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})[\.\)]?$""")
+        val digitRegex = Regex("""^\d+[\.\)]?$""")
+        return trimmed.isNotEmpty() && (romanRegex.matches(trimmed) || digitRegex.matches(trimmed))
     }
 }

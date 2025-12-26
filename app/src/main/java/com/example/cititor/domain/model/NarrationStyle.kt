@@ -9,5 +9,6 @@ enum class NarrationStyle(val key: String) {
     TENSE("tense"),
     CALM("calm"),
     MYSTERIOUS("mysterious"),
-    THOUGHT("thought");
+    THOUGHT("thought"),
+    CHAPTER_INDICATOR("chapter_indicator");
 }
