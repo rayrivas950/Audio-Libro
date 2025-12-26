@@ -16,7 +16,8 @@ import javax.inject.Inject
 
 
 class TextToSpeechManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val prosodyEngine: com.example.cititor.core.tts.prosody.ProsodyEngine
 ) {
 
     private var androidTts: TextToSpeech? = null
@@ -57,7 +58,13 @@ class TextToSpeechManager @Inject constructor(
                 
                 piperTts = engine
                 audioPlayer = com.example.cititor.core.audio.AudioPlayer()
-                effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor()
+                effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor(
+                    effects = listOf(
+                        // Add effects here modularly, e.g.:
+                        // com.example.cititor.core.audio.effects.NormalizationEffect(0.7f),
+                        // com.example.cititor.core.audio.effects.HighCutFilterEffect(7500f)
+                    )
+                )
                 
                 usePiper = true // PHASE 3: ENABLE PIPER!
                 isInitialized = true
@@ -149,13 +156,12 @@ class TextToSpeechManager @Inject constructor(
                         // Update current segment for UI highlighting
                         _currentSegment.value = segment
 
-                        // Default parameters (Using Master Speed only)
-                        val speed = masterSpeed
-                        val pitch = 1.0f
-                        val speakerId = 0
+                        // Use modular ProsodyEngine to decide how to speak
+                        val params = prosodyEngine.calculateParameters(segment, masterSpeed)
                         
-                        val adjustedSpeed = speed
-                        val adjustedPitch = pitch
+                        val adjustedSpeed = params.speed ?: masterSpeed
+                        val adjustedPitch = params.pitch ?: 1.0f
+                        val speakerId = 0 // Multi-speaker support will be added modularly
                         
                         var rawAudio: FloatArray? = null
                         if (!usePiper) {
@@ -168,7 +174,15 @@ class TextToSpeechManager @Inject constructor(
                         }
                         
                         if (rawAudio != null) {
-                            // Naturalization and Pitch Shift removed for factory reset to ensures cleanest raw output from Piper
+                            // Apply modular effects chain
+                            rawAudio = effectProcessor?.applyNaturalization(rawAudio) ?: rawAudio
+
+                            // Apply Pitch Shift if the prosody engine requires it
+                            if (adjustedPitch != 1.0f) {
+                                val sampleRate = piperTts?.getSampleRate() ?: 22050
+                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, sampleRate, adjustedPitch.toDouble())
+                            }
+                            
                             currentChannel.send(rawAudio)
                         }
                     }
