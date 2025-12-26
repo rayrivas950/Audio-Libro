@@ -11,19 +11,14 @@ import com.example.cititor.domain.sanitizer.TextSanitizer
  */
 object TextAnalyzer {
 
-    // Regex to find common dialogue markers (double quotes, guillemets, em dashes).
-    // It captures the content *inside* the markers.
-    // Regex to find common dialogue markers and thoughts (marked with *).
-    // It captures the content *inside* the markers.
-    private val dialogueRegex = Regex("“([^”]*)”|«([^»]*)»|—([^—]*)—|\\*([^*]+)\\*|\"([^\"]*)\"")
+    // Regex to find common dialogue markers and thoughts (marked with * or ').
+    // Improved to handle em-dashes more robustly in Spanish literature.
+    // It matches dialogues starting with uppercase after the dash and uses lookahead for the closing dash.
+    // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought), 5=Standard Quotes, 6=Single Quotes (Thought)
+    private val dialogueRegex = Regex("""“([^”]*)”|«([^»]*)»|(—\s*[A-ZÁÉÍÓÚÑ][^—\n]*(?=—|\n|$))|\*([^*]+)\*|"([^"]*)"|'([^']*)'""")
 
     /**
      * Analyzes a raw string, sanitizes it, and splits it into a list of TextSegments.
-     * Returns the segments and the list of characters detected in this chunk.
-     *
-     * @param rawText The raw text from a book page.
-     * @param characterRegistry An optional registry to maintain character consistency across pages.
-     * @return A Pair containing the list of [TextSegment] and a list of [Character] detected.
      */
     fun analyze(
         rawText: String, 
@@ -37,20 +32,23 @@ object TextAnalyzer {
         dialogueRegex.findAll(text).forEach { matchResult ->
             val narrationText = text.substring(lastIndex, matchResult.range.first).trim(' ', '\t')
             if (narrationText.isNotEmpty()) {
-                // Split narration into paragraphs to detect chapter indicators and apply pauses
                 splitIntoParagraphSegments(narrationText).forEach { rawSegments.add(it) }
             }
 
-            // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought), 5=Standard Quotes
-            val thoughtText = matchResult.groups[4]?.value?.trim()
+            // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought), 5=Standard Quotes, 6=Single Quotes (Thought)
+            val thoughtText = matchResult.groups[4]?.value?.trim() ?: matchResult.groups[6]?.value?.trim()
+            val content = matchResult.value
 
             if (thoughtText != null) {
                 rawSegments.add(NarrationSegment(
-                    text = matchResult.value, 
+                    text = content, 
                     style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
                 ))
             } else {
-                rawSegments.add(DialogueSegment(text = matchResult.value))
+                // Split long dialogues into intelligent segments for better pauses
+                splitIntoIntelligentSegments(content).forEach { part ->
+                    rawSegments.add(DialogueSegment(text = part))
+                }
             }
 
             lastIndex = matchResult.range.last + 1
@@ -126,29 +124,47 @@ object TextAnalyzer {
         
         // Split by \n\n but keep track of them
         val paragraphs = text.split("\n\n")
-        return paragraphs.mapIndexed { index, p ->
-            // If it's not the last one, we add back the \n\n that was removed by split
-            // If it IS the last one, we check if the original text ended with \n\n
-            val suffix = if (index < paragraphs.size - 1) {
-                "\n\n"
-            } else if (text.endsWith("\n\n")) {
-                "\n\n"
-            } else ""
+        return paragraphs.flatMapIndexed { index, p ->
+            val suffix = if (index < paragraphs.size - 1) "\n\n" else if (text.endsWith("\n\n")) "\n\n" else ""
+            val fullParagraph = p + suffix
             
-            val segmentText = p + suffix
-            NarrationSegment(
-                text = segmentText,
-                style = getNarrationStyle(p)
-            )
+            if (isSectionIndicator(p)) {
+                listOf(NarrationSegment(text = fullParagraph, style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR))
+            } else {
+                // Split paragraph into intelligent segments (sentences, commas, etc.)
+                splitIntoIntelligentSegments(fullParagraph).map { part ->
+                    NarrationSegment(text = part, style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL)
+                }
+            }
         }.filter { it.text.isNotEmpty() }
     }
 
-    private fun getNarrationStyle(text: String): com.example.cititor.domain.model.NarrationStyle {
-        val trimmed = text.trim()
-        return when {
-            isSectionIndicator(trimmed) -> com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
-            else -> com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+    private fun splitIntoIntelligentSegments(text: String): List<String> {
+        if (text.isBlank()) return emptyList()
+
+        // 1. Split by major punctuation: . ! ? , ; :
+        // We use a regex that keeps the punctuation with the preceding text
+        val punctRegex = Regex("""[^,.!?;:]+[,.!?;:]+(?:\s+|$)""")
+        var segments = punctRegex.findAll(text).map { it.value }.toMutableList()
+        
+        val lastMatchEnd = punctRegex.findAll(text).lastOrNull()?.range?.last ?: -1
+        if (lastMatchEnd < text.length - 1) {
+            segments.add(text.substring(lastMatchEnd + 1))
         }
+        
+        if (segments.isEmpty()) segments.add(text)
+
+        // 2. Further split long segments by conjunctions (pero, aunque, etc.)
+        // Only if the segment is long enough to warrant a breath
+        return segments.flatMap { segment ->
+            if (segment.length > 60) {
+                val conjRegex = Regex("""\s+(?=pero|aunque|sin embargo|no obstante)\s*""")
+                val parts = segment.split(conjRegex).filter { it.isNotBlank() }
+                if (parts.size > 1) parts else listOf(segment)
+            } else {
+                listOf(segment)
+            }
+        }.filter { it.isNotBlank() }
     }
 
     private fun isSectionIndicator(text: String): Boolean {
