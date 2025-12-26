@@ -30,14 +30,13 @@ object TextAnalyzer {
 
         // Phase 1: Segmentation
         dialogueRegex.findAll(text).forEach { matchResult ->
-            val narrationText = text.substring(lastIndex, matchResult.range.first).trim(' ', '\t')
-            if (narrationText.isNotEmpty()) {
-                splitIntoParagraphSegments(narrationText).forEach { rawSegments.add(it) }
+            val before = text.substring(lastIndex, matchResult.range.first)
+            if (before.isNotBlank()) {
+                splitIntoParagraphSegments(before).forEach { rawSegments.add(it) }
             }
 
-            // Groups: 1=Quotes, 2=Guillemets, 3=EmDash, 4=Asterisks (Thought), 5=Standard Quotes, 6=Single Quotes (Thought)
-            val thoughtText = matchResult.groups[4]?.value?.trim() ?: matchResult.groups[6]?.value?.trim()
             val content = matchResult.value
+            val thoughtText = matchResult.groups[4]?.value?.trim() ?: matchResult.groups[6]?.value?.trim()
 
             if (thoughtText != null) {
                 rawSegments.add(NarrationSegment(
@@ -55,8 +54,8 @@ object TextAnalyzer {
         }
 
         if (lastIndex < text.length) {
-            val remainingNarration = text.substring(lastIndex).trim(' ', '\t')
-            if (remainingNarration.isNotEmpty()) {
+            val remainingNarration = text.substring(lastIndex)
+            if (remainingNarration.isNotBlank()) {
                 splitIntoParagraphSegments(remainingNarration).forEach { rawSegments.add(it) }
             }
         }
@@ -154,17 +153,58 @@ object TextAnalyzer {
         
         if (segments.isEmpty()) segments.add(text)
 
-        // 2. Further split long segments by conjunctions (pero, aunque, etc.)
-        // Only if the segment is long enough to warrant a breath
+        // 2. Further split long segments by syntactic weight (Aires de lectura)
         return segments.flatMap { segment ->
-            if (segment.length > 60) {
-                val conjRegex = Regex("""\s+(?=pero|aunque|sin embargo|no obstante)\s*""")
-                val parts = segment.split(conjRegex).filter { it.isNotBlank() }
-                if (parts.size > 1) parts else listOf(segment)
+            if (segment.length > 45) {
+                splitBySyntacticWeight(segment)
             } else {
                 listOf(segment)
             }
         }.filter { it.isNotBlank() }
+    }
+
+    private fun splitBySyntacticWeight(text: String): List<String> {
+        if (text.length <= 45) return listOf(text)
+
+        // Syntactic Weight Rules (Regexes with priority)
+        // 1. Conjunctions (y, o, pero, etc.) - Weight 100
+        // 2. Prepositions (de, con, en, etc.) - Weight 50
+        val markers = listOf(
+            Regex("""\s+(y|o|u|e|pero|aunque|mas|sino)\s+""") to 100,
+            Regex("""\s+(de|con|en|por|para|a|hacia|sobre)\s+""") to 50
+        )
+
+        var bestMatch: MatchResult? = null
+        var highestScore = -1.0
+
+        val middle = text.length / 2.0
+        val tolerance = text.length * 0.3 // Look in the middle 60% of the text
+
+        for ((regex, weight) in markers) {
+            regex.findAll(text).forEach { match ->
+                val pos = match.range.first
+                if (Math.abs(pos - middle) < tolerance) {
+                    // Score = weight / distance_from_center
+                    // We favor higher weight markers even if they are slightly off-center
+                    val distanceFactor = 1.0 / (1.0 + Math.abs(pos - middle) / text.length)
+                    val score = weight * distanceFactor
+                    if (score > highestScore) {
+                        highestScore = score
+                        bestMatch = match
+                    }
+                }
+            }
+        }
+
+        return if (bestMatch != null) {
+            val splitPoint = bestMatch!!.range.last + 1
+            val first = text.substring(0, splitPoint).trim()
+            val second = text.substring(splitPoint).trim()
+            // Recursively split if still too long
+            splitBySyntacticWeight(first) + splitBySyntacticWeight(second)
+        } else {
+            listOf(text)
+        }
     }
 
     private fun isSectionIndicator(text: String): Boolean {

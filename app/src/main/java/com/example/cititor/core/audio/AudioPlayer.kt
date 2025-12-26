@@ -52,30 +52,54 @@ class AudioPlayer {
         }
     }
 
+    private var tailBuffer: ShortArray? = null
+    private val crossfadeLength = (sampleRate * 0.020).toInt() // 20ms crossfade
+
+    private var isPrimed = false
+
     fun play(samples: FloatArray) {
         if (samples.isEmpty()) return
         
         // Convert FloatArray (-1.0 to 1.0) to ShortArray (PCM 16-bit)
-        val pcmData = floatArrayToShortArray(samples)
+        var pcmData = floatArrayToShortArray(samples)
         
         try {
-            // Apply a tiny fade-in/out to avoid clicks between segments
-            applyFade(pcmData)
+            // 1. Apply Room Tone (Subtle noise to avoid absolute silence)
+            // Reduced to -70dB (range +/- 16) for a cleaner start
+            applyRoomTone(pcmData)
+
+            // 2. Apply Exponential Fade
+            applyExponentialFade(pcmData)
             
-            // Ensure track is playing before writing
-            if (audioTrack?.playState != AudioTrack.PLAYSTATE_PLAYING) {
+            // 3. Apply Crossfade with previous segment
+            val finalData = applyCrossfade(pcmData)
+
+            // 4. Hardware Priming: Write subtle room tone before first data to stabilize driver
+            if (!isPrimed) {
+                val primingSize = (sampleRate * 0.100).toInt() // 100ms priming
+                val primingData = ShortArray(primingSize)
+                applyRoomTone(primingData) // Warm up the noise integrator
+                audioTrack?.write(primingData, 0, primingData.size)
+                isPrimed = true
+            }
+
+            // 5. Deferred Start: Ensure track is playing. 
+            // Only call play() if not already in that state to avoid driver-level glitches/pops.
+            if (audioTrack?.getState() == AudioTrack.STATE_INITIALIZED && 
+                audioTrack?.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+                Log.d("AudioPlayer", "Starting AudioTrack playback...")
                 audioTrack?.play()
             }
 
             // Write in smaller chunks to avoid HAL I/O errors with massive buffers
             val chunkSize = 2048 
             var offset = 0
-            while (offset < pcmData.size) {
+            while (offset < finalData.size) {
                 // Check if thread is interrupted (job cancelled)
                 if (Thread.currentThread().isInterrupted) break
 
-                val sizeToWrite = minOf(chunkSize, pcmData.size - offset)
-                val result = audioTrack?.write(pcmData, offset, sizeToWrite) ?: -1
+                val sizeToWrite = minOf(chunkSize, finalData.size - offset)
+                val result = audioTrack?.write(finalData, offset, sizeToWrite) ?: -1
                 
                 if (result < 0) {
                     Log.e("AudioPlayer", "Write error: $result. Attempting to recover AudioTrack...")
@@ -93,25 +117,72 @@ class AudioPlayer {
         }
     }
 
-    private fun recoverAudioTrack() {
-        try {
-            audioTrack?.stop()
-            audioTrack?.release()
-            createAudioTrack()
-            Log.d("AudioPlayer", "AudioTrack recovered successfully.")
-        } catch (e: Exception) {
-            Log.e("AudioPlayer", "Failed to recover AudioTrack", e)
+    private var lastRoomToneValue = 0f
+
+    private fun applyRoomTone(data: ShortArray) {
+        val random = java.util.Random()
+        for (i in data.indices) {
+            // Brownian Noise: Integration of white noise creates a warmer, "brown" sound
+            // Range +/- 8 for white noise, then integrated with a leaky factor
+            val white = (random.nextFloat() * 16f - 8f)
+            lastRoomToneValue = 0.98f * lastRoomToneValue + white
+            
+            // Coerce to keep it in a safe, very quiet range (~ -70dB)
+            val noise = lastRoomToneValue.toInt().toShort()
+            data[i] = (data[i] + noise).coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
         }
     }
 
-    private fun applyFade(data: ShortArray) {
-        val fadeLength = (sampleRate * 0.010).toInt() // 10ms fade for smoother transitions
+    private fun applyExponentialFade(data: ShortArray) {
+        val fadeLength = (sampleRate * 0.015).toInt() // 15ms fade
         if (data.size < fadeLength * 2) return
 
         for (i in 0 until fadeLength) {
             val factor = i.toFloat() / fadeLength
-            data[i] = (data[i] * factor).toInt().toShort()
-            data[data.size - 1 - i] = (data[data.size - 1 - i] * factor).toInt().toShort()
+            val expFactor = factor * factor // Exponential curve y = x^2
+            
+            // Fade-in
+            data[i] = (data[i] * expFactor).toInt().toShort()
+            
+            // Fade-out (at the end of the buffer)
+            val j = data.size - 1 - i
+            data[j] = (data[j] * expFactor).toInt().toShort()
+        }
+    }
+
+    private fun applyCrossfade(newData: ShortArray): ShortArray {
+        val tail = tailBuffer
+        if (tail == null) {
+            // First segment, just save the tail and return
+            tailBuffer = newData.takeLast(crossfadeLength).toShortArray()
+            return newData
+        }
+
+        // Mix the tail of the previous segment with the start of the new one
+        val mixedData = newData.copyOf()
+        for (i in 0 until minOf(crossfadeLength, mixedData.size)) {
+            val factor = i.toFloat() / crossfadeLength
+            // Linear mix for crossfade
+            mixedData[i] = (tail[i] * (1f - factor) + newData[i] * factor).toInt().toShort()
+        }
+
+        // Update tail buffer for next segment
+        tailBuffer = newData.takeLast(crossfadeLength).toShortArray()
+        
+        return mixedData
+    }
+
+    private fun recoverAudioTrack() {
+        try {
+            audioTrack?.stop()
+            audioTrack?.release()
+            tailBuffer = null // Reset crossfade on recovery
+            isPrimed = false // Reset priming on recovery
+            lastRoomToneValue = 0f // Reset noise integrator
+            createAudioTrack()
+            Log.d("AudioPlayer", "AudioTrack recovered successfully.")
+        } catch (e: Exception) {
+            Log.e("AudioPlayer", "Failed to recover AudioTrack", e)
         }
     }
     
@@ -119,6 +190,9 @@ class AudioPlayer {
         try {
             audioTrack?.stop()
             audioTrack?.flush()
+            isPrimed = false // Reset priming for next session
+            tailBuffer = null // Reset crossfade for next session
+            lastRoomToneValue = 0f // Reset noise integrator
         } catch (e: Exception) {
             Log.e("AudioPlayer", "Error stopping AudioTrack", e)
         }
