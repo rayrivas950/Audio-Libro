@@ -70,20 +70,54 @@ class TextAnalyzer @Inject constructor(
     private fun splitIntoParagraphSegments(text: String): List<NarrationSegment> {
         if (text.isEmpty()) return emptyList()
         
+        val segments = mutableListOf<NarrationSegment>()
         val paragraphs = text.split("\n\n")
-        return paragraphs.mapIndexed { index, p ->
-            val suffix = if (index < paragraphs.size - 1) "\n\n" else if (text.endsWith("\n\n")) "\n\n" else ""
-            val fullParagraph = p + suffix
+
+        paragraphs.forEachIndexed { index, p ->
+            if (p.isBlank()) return@forEachIndexed
             
-            // Map intention for each paragraph
-            val intention = intentionAnalyzer.identifyIntention(p)
+            // For each paragraph, we analyze its "ambient intention"
+            val paragraphIntention = intentionAnalyzer.identifyIntention(p)
             
-            if (isSectionIndicator(p)) {
-                NarrationSegment(text = fullParagraph, intention = intention, style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR)
-            } else {
-                NarrationSegment(text = fullParagraph, intention = intention, style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL)
+            // Split paragraph into sentences to allow mid-paragraph variations
+            // This regex splits by . ! ? followed by space and capital letter (Smart split)
+            val sentences = p.split(Regex("""(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ])"""))
+            
+            sentences.forEachIndexed { sIndex, sentence ->
+                val fullSentence = if (sIndex < sentences.size - 1) "$sentence " else sentence
+                
+                // Inherit paragraph intention but allow sentence-level override
+                val sentenceIntention = intentionAnalyzer.identifyIntention(sentence)
+                val finalIntention = if (sentenceIntention != ProsodyIntention.NEUTRAL) {
+                    sentenceIntention 
+                } else {
+                    paragraphIntention
+                }
+
+                if (isSectionIndicator(sentence)) {
+                    segments.add(NarrationSegment(
+                        text = fullSentence, 
+                        intention = finalIntention, 
+                        style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                    ))
+                } else {
+                    segments.add(NarrationSegment(
+                        text = fullSentence, 
+                        intention = finalIntention, 
+                        style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+                    ))
+                }
             }
-        }.filter { it.text.isNotEmpty() }
+            
+            // Add paragraph break suffix to the last segment of the paragraph
+            if (index < paragraphs.size - 1 || text.endsWith("\n\n")) {
+                val last = segments.lastOrNull()
+                if (last is NarrationSegment) {
+                    segments[segments.size - 1] = last.copy(text = last.text + "\n\n")
+                }
+            }
+        }
+        return segments
     }
 
     private fun isSectionIndicator(text: String): Boolean {
