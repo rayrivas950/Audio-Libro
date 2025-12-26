@@ -40,34 +40,50 @@ object TextSanitizer {
         // 4. Remove remaining HTML tags.
         val strippedText = htmlTagRegex.replace(processedText, "")
         
-        // 5. Collapse "Spaced Names" (e.g., "A N D R E Z" -> "ANDREZ")
-        // Use only single space \s to avoid eating newlines
-        val spacedNameRegex = Regex("""([A-ZÁÉÍÓÚÑ])\s(?=[A-ZÁÉÍÓÚÑ]\s|[A-ZÁÉÍÓÚÑ]${'$'})""")
-        val collapsedText = spacedNameRegex.replace(strippedText) { it.groupValues[1] }
-
-        // 6. Smart Paragraph Healing & Normalization
-        val normalizedLineEndings = collapsedText.replace("\r\n", "\n").replace("\r", "\n")
+        // 5. Normalizar saltos de línea y agrupar párrafos duros (\n\n)
+        val normalizedLineEndings = strippedText.replace("\r\n", "\n").replace("\r", "\n")
         
-        // Split into all available lines, regardless of how many newlines there are
-        val lines = normalizedLineEndings.split("\n")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
+        // Colapsar 3 o más saltos de línea en 2 (párrafo estándar)
+        var paragraphGrouped = normalizedLineEndings.replace(Regex("""\n{3,}"""), "\n\n")
+
+        // 6. Saneamiento de nombres espaciados (Solo si hay al menos 3 letras seguidas de espacio)
+        // Ejemplo: "A N D R E Z" -> "ANDREZ"
+        val spacedNameRegex = Regex("""([A-ZÁÉÍÓÚÑ]\s){2,}[A-ZÁÉÍÓÚÑ]""")
+        paragraphGrouped = spacedNameRegex.replace(paragraphGrouped) { match ->
+            match.value.replace(" ", "")
+        }
+
+        // 7. Healing de párrafos (Unir líneas cortadas por el PDF que pertenecen al mismo párrafo)
+        val paragraphs = paragraphGrouped.split("\n\n")
+        val healedParagraphs = paragraphs.map { paragraph ->
+            val lines = paragraph.split("\n")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
             
-        val result = StringBuilder()
-        for (i in lines.indices) {
-            val current = lines[i]
-            result.append(current)
+            if (lines.isEmpty()) return@map ""
             
-            val next = lines.getOrNull(i + 1)
-            if (next != null) {
-                if (shouldJoinLines(current, next)) {
-                    result.append(" ")
-                } else {
-                    result.append("\n\n")
+            val result = StringBuilder()
+            for (i in lines.indices) {
+                val current = lines[i]
+                result.append(current)
+                
+                val next = lines.getOrNull(i + 1)
+                if (next != null) {
+                    if (shouldJoinLines(current, next)) {
+                        result.append(" ")
+                    } else {
+                        // Si no deben unirse (ej: diálogo), forzamos un salto de párrafo
+                        result.append("\n\n") 
+                    }
                 }
             }
-        }
-        return result.toString().trim()
+            result.toString()
+        }.map { it.trim() }.filter { it.isNotBlank() }
+
+        // Unimos todo con doble salto, asegurando que no haya triples saltos por la lógica anterior
+        return healedParagraphs.joinToString("\n\n")
+            .replace(Regex("""\n{3,}"""), "\n\n")
+            .trim()
     }
 
     private fun shouldJoinLines(current: String, next: String): Boolean {
@@ -76,25 +92,35 @@ object TextSanitizer {
         val lastChar = current.last()
         val firstChar = next.first()
 
-        // 1. Strong "Must Join" signals
+        // 1. DIALOGUE PROTECTION (Rule of Gold)
+        // If the next line starts with a dialogue marker, it MUST be a new paragraph.
+        // Handled markers: Em-dash, hyphen, guillemets, standard quotes.
+        val dialogueMarkers = setOf('—', '-', '"', '«', '“')
+        if (dialogueMarkers.contains(firstChar)) return false
+
+        // 2. Page Number / Noise filtering
+        // If next is just a number (e.g., "5"), it's likely a page number artifact.
+        val digitsOnlyRegex = Regex("""^\d+$""")
+        if (digitsOnlyRegex.matches(next)) return false
+
+        // 3. Strong "Must Join" signals
         // If current ends with a character that usually doesn't end a sentence
         if (lastChar == ',' || lastChar == ';' || lastChar == ':' || lastChar == '-') return true
         
         // If current ends with a lowercase letter and next starts with a lowercase letter
         if (lastChar.isLowerCase() && firstChar.isLowerCase()) return true
 
-        // 2. Strong "Must Break" signals
+        // 4. Strong "Must Break" signals
         // If next looks like a list item or a standalone indicator (e.g. "1. ", "1)", "I.", "- ")
         val indicatorRegex = Regex("""^(\d+|[IVXLCDMivxlcdm]+)[\.\)]?(\s.*|$)""")
         val bulletRegex = Regex("""^[\-\*]\s.*""")
         if (indicatorRegex.matches(next) || bulletRegex.matches(next)) return false
         
         // If current ends with sentence punctuation
-        if (lastChar == '.' || lastChar == '!' || lastChar == '?' || lastChar == '"' || lastChar == '»') {
-            return false
-        }
+        val sentencePunctuation = setOf('.', '!', '?', '"', '»', '”', '—')
+        if (sentencePunctuation.contains(lastChar)) return false
 
-        // 3. Heuristics for Titles vs Paragraphs
+        // 5. Heuristics for Titles vs Paragraphs
         // If current is short and doesn't have punctuation, it's likely a title/header
         if (current.length < 60) {
             // If it ends with a number (Chapter 1) -> Break
@@ -105,7 +131,7 @@ object TextSanitizer {
             if (firstChar.isUpperCase()) return false
         }
 
-        // 4. Default for everything else
+        // 6. Default for everything else
         // If we are here, it's likely a continuation of a paragraph that was physically broken
         return true 
     }
