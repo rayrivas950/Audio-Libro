@@ -32,6 +32,12 @@ class TextToSpeechManager @Inject constructor(
     private var usePiper = true // Set to true to use Piper by default
     private var masterSpeed = 0.85f // Subido de 0.75 a 0.85 para evitar "estiramiento"
 
+    private val _isSpeaking = MutableStateFlow(false)
+    val isSpeaking: StateFlow<Boolean> = _isSpeaking
+
+    private val _currentSegment = MutableStateFlow<TextSegment?>(null)
+    val currentSegment: StateFlow<TextSegment?> = _currentSegment
+
     private val _currentSpokenWord = MutableStateFlow<IntRange?>(null)
     val currentSpokenWord: StateFlow<IntRange?> = _currentSpokenWord
     
@@ -80,7 +86,7 @@ class TextToSpeechManager @Inject constructor(
         }
     }
 
-    private val audioChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
+    private var audioChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
     private var playbackJob: Job? = null
     private var synthesisJob: Job? = null
 
@@ -89,14 +95,28 @@ class TextToSpeechManager @Inject constructor(
 
         stop() // Stop any ongoing playback
         _currentSpokenWord.value = null
+        _isSpeaking.value = true
+        consecutiveCommas = 0
         
+        // Recreate channel for each session to avoid ClosedSendChannelException from previous cancelled jobs
+        val currentChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
+        audioChannel = currentChannel
+
         if (usePiper) {
             // 1. Consumer: Plays audio from the channel
             playbackJob = scope.launch {
-                for (audioData in audioChannel) {
-                    audioPlayer?.play(audioData)
+                try {
+                    for (audioData in currentChannel) {
+                        audioPlayer?.play(audioData)
+                    }
+                } finally {
+                    Log.d(TAG, "Playback consumer finished.")
+                    // Only reset state if this is still the active session
+                    if (audioChannel === currentChannel) {
+                        _isSpeaking.value = false
+                        _currentSegment.value = null
+                    }
                 }
-                Log.d(TAG, "Playback consumer finished.")
             }
 
             // 2. Producer: Synthesizes segments and sends to channel
@@ -104,8 +124,14 @@ class TextToSpeechManager @Inject constructor(
                 try {
                     var lastSpeakerId: String? = null
                     
-                    segments.forEach { segment ->
+                    segments.forEachIndexed { index, segment ->
+                        if (!isSpeaking.value) return@forEachIndexed
+                        
                         val text = segment.text
+                        val nextSegment = segments.getOrNull(index + 1)
+                        
+                        // Update current segment for UI highlighting
+                        _currentSegment.value = segment
                         
                         // Detect Speaker Change
                         val currentSpeakerId = if (segment is DialogueSegment) segment.speakerId else "NARRATOR"
@@ -155,7 +181,6 @@ class TextToSpeechManager @Inject constructor(
                             val (speedMult, pitchMult) = getEmotionMultipliers(segment.emotion, segment.intensity)
                             speed *= speedMult
                             pitch *= pitchMult
-                            // TODO: Map speakerId to Piper speaker index
                         } else if (segment is NarrationSegment) {
                             if (segment.style == NarrationStyle.THOUGHT) {
                                 speed *= 0.85f // Thoughts are usually slower
@@ -163,18 +188,16 @@ class TextToSpeechManager @Inject constructor(
                             }
                         }
 
-                        // 3.5. Proper Name Emphasis (Places or Characters)
-                        // If segment contains capitalized words in the middle, slow down slightly for clarity
+                        // 3.5. Proper Name Emphasis
                         if (containsProperNames(text, properNames)) {
-                            speed *= 0.92f // 8% slower for segments with important names
-                            Log.d(TAG, "Proper name detected in: '$text'. Slowing down for emphasis.")
+                            speed *= 0.92f
                         }
                         
                         // 4. Safety Clamping
                         val finalSpeed = speed.coerceIn(0.6f, 1.6f)
                         val finalPitch = pitch.coerceIn(0.5f, 1.5f)
                         
-                        Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Emotion: ${if (segment is DialogueSegment) segment.emotion else "NARRATION"} | Speed: $finalSpeed | Pitch: $finalPitch")
+                        Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $finalSpeed | Pitch: $finalPitch")
                         
                         var rawAudio: FloatArray? = null
                         if (segment is NarrationSegment && segment.style == NarrationStyle.CHAPTER_INDICATOR) {
@@ -191,29 +214,31 @@ class TextToSpeechManager @Inject constructor(
                             }
                             
                             if (rawAudio != null) {
-                                Log.d(TAG, "Synthesis successful. Sending to pipeline. Size: ${rawAudio.size}")
-                                audioChannel.send(rawAudio)
+                                currentChannel.send(rawAudio)
                                 
-                                // 5. Insert Natural Pause based on punctuation (Literary Standards)
-                                val pauseDurationMs = getPauseDuration(text)
-                                
-                                val sampleRate = piperTts?.getSampleRate() ?: 22050
-                                val silence = generateSilence(pauseDurationMs, sampleRate)
-                                audioChannel.send(silence)
+                                // 5. Insert Intelligent Pause
+                                val pauseDurationMs = getPauseDuration(text, nextSegment)
+                                if (pauseDurationMs > 0) {
+                                    val sampleRate = piperTts?.getSampleRate() ?: 22050
+                                    val silence = generateSilence(pauseDurationMs, sampleRate)
+                                    currentChannel.send(silence)
+                                }
                             }
-                        } else {
-                            Log.e(TAG, "Synthesis FAILED for segment")
                         }
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Producer error", e)
+                } finally {
+                    // Synthesis finished, but playback might still be ongoing.
+                    // We close the local channel reference to signal the consumer.
+                    currentChannel.close()
                 }
             }
         } else {
             // Fallback to Android TTS
             androidTts?.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
             segments.forEach {
-                val utteranceId = UUID.randomUUID().toString()
+                val utteranceId = java.util.UUID.randomUUID().toString()
                 androidTts?.speak(it.text, TextToSpeech.QUEUE_ADD, null, utteranceId)
             }
         }
@@ -224,33 +249,92 @@ class TextToSpeechManager @Inject constructor(
         Log.d(TAG, "Master speed updated to: $masterSpeed")
     }
 
-    private fun getPauseDuration(text: String): Long {
-        return when {
-            text.contains("\n") -> 1000L // Line break or Paragraph break
-            text.contains(".") || text.contains("!") || text.contains("?") -> 800L
-            text.contains(",") || text.contains(";") || text.contains(":") -> 400L
-            text.length > 80 -> 350L
-            else -> 200L
+    private var consecutiveCommas = 0
+
+    private fun getPauseDuration(text: String, nextSegment: TextSegment?): Long {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return 0L
+
+        val nextText = nextSegment?.text?.trim()?.lowercase() ?: ""
+        
+        // Rule 1: Paragraph breaks (already handled by \n\n in segments)
+        if (text.contains("\n\n")) {
+            consecutiveCommas = 0
+            return 1000L
         }
+        if (text.contains("\n")) {
+            consecutiveCommas = 0
+            return 800L
+        }
+
+        // Rule 2: Dialogue Tags (e.g. "—dijo él")
+        // If current is dialogue and next is a tag, use a slightly longer pause (user requested 300ms)
+        val isDialogue = text.startsWith("—") || text.startsWith("\"") || text.startsWith("«") || text.startsWith("'")
+        val nextIsTag = nextText.startsWith("—") && nextText.length > 1 && nextText[1].isLowerCase()
+        if (isDialogue && nextIsTag) {
+            consecutiveCommas = 0
+            return 300L
+        }
+
+        // Rule 3: Conjunctions (breath before "pero", "aunque", "y", "o", etc.)
+        val nextIsConjunction = nextText.startsWith("pero") || 
+                                nextText.startsWith("aunque") || 
+                                nextText.startsWith("sin embargo") ||
+                                nextText.startsWith("no obstante") ||
+                                nextText.startsWith("y ") ||
+                                nextText.startsWith("o ")
+        
+        // Base pause by punctuation
+        var pause = when {
+            trimmed.endsWith(".") || trimmed.endsWith("!") || trimmed.endsWith("?") -> {
+                consecutiveCommas = 0
+                800L
+            }
+            trimmed.endsWith(";") -> {
+                consecutiveCommas = 0
+                600L // User requested intermediate pause for semicolon
+            }
+            trimmed.endsWith(":") -> {
+                consecutiveCommas = 0
+                400L
+            }
+            trimmed.endsWith(",") -> {
+                consecutiveCommas++
+                // List Breath Logic: Add 50ms for each consecutive comma in a list
+                val listExtra = if (consecutiveCommas > 1) (consecutiveCommas - 1) * 50L else 0L
+                400L + listExtra
+            }
+            else -> {
+                consecutiveCommas = 0
+                250L // Default pause between intelligent segments
+            }
+        }
+
+        // Add extra breath before conjunctions
+        if (nextIsConjunction) {
+            pause += 150L
+        }
+
+        return pause
     }
 
-    private fun getEmotionMultipliers(emotion: Emotion, intensity: Float): Pair<Float, Float> {
+    private fun getEmotionMultipliers(emotion: com.example.cititor.domain.model.Emotion, intensity: Float): Pair<Float, Float> {
         val (baseSpeedMult, basePitchMult) = when (emotion) {
-            Emotion.NEUTRAL -> 1.0f to 1.0f
-            Emotion.JOY -> 1.1f to 1.1f
-            Emotion.SADNESS -> 0.8f to 0.9f
-            Emotion.ANGER -> 1.2f to 0.8f
-            Emotion.FEAR -> 1.3f to 1.2f
-            Emotion.SURPRISE -> 1.2f to 1.2f
-            Emotion.URGENCY -> 1.4f to 1.0f
-            Emotion.WHISPER -> 0.7f to 1.0f
-            Emotion.MYSTERY -> 0.85f to 0.85f
-            Emotion.SARCASM -> 1.0f to 1.15f
-            Emotion.PRIDE -> 0.95f to 0.85f
-            Emotion.DISGUST -> 0.9f to 0.9f
-            Emotion.EXHAUSTION -> 0.75f to 0.9f
-            Emotion.CONFUSION -> 0.9f to 1.1f
-            Emotion.TENDERNESS -> 0.85f to 1.05f
+            com.example.cititor.domain.model.Emotion.NEUTRAL -> 1.0f to 1.0f
+            com.example.cititor.domain.model.Emotion.JOY -> 1.1f to 1.1f
+            com.example.cititor.domain.model.Emotion.SADNESS -> 0.8f to 0.9f
+            com.example.cititor.domain.model.Emotion.ANGER -> 1.2f to 0.8f
+            com.example.cititor.domain.model.Emotion.FEAR -> 1.3f to 1.2f
+            com.example.cititor.domain.model.Emotion.SURPRISE -> 1.2f to 1.2f
+            com.example.cititor.domain.model.Emotion.URGENCY -> 1.4f to 1.0f
+            com.example.cititor.domain.model.Emotion.WHISPER -> 0.7f to 1.0f
+            com.example.cititor.domain.model.Emotion.MYSTERY -> 0.85f to 0.85f
+            com.example.cititor.domain.model.Emotion.SARCASM -> 1.0f to 1.15f
+            com.example.cititor.domain.model.Emotion.PRIDE -> 0.95f to 0.85f
+            com.example.cititor.domain.model.Emotion.DISGUST -> 0.9f to 0.9f
+            com.example.cititor.domain.model.Emotion.EXHAUSTION -> 0.75f to 0.9f
+            com.example.cititor.domain.model.Emotion.CONFUSION -> 0.9f to 1.1f
+            com.example.cititor.domain.model.Emotion.TENDERNESS -> 0.85f to 1.05f
         }
 
         // Apply intensity: 0.0 means neutral, 1.0 means full effect
@@ -280,13 +364,19 @@ class TextToSpeechManager @Inject constructor(
     }
 
     fun stop() {
+        _isSpeaking.value = false
         playbackJob?.cancel()
         synthesisJob?.cancel()
         
-        // Clear the channel safely
+        // Clear the current channel safely
+        val channelToClear = audioChannel
         while (true) {
-            val result = audioChannel.tryReceive()
-            if (result.isFailure) break
+            try {
+                val result = channelToClear.tryReceive()
+                if (result.isFailure) break
+            } catch (e: Exception) {
+                break
+            }
         }
         
         if (usePiper) {
