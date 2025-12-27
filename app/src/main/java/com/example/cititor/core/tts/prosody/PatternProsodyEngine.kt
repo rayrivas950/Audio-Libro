@@ -95,6 +95,10 @@ class PatternProsodyEngine : ProsodyEngine {
             com.example.cititor.domain.model.ProsodyIntention.THOUGHT -> {
                 pitch *= 1.05f
             }
+            com.example.cititor.domain.model.ProsodyIntention.EMPHASIS -> {
+                speed *= 0.88f
+                pitch *= 0.95f
+            }
             else -> {}
         }
 

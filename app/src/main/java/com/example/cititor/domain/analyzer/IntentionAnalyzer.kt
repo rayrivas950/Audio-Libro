@@ -32,7 +32,31 @@ class IntentionAnalyzer {
         if (whisperKeywords.any { lower.contains(it) }) return ProsodyIntention.WHISPER
         if (solemnKeywords.any { lower.contains(it) }) return ProsodyIntention.SOLEMN
         
-        // 4. Tension Detection (Short, fragmented sentences)
+        // 4. Gravity Detector (Priority over Tension)
+        // Detect capitalized words that are NOT at the start of definition
+        val words = trimmed.split(" ")
+        var properNames = 0
+        val stopWords = setOf("El", "La", "Los", "Las", "Un", "Una", "Y", "De", "En", "A")
+
+        words.forEachIndexed { index, word ->
+            if (word.isNotEmpty() && word[0].isUpperCase()) {
+                val cleanWord = word.filter { it.isLetter() }
+                // Use a heuristic: If it's capitalized and NOT a common start word, 
+                // OR if it's mid-sentence capitalized, count it.
+                if (index > 0 || !stopWords.contains(cleanWord)) {
+                    if (cleanWord.length > 2) { // Filter 'A', 'Y'
+                         properNames++
+                    }
+                }
+            }
+        }
+        
+        // If density is high (more than 1 proper name), add gravity
+        if (properNames >= 2) {
+            return ProsodyIntention.EMPHASIS
+        }
+
+        // 5. Tension Detection (Short, fragmented sentences)
         if (trimmed.length in 5..40 && !trimmed.contains(",") && !trimmed.contains(";")) {
             // "He ran. He hid." -> Tension/Action
             return ProsodyIntention.TENSION

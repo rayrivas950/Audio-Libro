@@ -23,8 +23,28 @@ class TextToSpeechManager @Inject constructor(
     private var androidTts: TextToSpeech? = null
     private var piperTts: com.example.cititor.core.tts.piper.PiperTTSEngine? = null
     private var audioPlayer: com.example.cititor.core.audio.AudioPlayer? = null
+    private var effectProcessor: com.example.cititor.core.audio.AudioEffectProcessor? = null
     private var audioLogger: com.example.cititor.core.debug.AudioLogger? = null
-    private val DEBUG_SAVE_AUDIO = true // Set to true to debug audio quality
+    private val DEBUG_SAVE_AUDIO = false // Set to true to debug audio quality
+
+    private var isInitialized = false
+    private var usePiper = true // Set to true to use Piper by default
+    private var masterSpeed = 0.94f // Incrementado un 10% (de 0.85 a 0.94) para una narración más ágil
+
+    private val _isSpeaking = MutableStateFlow(false)
+    val isSpeaking: StateFlow<Boolean> = _isSpeaking
+
+    private val _currentSegment = MutableStateFlow<TextSegment?>(null)
+    val currentSegment: StateFlow<TextSegment?> = _currentSegment
+
+    private val _currentSpokenWord = MutableStateFlow<IntRange?>(null)
+    val currentSpokenWord: StateFlow<IntRange?> = _currentSpokenWord
+
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+
+    companion object {
+        private const val TAG = "TTSManager"
+    }
 
     init {
         initialize()
@@ -41,7 +61,10 @@ class TextToSpeechManager @Inject constructor(
                 piperTts = engine
                 audioPlayer = com.example.cititor.core.audio.AudioPlayer()
                 effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor(
-                    effects = listOf()
+                    effects = listOf(
+                        // Warmth Filter: Cuts strict digital highs (>7kHz approx with 0.6 smoothing)
+                        com.example.cititor.core.audio.effects.LowPassFilterEffect(0.6f)
+                    )
                 )
                 
                 if (DEBUG_SAVE_AUDIO) {
@@ -61,6 +84,19 @@ class TextToSpeechManager @Inject constructor(
         // Also prepare Android TTS as immediate fallback
         initAndroidTts()
     }
+
+    private fun initAndroidTts() {
+        androidTts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                androidTts?.language = Locale.getDefault()
+                isInitialized = true
+            }
+        }
+    }
+
+    private var audioChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
+    private var playbackJob: Job? = null
+    private var synthesisJob: Job? = null
 
     // ... (rest of class)
 
@@ -170,17 +206,34 @@ class TextToSpeechManager @Inject constructor(
                              }
 
                              // 2. Configure player to match exactly (Bit-Perfect)
-                             audioPlayer?.configure(nativeRate)
- 
-                             rawAudio = piperTts?.synthesize(text, adjustedSpeed, speakerId)
-                             
-                             // 3. Inject Silence Pre-Roll (100ms) to prevent cut-off words
-                             if (rawAudio != null) {
-                                 val silenceSamples = (nativeRate * 0.1).toInt() // 100ms
-                                 val silence = FloatArray(silenceSamples) { 0f }
-                                 rawAudio = silence + rawAudio!!
-                             }
-                         }
+                            audioPlayer?.configure(nativeRate)
+                            
+                            // Humanize: Add slight random speed variation (+/- 4%)
+                            val jitter = kotlin.random.Random.nextDouble(-0.04, 0.04).toFloat()
+                            val humanSpeed = (adjustedSpeed + jitter).coerceIn(0.5f, 1.5f)
+
+                            rawAudio = piperTts?.synthesize(text, humanSpeed, speakerId)
+                            
+                            // 3. Inject Silence Sandwich (Pre-roll + Audio + Post-roll)
+                            if (rawAudio != null) {
+                                val preRollSamples = (nativeRate * 0.15).toInt() // 150ms Pre
+                                
+                                // Dynamic Post-Roll based on intention (Dramatic Pause)
+                                val postRollFactor = when (segment.intention) {
+                                    com.example.cititor.domain.model.ProsodyIntention.SHOUT,
+                                    com.example.cititor.domain.model.ProsodyIntention.ADRENALINE,
+                                    com.example.cititor.domain.model.ProsodyIntention.PAIN -> 0.25 // 250ms (Tuned down from 400ms)
+                                    com.example.cititor.domain.model.ProsodyIntention.EMPHASIS -> 0.30 // 300ms 
+                                    else -> 0.20 // 200ms Standard
+                                }
+                                val postRollSamples = (nativeRate * postRollFactor).toInt()
+                                
+                                val silencePre = FloatArray(preRollSamples) { 0f }
+                                val silencePost = FloatArray(postRollSamples) { 0f }
+                                
+                                rawAudio = silencePre + rawAudio!! + silencePost
+                            }
+                        }
                         
                         if (rawAudio != null) {
                             // Apply modular effects chain with segment context (shouts, whispers, etc)

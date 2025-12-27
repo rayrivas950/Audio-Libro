@@ -34,12 +34,13 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     Log.d(TAG, "PDF loaded successfully, total pages: ${document.numberOfPages}")
                     
                     if (page >= 0 && page < document.numberOfPages) {
-                        val stripper = PDFTextStripper().apply {
-                            startPage = page + 1
-                            endPage = page + 1
-                            sortByPosition = true
-                            lineSeparator = "\n"
-                        }
+                        val stripper = GeometryPDFStripper()
+                        stripper.startPage = page + 1
+                        stripper.endPage = page + 1
+                        stripper.sortByPosition = true
+                        stripper.lineSeparator = "\n"
+                        stripper.spacingTolerance = 0.1f // Aggressive checking for spaces (fixes "yque")
+ 
                         val text = stripper.getText(document)
                         Log.d(TAG, "Successfully extracted ${text.length} characters from page $page")
                         text
@@ -81,9 +82,11 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     val pageCount = document.numberOfPages
                     Log.d(TAG, "PDF loaded, streaming $pageCount pages")
                     
-                    val stripper = PDFTextStripper()
+                    val stripper = GeometryPDFStripper()
                     stripper.sortByPosition = true
                     stripper.lineSeparator = "\n"
+                    stripper.spacingTolerance = 0.1f // Consistent logic for streaming
+
                     for (i in 0 until pageCount) {
                         try {
                             stripper.startPage = i + 1
@@ -131,6 +134,34 @@ class PdfExtractor @Inject constructor() : TextExtractor {
             Log.e(TAG, "Unexpected error getting page count: ${e.javaClass.simpleName} - ${e.message}", e)
             e.printStackTrace()
             0
+        }
+    }
+
+    /**
+     * Custom PDF stripper that is "Layout Aware".
+     * It filters out headers and footers based on geometric position (Y-coordinate).
+     */
+    private class GeometryPDFStripper : PDFTextStripper() {
+        
+        // Define exclusion zones (percentages of page height)
+        // Top 5% and Bottom 5% are usually headers/footers
+        private val headerThreshold = 0.05f 
+        private val footerThreshold = 0.95f
+
+        override fun processTextPosition(text: com.tom_roush.pdfbox.text.TextPosition) {
+            val pageHeight = currentPage.cropBox.height
+            val y = text.yDirAdj // Y-coordinate adjusted for direction
+            
+            val relativeY = y / pageHeight
+            
+            // Layout Analysis:
+            // If text is in the top 5% or bottom 5%, it is likely noise (header/page number).
+            // We SKIP processing it entirely.
+            if (relativeY < headerThreshold || relativeY > footerThreshold) {
+                return
+            }
+            
+            super.processTextPosition(text)
         }
     }
 }

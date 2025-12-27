@@ -42,6 +42,13 @@ object TextSanitizer {
         val compositeDialogueRegex = Regex("""([\.!\?])\s*([—\-"«“])""")
         processedText = compositeDialogueRegex.replace(processedText, "$1\n\n$2")
 
+        // 3c. Clean up common PDF encoding artifacts
+        // "?¡" often appears instead of "¡" or "¿" in bad encodings
+        processedText = processedText
+            .replace("?¡", "¡")
+            .replace("?¿", "¿")
+            .replace("??", "¿") // Aggressive check for double question marks as inverted
+
         // 4. Remove remaining HTML tags, but REPLACE WITH SPACE to avoid word collapsing
         // e.g. "por</span><span>la" -> "por la" instead of "porla"
         val strippedText = htmlTagRegex.replace(processedText, " ")
@@ -69,15 +76,25 @@ object TextSanitizer {
             val result = StringBuilder()
             for (i in lines.indices) {
                 val current = lines[i]
-                result.append(current)
                 
                 val next = lines.getOrNull(i + 1)
                 if (next != null) {
                     if (shouldJoinLines(current, next)) {
-                        result.append(" ")
+                        // FIX: Check if we need to remove a hyphen (syllabic break)
+                        if (current.endsWith("-")) {
+                            // "ca-" + "sa" -> "casa" (No space, remove hyphen)
+                            result.append(current.dropLast(1)) 
+                        } else {
+                            // "casa" + "grande" -> "casa grande" (Add SPACE)
+                            result.append(current)
+                            result.append(" ")
+                        }
                     } else {
+                        result.append(current)
                         result.append("\n\n") 
                     }
+                } else {
+                    result.append(current)
                 }
             }
             result.toString()

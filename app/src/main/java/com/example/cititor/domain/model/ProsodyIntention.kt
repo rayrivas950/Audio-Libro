@@ -15,5 +15,7 @@ enum class ProsodyIntention {
     TENSION,    // Short sentences, faster pace
     THOUGHT,    // Internal monologue
     ADRENALINE, // High energy, quick pace (action scenes)
-    SOLEMN      // Deep, slow, formal (important speeches or moments)
+    SOLEMN,     // Deep, slow, formal (important speeches or moments)
+    EMPHASIS,   // Gravity, weight due to proper names or importance
+    PAIN        // Physical pain or intense suffering
 }
