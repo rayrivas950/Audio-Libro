@@ -31,7 +31,6 @@ class TextAnalyzer @Inject constructor(
         val sanitized = textSanitizer.sanitize(rawText, pageIndex)
         val audited = consistencyAuditor.auditAndRepair(sanitized, pageIndex)
         
-        // Tabula Rasa: Return a single segment to see the raw text in the UI
         return listOf(NarrationSegment(
             text = audited,
             intention = ProsodyIntention.NEUTRAL,

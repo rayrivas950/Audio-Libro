@@ -9,39 +9,24 @@
 > Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
 > Task :app:extractDeepLinksDebug UP-TO-DATE
-> Task :app:processDebugMainManifest UP-TO-DATE
-> Task :app:processDebugManifest UP-TO-DATE
-> Task :app:processDebugManifestForPackage UP-TO-DATE
-> Task :app:processDebugResources UP-TO-DATE
-> Task :app:kspDebugKotlin UP-TO-DATE
-> Task :app:compileDebugKotlin UP-TO-DATE
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
 > Task :app:javaPreCompileDebug UP-TO-DATE
-> Task :app:compileDebugJavaWithJavac UP-TO-DATE
 > Task :app:mergeDebugShaders UP-TO-DATE
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets UP-TO-DATE
 > Task :app:compressDebugAssets UP-TO-DATE
-> Task :app:hiltAggregateDepsDebug UP-TO-DATE
-> Task :app:hiltJavaCompileDebug UP-TO-DATE
-> Task :app:processDebugJavaRes UP-TO-DATE
-> Task :app:mergeDebugJavaResource UP-TO-DATE
 > Task :app:checkDebugDuplicateClasses UP-TO-DATE
 > Task :app:desugarDebugFileDependencies UP-TO-DATE
 > Task :app:mergeExtDexDebug UP-TO-DATE
 > Task :app:mergeLibDexDebug UP-TO-DATE
-> Task :app:transformDebugClassesWithAsm UP-TO-DATE
-> Task :app:dexBuilderDebug UP-TO-DATE
-> Task :app:mergeProjectDexDebug UP-TO-DATE
 > Task :app:mergeDebugJniLibFolders UP-TO-DATE
 > Task :app:mergeDebugNativeLibs UP-TO-DATE
 > Task :app:stripDebugDebugSymbols UP-TO-DATE
 > Task :app:validateSigningDebug UP-TO-DATE
 > Task :app:writeDebugAppMetadata UP-TO-DATE
 > Task :app:writeDebugSigningConfigVersions UP-TO-DATE
-> Task :app:packageDebug UP-TO-DATE
-> Task :app:createDebugApkListingFileRedirect UP-TO-DATE
-> Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
 > Task :app:preDebugAndroidTestBuild SKIPPED
 > Task :app:checkDebugAndroidTestAarMetadata UP-TO-DATE
 > Task :app:generateDebugAndroidTestResValues UP-TO-DATE
@@ -65,6 +50,30 @@
 > Task :app:stripDebugAndroidTestDebugSymbols NO-SOURCE
 > Task :app:validateSigningDebugAndroidTest UP-TO-DATE
 > Task :app:writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:kspDebugKotlin
+
+> Task :app:compileDebugKotlin
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/AudioEffectProcessor.kt:56:46 Parameter 'sampleRate' is never used
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/TextToSpeechManager.kt:171:47 Parameter 'index' is never used, could be renamed to _
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/TextToSpeechManager.kt:234:65 Unnecessary non-null assertion (!!) on a non-null receiver of type FloatArray
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/ConsistencyAuditor.kt:24:38 Parameter 'pageIndex' is never used
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/dictionary/DictionaryManager.kt:76:40 Parameter 'languageCode' is never used
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/dictionary/DictionaryManager.kt:76:72 Parameter 'pageIndex' is never used
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/sanitizer/TextSanitizer.kt:26:32 Parameter 'pageIndex' is never used
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/sanitizer/TextSanitizer.kt:75:33 Parameter 'current' is never used
+w: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/sanitizer/TextSanitizer.kt:75:50 Parameter 'next' is never used
+
+> Task :app:compileDebugJavaWithJavac
+> Task :app:hiltAggregateDepsDebug UP-TO-DATE
+> Task :app:hiltJavaCompileDebug
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:transformDebugClassesWithAsm
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:dexBuilderDebug
+> Task :app:mergeProjectDexDebug
 > Task :app:kspDebugAndroidTestKotlin
 > Task :app:compileDebugAndroidTestKotlin
 > Task :app:compileDebugAndroidTestJavaWithJavac NO-SOURCE
@@ -72,11 +81,13 @@
 > Task :app:hiltJavaCompileDebugAndroidTest NO-SOURCE
 > Task :app:processDebugAndroidTestJavaRes UP-TO-DATE
 > Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
-> Task :app:transformDebugAndroidTestClassesWithAsm
-> Task :app:dexBuilderDebugAndroidTest
-> Task :app:mergeProjectDexDebugAndroidTest
-> Task :app:packageDebugAndroidTest
+> Task :app:transformDebugAndroidTestClassesWithAsm UP-TO-DATE
+> Task :app:dexBuilderDebugAndroidTest UP-TO-DATE
+> Task :app:mergeProjectDexDebugAndroidTest UP-TO-DATE
+> Task :app:packageDebugAndroidTest UP-TO-DATE
 > Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
 
 > Task :app:connectedDebugAndroidTest
 Starting 1 tests on Medium_Phone_API_36.1(AVD) - 16
@@ -89,5 +100,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 8s
-67 actionable tasks: 7 executed, 60 up-to-date
+BUILD SUCCESSFUL in 17s
+67 actionable tasks: 17 executed, 50 up-to-date

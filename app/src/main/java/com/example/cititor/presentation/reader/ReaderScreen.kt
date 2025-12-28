@@ -95,7 +95,11 @@ fun ReaderScreen(
                                 )
                             }
                         }
-                        Text(text = annotatedText)
+                        Text(
+                            text = annotatedText,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Justify
+                        )
                     }
 
                     Row(

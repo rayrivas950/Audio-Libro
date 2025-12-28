@@ -34,14 +34,13 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     Log.d(TAG, "PDF loaded successfully, total pages: ${document.numberOfPages}")
                     
                     if (page >= 0 && page < document.numberOfPages) {
-                        val stripper = PDFTextStripper()
+                        val stripper = IndentationAwareStripper()
                         stripper.startPage = page + 1
                         stripper.endPage = page + 1
                         stripper.sortByPosition = true
+                        stripper.spacingTolerance = 0.3f
                         stripper.lineSeparator = "\n"
-                        stripper.spacingTolerance = 0.5f // Neutral default
-                        stripper.wordSeparator = " "
- 
+
                         val text = stripper.getText(document)
                         Log.d(TAG, "Successfully extracted ${text.length} characters from page $page")
                         text
@@ -83,11 +82,10 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     val pageCount = document.numberOfPages
                     Log.d(TAG, "PDF loaded, streaming $pageCount pages")
                     
-                    val stripper = PDFTextStripper()
+                    val stripper = IndentationAwareStripper()
                     stripper.sortByPosition = true
+                    stripper.spacingTolerance = 0.3f
                     stripper.lineSeparator = "\n"
-                    stripper.spacingTolerance = 0.5f // Neutral default
-                    stripper.wordSeparator = " "
 
                     for (i in 0 until pageCount) {
                         try {
@@ -109,6 +107,76 @@ class PdfExtractor @Inject constructor() : TextExtractor {
             Log.e(TAG, "IOException during PDF streaming", e)
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected error during PDF streaming", e)
+        }
+    }
+
+    /**
+     * Custom stripper that detects paragraph indentation.
+     */
+    private class IndentationAwareStripper : PDFTextStripper() {
+        private var minX = Float.MAX_VALUE
+        private var indentationThreshold = 15f // Points
+        private var xCoordinates = mutableListOf<Float>()
+        
+        // Guillotine margins (in points, 72 points = 1 inch)
+        private val topExclusionMargin = 70f
+        private val bottomExclusionMargin = 70f
+
+        override fun startPage(page: com.tom_roush.pdfbox.pdmodel.PDPage) {
+            super.startPage(page)
+            minX = Float.MAX_VALUE
+            xCoordinates.clear()
+        }
+
+        override fun writeString(text: String?, textPositions: MutableList<com.tom_roush.pdfbox.text.TextPosition>?) {
+            if (textPositions != null && textPositions.isNotEmpty()) {
+                val firstChar = textPositions[0]
+                val firstCharX = firstChar.xDirAdj
+                val firstCharY = firstChar.yDirAdj
+                
+                // Get page height for dynamic guillotine
+                val pageHeight = currentPage.mediaBox.height
+                val topGuillotine = pageHeight * 0.10f // 10% top
+                val bottomGuillotine = pageHeight * 0.075f // 5% bottom
+
+                // --- 1. THE GUILLOTINE: Ignore headers and footers ---
+                if (firstCharY < topGuillotine) return
+                if (firstCharY > pageHeight - bottomGuillotine) return
+
+                // --- 2. MARGIN TRACKING (minX) ---
+                // Only establish margin from lines that are clearly NOT titles (left-ish)
+                val pageWidth = currentPage.mediaBox.width
+                if (firstCharX < pageWidth * 0.25f && firstCharX < minX) {
+                    minX = firstCharX
+                }
+
+                // --- 3. PARAGRAPH & TITLE DETECTION ---
+                // We need an established margin to detect breaks
+                if (minX != Float.MAX_VALUE) {
+                    val textWidth = calculateTextWidth(textPositions)
+                    val midpoint = firstCharX + textWidth / 2
+                    val pageMidpoint = pageWidth / 2
+                    val diffFromCenter = Math.abs(midpoint - pageMidpoint)
+                    
+                    // Titles must be SHORT (< 60%) and CENTERED
+                    val isShortLine = textWidth < (pageWidth * 0.6f)
+                    val isCentered = isShortLine && diffFromCenter < 25f
+                    
+                    val isIndented = firstCharX > minX + indentationThreshold
+
+                    if (isCentered || isIndented) {
+                        output.write("\n\n") // Inject break for titles and paragraphs
+                    }
+                }
+            }
+            super.writeString(text, textPositions)
+        }
+
+        private fun calculateTextWidth(positions: List<com.tom_roush.pdfbox.text.TextPosition>): Float {
+            if (positions.isEmpty()) return 0f
+            val first = positions.first().xDirAdj
+            val last = positions.last().let { it.xDirAdj + it.widthDirAdj }
+            return last - first
         }
     }
 
