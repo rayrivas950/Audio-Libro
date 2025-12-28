@@ -31,48 +31,12 @@ class TextAnalyzer @Inject constructor(
         val sanitized = textSanitizer.sanitize(rawText, pageIndex)
         val audited = consistencyAuditor.auditAndRepair(sanitized, pageIndex)
         
-        com.example.cititor.debug.DiagnosticMonitor.recordState(pageIndex, "AUDITED", audited)
-        
-        val text = audited
-        val segments = mutableListOf<TextSegment>()
-        var lastIndex = 0
-
-        dialogueRegex.findAll(text).forEach { matchResult ->
-            val before = text.substring(lastIndex, matchResult.range.first)
-            if (before.isNotBlank()) {
-                segments.addAll(splitIntoParagraphSegments(before))
-            }
-
-            val content = matchResult.value
-            val isThought = matchResult.groups[4] != null || matchResult.groups[6] != null
-
-            if (isThought) {
-                segments.add(NarrationSegment(
-                    text = content, 
-                    intention = ProsodyIntention.THOUGHT,
-                    style = com.example.cititor.domain.model.NarrationStyle.THOUGHT
-                ))
-            } else {
-                // Resolve the speaker and intention for the dialogue
-                val speakerId = dialogueResolver.resolveSpeaker(
-                    segment = DialogueSegment(text = content), 
-                    context = segments.toList()
-                )
-                val intention = intentionAnalyzer.identifyIntention(content)
-                segments.add(DialogueSegment(text = content, speakerId = speakerId, intention = intention))
-            }
-
-            lastIndex = matchResult.range.last + 1
-        }
-
-        if (lastIndex < text.length) {
-            val remainingNarration = text.substring(lastIndex)
-            if (remainingNarration.isNotBlank()) {
-                segments.addAll(splitIntoParagraphSegments(remainingNarration))
-            }
-        }
-
-        return segments
+        // Tabula Rasa: Return a single segment to see the raw text in the UI
+        return listOf(NarrationSegment(
+            text = audited,
+            intention = ProsodyIntention.NEUTRAL,
+            style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+        ))
     }
 
     private fun splitIntoParagraphSegments(text: String): List<NarrationSegment> {

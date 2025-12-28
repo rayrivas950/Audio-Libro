@@ -22,17 +22,6 @@ class ConsistencyAuditor @Inject constructor(
      * [CLEAN VERSION]: Only performs minimal whitespace normalization.
      */
     fun auditAndRepair(text: String, pageIndex: Int = -1): String {
-        if (text.isBlank()) return text
-        
-        val startTime = System.currentTimeMillis()
-        var repairedText = text
-
-        // Minimal whitespace normalization
-        repairedText = repairedText
-            .replace(Regex("""[\t ]+"""), " ") // Double spaces
-            .trim()
-
-        Log.d(TAG, "Audit and repair (minimal) completed in ${System.currentTimeMillis() - startTime}ms")
-        return repairedText
+        return text
     }
 }
