@@ -85,12 +85,17 @@ object DebugHelper {
                 Nadie respondió. "Sal de ahí" insistió.
             """.trimIndent()
             
-            // For testing in a static helper, we manually instantiate with simple resolver and intention analyzer
+            // For testing in a static helper, we manually instantiate dependencies
+            val dictionaryManager = com.example.cititor.domain.dictionary.DictionaryManager(context)
+            val textSanitizer = com.example.cititor.domain.sanitizer.TextSanitizer(dictionaryManager)
+            val consistencyAuditor = com.example.cititor.domain.analyzer.ConsistencyAuditor(dictionaryManager)
             val analyzer = TextAnalyzer(
+                textSanitizer,
                 com.example.cititor.domain.analyzer.SimpleDialogueResolver(),
-                com.example.cititor.domain.analyzer.IntentionAnalyzer()
+                com.example.cititor.domain.analyzer.IntentionAnalyzer(),
+                consistencyAuditor
             )
-            val segments = analyzer.analyze(testText)
+            val segments = analyzer.analyze(testText, pageIndex = 0)
             results.add("✅ Analyzed: ${segments.size} segments")
             Log.d(TAG, "TextAnalyzer produced ${segments.size} segments")
             

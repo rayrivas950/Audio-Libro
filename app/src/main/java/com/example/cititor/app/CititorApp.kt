@@ -20,7 +20,7 @@ class CititorApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize PDFBox for all processes
+        // Initialize PDFBox for Android
         PDFBoxResourceLoader.init(this)
     }
 }

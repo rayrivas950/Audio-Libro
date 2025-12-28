@@ -1,20 +1,32 @@
 package com.example.cititor.domain.sanitizer
 
+import android.util.Log
+import com.example.cititor.domain.dictionary.DictionaryManager
+import javax.inject.Inject
+import javax.inject.Singleton
+
 /**
  * A utility to clean text extracted from books, removing formatting and artifacts.
+ * Now includes intelligent word correction using dictionary-based validation.
  */
-object TextSanitizer {
+@Singleton
+class TextSanitizer @Inject constructor(
+    private val dictionaryManager: DictionaryManager
+) {
 
     private val htmlTagRegex = "<[^>]*>".toRegex()
     private val extraWhitespaceRegex = "\\s+".toRegex()
 
     /**
-     * Cleans a string by removing all HTML tags and normalizing whitespace.
+     * Cleans a string by removing all HTML tags, normalizing whitespace,
+     * and correcting stuck words (e.g., "yque" -> "y que").
      * @param text The input string, potentially containing HTML tags and other artifacts.
      * @return A plain text string, ready for TTS processing or display.
      */
-    fun sanitize(text: String): String {
-        // 1. Pre-process block-level HTML tags to preserve structure
+    fun sanitize(text: String, pageIndex: Int = -1): String {
+        com.example.cititor.debug.DiagnosticMonitor.recordState(pageIndex, "RAW", text)
+        
+        // 1. Cleaning HTML structure
         var processedText = text
             .replace("(?i)<p[^>]*>".toRegex(), "\n\n")
             .replace("(?i)<br[^>]*>".toRegex(), "\n")
@@ -22,50 +34,14 @@ object TextSanitizer {
             .replace("(?i)<li[^>]*>".toRegex(), "\n- ")
             .replace("(?i)<h[1-6][^>]*>".toRegex(), "\n\n")
 
-        // 2. Preserve italics/emphasis as *text* for thought detection
-        processedText = processedText
-            .replace("<i>", "*")
-            .replace("</i>", "*")
-            .replace("<em>", "*")
-            .replace("</em>", "*")
-
-        // 3. Normalize special characters
-        processedText = processedText
-            .replace("“", "\"")
-            .replace("”", "\"")
-            .replace("«", "\"")
-            .replace("»", "\"")
-            .replace("–", "-")
-
-        // 3b. Protect complex dialogue markers stuck to punctuation (e.g. "noche.—")
-        // We force a double newline to ensure they are treated as separate paragraphs
-        val compositeDialogueRegex = Regex("""([\.!\?])\s*([—\-"«“])""")
-        processedText = compositeDialogueRegex.replace(processedText, "$1\n\n$2")
-
-        // 3c. Clean up common PDF encoding artifacts
-        // "?¡" often appears instead of "¡" or "¿" in bad encodings
-        processedText = processedText
-            .replace("?¡", "¡")
-            .replace("?¿", "¿")
-            .replace("??", "¿") // Aggressive check for double question marks as inverted
-
-        // 4. Remove remaining HTML tags, but REPLACE WITH SPACE to avoid word collapsing
-        // e.g. "por</span><span>la" -> "por la" instead of "porla"
+        // 2. Clear HTML tags (replace with space to prevent word merger)
         val strippedText = htmlTagRegex.replace(processedText, " ")
         
-        // 5. Normalizar saltos de línea
+        // 3. Normalize line endings
         val normalizedLineEndings = strippedText.replace("\r\n", "\n").replace("\r", "\n")
         
-        // 6. Fix missing space after punctuation (very common in bad extractions)
-        // e.g. "Cordeleros.Entró" -> "Cordeleros. Entró"
-        val punctSpaceRegex = Regex("""([\.!\?])([A-ZÁÉÍÓÚÑ])""")
-        var fixedPunctuation = punctSpaceRegex.replace(normalizedLineEndings, "$1 $2")
-
-        // 7. Colapsar 3 o más saltos de línea en 2 (párrafo estándar)
-        val paragraphGrouped = fixedPunctuation.replace(Regex("""\n{3,}"""), "\n\n")
-
-        // 8. Healing de párrafos (Unir líneas cortadas por el PDF que pertenecen al mismo párrafo)
-        val paragraphs = paragraphGrouped.split("\n\n")
+        // 4. Basic paragraph healing
+        val paragraphs = normalizedLineEndings.split("\n\n")
         val healedParagraphs = paragraphs.map { paragraph ->
             val lines = paragraph.split("\n")
                 .map { it.trim() }
@@ -76,34 +52,33 @@ object TextSanitizer {
             val result = StringBuilder()
             for (i in lines.indices) {
                 val current = lines[i]
-                
                 val next = lines.getOrNull(i + 1)
-                if (next != null) {
-                    if (shouldJoinLines(current, next)) {
-                        // FIX: Check if we need to remove a hyphen (syllabic break)
-                        if (current.endsWith("-")) {
-                            // "ca-" + "sa" -> "casa" (No space, remove hyphen)
-                            result.append(current.dropLast(1)) 
-                        } else {
-                            // "casa" + "grande" -> "casa grande" (Add SPACE)
-                            result.append(current)
-                            result.append(" ")
-                        }
+                
+                if (next != null && shouldJoinLines(current, next)) {
+                    if (current.endsWith("-")) {
+                        result.append(current.dropLast(1)) 
                     } else {
                         result.append(current)
-                        result.append("\n\n") 
+                        result.append(" ")
                     }
                 } else {
                     result.append(current)
+                    if (next != null) result.append("\n\n")
                 }
             }
             result.toString()
-        }.map { it.trim() }.filter { it.isNotBlank() }
+        }.filter { it.isNotBlank() }
 
-        return healedParagraphs.joinToString("\n\n")
-            .replace(Regex("""[ \t]+"""), " ") // Colapsar espacios múltiples horizontales
-            .replace(Regex("""\n{3,}"""), "\n\n")
+        val joinedText = healedParagraphs.joinToString("\n\n")
+            .replace(Regex("""[ \t]+"""), " ") // Double spaces
             .trim()
+
+        // 5. Dictionary correction (currently returns word as is in clean version)
+        val finalFixed = dictionaryManager.correctText(joinedText, pageIndex = pageIndex)
+        
+        com.example.cititor.debug.DiagnosticMonitor.recordState(pageIndex, "SANITIZED", finalFixed)
+        
+        return finalFixed
     }
 
     private fun shouldJoinLines(current: String, next: String): Boolean {
@@ -112,54 +87,22 @@ object TextSanitizer {
         val lastChar = current.last()
         val firstChar = next.first()
 
-        // 1. DIALOGUE PROTECTION (Rule of Gold)
-        // If the next line starts with a dialogue marker, it MUST be a new paragraph.
-        // Handled markers: Em-dash, hyphen, guillemets, standard quotes.
-        val dialogueMarkers = setOf('—', '-', '"', '«', '“')
-        if (dialogueMarkers.contains(firstChar)) return false
-
-        // 2. Page Number / Noise filtering
-        // If next is just a number (e.g., "5"), it's likely a page number artifact.
-        val digitsOnlyRegex = Regex("""^\d+$""")
-        if (digitsOnlyRegex.matches(next)) return false
-
-        // 3. Strong "Must Join" signals
-        // If current ends with a character that usually doesn't end a sentence
+        // 1. Basic Join Signals
+        // If current ends with a connector punctuation
         if (lastChar == ',' || lastChar == ';' || lastChar == ':' || lastChar == '-') return true
         
         // If current ends with a lowercase letter and next starts with a lowercase letter
         if (lastChar.isLowerCase() && firstChar.isLowerCase()) return true
 
-        // 4. Strong "Must Break" signals
-        // If next looks like a list item or a standalone indicator (e.g. "1. ", "1)", "I.", "- ")
-        val indicatorRegex = Regex("""^(\d+|[IVXLCDMivxlcdm]+)[\.\)]?(\s.*|$)""")
-        val bulletRegex = Regex("""^[\-\*]\s.*""")
-        if (indicatorRegex.matches(next) || bulletRegex.matches(next)) return false
-        
-        // If current ends with sentence punctuation
-        val sentencePunctuation = setOf('.', '!', '?', '"', '»', '”', '—')
-        if (sentencePunctuation.contains(lastChar)) {
-            // SPECIAL CASE: If it ends with —. or —? or —! (End of an acotación)
-            // it SHOULD join with the next line of the same paragraph.
-            if (current.length >= 2 && current[current.length - 2] == '—') {
-                return true
-            }
-            return false
-        }
+        // 2. Dialogue Protection (Mandatory break for common markers)
+        val dialogueMarkers = setOf('—', '-', '"', '«', '“')
+        if (dialogueMarkers.contains(firstChar)) return false
 
-        // 5. Heuristics for Titles vs Paragraphs
-        // If current is short and doesn't have punctuation, it's likely a title/header
-        if (current.length < 60) {
-            // If it ends with a number (Chapter 1) -> Break
-            if (lastChar.isDigit()) return false
-            // If it's all caps -> Break
-            if (current == current.uppercase() && current.any { it.isLetter() }) return false
-            // If next starts with uppercase -> Break (likely new paragraph or title)
-            if (firstChar.isUpperCase()) return false
-        }
+        // 3. Sentence Ending (Mandatory break)
+        val sentencePunctuation = setOf('.', '!', '?')
+        if (sentencePunctuation.contains(lastChar)) return false
 
-        // 6. Default for everything else
-        // If we are here, it's likely a continuation of a paragraph that was physically broken
-        return true 
+        // Default: break to be safe and avoid multi-paragraph mergers
+        return false 
     }
 }

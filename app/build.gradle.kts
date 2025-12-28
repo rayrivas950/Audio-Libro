@@ -48,6 +48,12 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // Tika brings multiple Apache libraries with duplicate metadata files
+            pickFirsts += "META-INF/DEPENDENCIES"
+            pickFirsts += "META-INF/LICENSE"
+            pickFirsts += "META-INF/LICENSE.md"
+            pickFirsts += "META-INF/NOTICE"
+            pickFirsts += "META-INF/NOTICE.md"
         }
     }
 

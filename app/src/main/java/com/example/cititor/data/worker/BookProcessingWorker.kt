@@ -99,7 +99,17 @@ class BookProcessingWorker @AssistedInject constructor(
                     val filteredLines = lines.filter { it.isEmpty() || it !in noiseBlacklist }
                     val cleanText = filteredLines.joinToString("\n")
                     
-                    val segments = textAnalyzer.analyze(cleanText)
+                    Log.i(TAG, "[TRACE][PAGE $index] --- RAW TEXT START ---")
+                    Log.i(TAG, cleanText.take(200) + "...")
+                    Log.i(TAG, "[TRACE][PAGE $index] --- RAW TEXT END ---")
+                    
+                    val segments = textAnalyzer.analyze(cleanText, pageIndex = index)
+                    
+                    if (segments.isNotEmpty()) {
+                        Log.i(TAG, "[TRACE][PAGE $index] --- FIRST SEGMENT PREVIEW ---")
+                        Log.i(TAG, segments.first().text.take(200))
+                    }
+                    
                     val jsonContent = json.encodeToString(segments)
                     
                     cleanPagesBatch.add(
@@ -125,6 +135,10 @@ class BookProcessingWorker @AssistedInject constructor(
             }
             
             Log.d(TAG, "Processing completed successfully. Total pages: $totalProcessed")
+            
+            // DUMP DIAGNOSTICS FOR THE USER
+            com.example.cititor.debug.DiagnosticMonitor.dumpToLogcat()
+            
             Result.success()
         } catch (e: Exception) {
             val errorMsg = "Processing error: ${e.javaClass.simpleName} - ${e.message}"

@@ -15,8 +15,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class TextAnalyzer @Inject constructor(
+    private val textSanitizer: TextSanitizer,
     private val dialogueResolver: DialogueResolver,
-    private val intentionAnalyzer: IntentionAnalyzer
+    private val intentionAnalyzer: IntentionAnalyzer,
+    private val consistencyAuditor: ConsistencyAuditor
 ) {
 
     // Regex to find common dialogue markers and thoughts (marked with * or ').
@@ -25,8 +27,13 @@ class TextAnalyzer @Inject constructor(
     /**
      * Analyzes a raw string, sanitizes it, and splits it into a list of TextSegments.
      */
-    fun analyze(rawText: String): List<TextSegment> {
-        val text = TextSanitizer.sanitize(rawText)
+    fun analyze(rawText: String, pageIndex: Int = -1): List<TextSegment> {
+        val sanitized = textSanitizer.sanitize(rawText, pageIndex)
+        val audited = consistencyAuditor.auditAndRepair(sanitized, pageIndex)
+        
+        com.example.cititor.debug.DiagnosticMonitor.recordState(pageIndex, "AUDITED", audited)
+        
+        val text = audited
         val segments = mutableListOf<TextSegment>()
         var lastIndex = 0
 

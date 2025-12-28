@@ -5,14 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cititor.data.text_extractor.ExtractorFactory
 import com.example.cititor.debug.DebugHelper
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.use_case.AddBookUseCase
 import com.example.cititor.domain.use_case.GetBooksUseCase
-import com.github.mertakdut.Reader
-import com.github.mertakdut.exception.OutOfPagesException
-import com.github.mertakdut.exception.ReadingException
-import com.tom_roush.pdfbox.pdmodel.PDDocument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +19,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
@@ -39,6 +34,7 @@ data class LibraryState(
 class LibraryViewModel @Inject constructor(
     private val getBooksUseCase: GetBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
+    private val extractorFactory: ExtractorFactory,
     private val application: Application,
     private val json: Json
 ) : ViewModel() {
@@ -69,93 +65,67 @@ class LibraryViewModel @Inject constructor(
             val contentResolver = application.contentResolver
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-            val mimeType = contentResolver.getType(uri)
-
-            when (mimeType) {
-                "application/pdf" -> parsePdf(uri)
-                "application/epub+zip" -> parseEpub(uri)
-                else -> { // Handle unsupported file types
-                }
-            }
+            parseBook(uri)
         }
     }
 
-    private suspend fun parsePdf(uri: Uri) {
+    private suspend fun parseBook(uri: Uri) {
         withContext(Dispatchers.IO) {
             try {
-                application.contentResolver.openInputStream(uri)?.use { inputStream ->
-                    PDDocument.load(inputStream).use { document ->
-                        val newBook = Book(
-                            id = 0, // Room will auto-generate
-                            title = document.documentInformation.title ?: "Untitled PDF",
-                            author = document.documentInformation.author,
-                            filePath = uri.toString(),
-                            coverPath = null, // Future feature
-                            currentPage = 0,
-                            totalPages = document.numberOfPages,
-                            lastReadTimestamp = System.currentTimeMillis(),
-                            processingWorkId = null
-                        )
-                        addBookUseCase(newBook)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private suspend fun parseEpub(uri: Uri) {
-        withContext(Dispatchers.IO) {
-            var tempFile: File? = null
-            try {
-                tempFile = File.createTempFile("temp_epub", ".epub", application.cacheDir)
-                application.contentResolver.openInputStream(uri)?.use { inputStream ->
-                    FileOutputStream(tempFile).use { outputStream ->
-                        inputStream.copyTo(outputStream)
-                    }
+                val extractor = extractorFactory.create(uri.toString())
+                if (extractor == null) {
+                    // Unsupported format
+                    return@withContext
                 }
 
-                val reader = Reader()
-                reader.setFullContent(tempFile.absolutePath)
-
-                val title = reader.infoPackage.metadata.title ?: "Untitled EPUB"
-                val author = reader.infoPackage.metadata.creator ?: "Unknown Author"
+                // Get total pages using Tika
+                val totalPages = extractor.getPageCount(application, uri)
                 
-                var sectionCount = 0
-                while (true) {
-                    try {
-                        reader.readSection(sectionCount)
-                        sectionCount++
-                    } catch (e: OutOfPagesException) {
-                        // We have reached the end of the book. This is the exit condition.
-                        break
-                    }
-                }
-
+                // Extract filename as title (Tika doesn't provide metadata extraction easily)
+                val fileName = getFileName(uri) ?: "Untitled Book"
+                val title = fileName.substringBeforeLast('.')
+                
                 val newBook = Book(
                     id = 0, // Room will auto-generate
                     title = title,
-                    author = author,
+                    author = null, // Metadata extraction would require format-specific logic
                     filePath = uri.toString(),
-                    coverPath = null, // Future feature
+                    coverPath = null,
                     currentPage = 0,
-                    totalPages = sectionCount,
+                    totalPages = totalPages,
                     lastReadTimestamp = System.currentTimeMillis(),
                     processingWorkId = null
                 )
                 addBookUseCase(newBook)
 
-            } catch (e: ReadingException) {
-                e.printStackTrace()
             } catch (e: IOException) {
                 e.printStackTrace()
-            } finally {
-                tempFile?.delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
+    private fun getFileName(uri: Uri): String? {
+        if (uri.scheme == "content") {
+            val cursor = application.contentResolver.query(
+                uri,
+                arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val displayNameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (displayNameIndex != -1) {
+                        return it.getString(displayNameIndex)
+                    }
+                }
+            }
+        }
+        return uri.path?.substringAfterLast('/')
+    }
 
     private fun getBooks() {
         getBooksUseCase().onEach { books ->

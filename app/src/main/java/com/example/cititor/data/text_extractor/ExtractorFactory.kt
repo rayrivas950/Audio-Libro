@@ -26,23 +26,25 @@ class ExtractorFactory @Inject constructor(
 
         Log.d(TAG, "Creating extractor for file: $fileName, URI: $filePath")
 
-        // Prioritize the file extension from the display name, as it's the most reliable source.
+        // Check file extension first (most reliable)
         if (fileName != null) {
-            val lowercasedFileName = fileName.lowercase(Locale.ROOT)
-            if (lowercasedFileName.endsWith(".pdf")) {
-                Log.d(TAG, "Detected PDF file by extension")
-                return pdfExtractor
-            }
-            if (lowercasedFileName.endsWith(".epub")) {
-                Log.d(TAG, "Detected EPUB file by extension")
-                return epubExtractor
+            val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+            when (extension) {
+                "pdf" -> {
+                    Log.d(TAG, "Detected PDF file by extension")
+                    return pdfExtractor
+                }
+                "epub" -> {
+                    Log.d(TAG, "Detected EPUB file by extension")
+                    return epubExtractor
+                }
             }
         }
 
-        // As a fallback, check the MIME type. This can help with URIs that don't expose
-        // a display name or for files without a traditional extension.
+        // Fallback to MIME type check
         val mimeType = application.contentResolver.getType(uri)
         Log.d(TAG, "Checking MIME type: $mimeType")
+        
         return when (mimeType) {
             "application/pdf" -> {
                 Log.d(TAG, "Detected PDF file by MIME type")
@@ -53,19 +55,21 @@ class ExtractorFactory @Inject constructor(
                 epubExtractor
             }
             else -> {
-                Log.w(TAG, "Unsupported file type. FileName: $fileName, MIME: $mimeType")
+                Log.w(TAG, "Unsupported file type. FileName: $fileName, MIME: $mimeType. Supported: PDF, EPUB")
                 null
             }
         }
     }
 
-    /**
-     * Queries the ContentResolver to get the display name of a file from its content URI.
-     * This is the recommended way to get a file's name when using the Storage Access Framework.
-     */
     private fun getFileName(uri: Uri): String? {
         if (uri.scheme == "content") {
-            val cursor = application.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+            val cursor = application.contentResolver.query(
+                uri,
+                arrayOf(OpenableColumns.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )
             cursor?.use {
                 if (it.moveToFirst()) {
                     val displayNameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -75,7 +79,6 @@ class ExtractorFactory @Inject constructor(
                 }
             }
         }
-        // For non-content URIs (like file://), fall back to the path segment.
         return uri.path?.substringAfterLast('/')
     }
 }
