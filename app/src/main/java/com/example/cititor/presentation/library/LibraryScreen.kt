@@ -21,8 +21,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Delete
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.cititor.presentation.navigation.Screen
@@ -33,11 +38,39 @@ fun LibraryScreen(
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var bookToDelete by remember { mutableStateOf<com.example.cititor.domain.model.Book?>(null) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         uri?.let { viewModel.onBookUriSelected(it) }
+    }
+
+    // Confirmation Dialog
+    bookToDelete?.let { book ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { bookToDelete = null },
+            title = { Text("¿Eliminar libro?") },
+            text = { Text("¿Estás seguro de que quieres eliminar '${book.title}'? Esta acción borrará todos tus datos procesados.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        viewModel.deleteBook(book)
+                        bookToDelete = null
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        contentColor = androidx.compose.material3.MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { bookToDelete = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -72,14 +105,32 @@ fun LibraryScreen(
             }
             
             items(state.books) { book ->
-                Text(
-                    text = book.title,
+                Row(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .clickable { 
                             navController.navigate(Screen.ReaderScreen.withArgs(book.id))
                         }
-                        .padding(16.dp)
-                )
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = book.title,
+                        modifier = Modifier.weight(1f),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
+                    )
+                    
+                    androidx.compose.material3.IconButton(
+                        onClick = { bookToDelete = book }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete book",
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
         }
     }

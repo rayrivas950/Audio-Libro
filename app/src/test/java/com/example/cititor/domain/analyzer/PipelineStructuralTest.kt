@@ -7,6 +7,7 @@ import com.example.cititor.domain.dictionary.DictionaryManager
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 
@@ -47,6 +48,20 @@ class PipelineStructuralTest {
         val firstSegment = segments[0] as NarrationSegment
         assertEquals("EL BRUJO I", firstSegment.text)
         assertEquals(NarrationStyle.CHAPTER_INDICATOR, firstSegment.style)
+    }
+
+    @Test
+    fun `test long dedication line without period is NEUTRAL`() {
+        // "En particular, inclino mi yelmo ante" has > 3 significant words?
+        // Let's test "Ofrezco de nuevo mi gratitud y reconocimiento a esas almas"
+        // (This would not have the tag because the extractor now filters it)
+        val rawDedication = "Ofrezco de nuevo mi gratitud y reconocimiento a esas almas"
+        
+        val segments = analyzer.analyze(rawDedication)
+        
+        val firstSegment = segments[0] as NarrationSegment
+        assertEquals(NarrationStyle.NEUTRAL, firstSegment.style)
+        assertFalse("No debe ser un titulo", firstSegment.text.contains("[GEOMETRIC_TITLE]"))
     }
 
     @Test

@@ -1,0 +1,405 @@
+Initialized native services in: /home/raynor/.gradle/native
+Initialized jansi services in: /home/raynor/.gradle/native
+Found daemon DaemonInfo{pid=11932, address=[14143c9e-f029-4409-9b76-896b90aada57 port:39233, addresses:[/127.0.0.1]], state=Idle, lastBusy=1766968366462, context=DefaultDaemonContext[uid=e1c7cd3b-996f-4e90-a72e-353c76dfee99,javaHome=/snap/android-studio/209/jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=/home/raynor/.gradle/daemon,pid=11932,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=ES,-Duser.language=es,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=/usr/lib/jvm/java-17-openjdk-amd64 (no JDK specified, using current Java home), daemonOpts=[-Xmx2048m, -Dfile.encoding=UTF-8, -Duser.country=ES, -Duser.language=es, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=e1c7cd3b-996f-4e90-a72e-353c76dfee99,javaHome=/snap/android-studio/209/jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=/home/raynor/.gradle/daemon,pid=11932,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=ES,-Duser.language=es,-Duser.variant]
+
+  Looking for a different daemon...
+The client will now receive all logging from the daemon (pid: 11594). The daemon log file: /home/raynor/.gradle/daemon/8.13/daemon-11594.out.log
+Starting 65th build in daemon [uptime: 9 hrs 9 mins 27.846 secs, performance: 100%, GC rate: 0.00/s, heap usage: 4% of 2 GiB]
+Using 12 worker leases.
+Now considering [/home/raynor/Escritorio/Proyectos/audio-libro] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/home/raynor/Escritorio/Proyectos/audio-libro/settings.gradle.kts'.
+Projects loaded. Root project using build file '/home/raynor/Escritorio/Proyectos/audio-libro/build.gradle.kts'.
+Included projects: [root project 'Cititor', project ':app']
+
+> Configure project :
+Evaluating root project 'Cititor' using build file '/home/raynor/Escritorio/Proyectos/audio-libro/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '8.2.2', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '1.9.0', apply: false]
+Resolved plugin [id: 'com.google.dagger.hilt.android', version: '2.48', apply: false]
+Resolved plugin [id: 'com.google.devtools.ksp', version: '1.9.0-1.0.13', apply: false]
+
+> Configure project :app
+Evaluating project ':app' using build file '/home/raynor/Escritorio/Proyectos/audio-libro/app/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '8.2.2']
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '1.9.0']
+Resolved plugin [id: 'com.google.dagger.hilt.android', version: '2.48']
+Resolved plugin [id: 'com.google.devtools.ksp', version: '1.9.0-1.0.13']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '1.9.0']
+Using default execution profile
+Using Kotlin Gradle Plugin gradle81 variant
+All projects evaluated.
+Task name matched 'testDebugUnitTest'
+Selected primary task 'testDebugUnitTest' from project :
+Tasks to be executed: [task ':app:preBuild', task ':app:preDebugBuild', task ':app:checkDebugAarMetadata', task ':app:generateDebugResValues', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:kspDebugKotlin', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:hiltAggregateDepsDebug', task ':app:hiltJavaCompileDebug', task ':app:transformDebugClassesWithAsm', task ':app:bundleDebugClassesToRuntimeJar', task ':app:preDebugUnitTestBuild', task ':app:processDebugJavaRes', task ':app:bundleDebugClassesToCompileJar', task ':app:kspDebugUnitTestKotlin', task ':app:compileDebugUnitTestKotlin', task ':app:javaPreCompileDebugUnitTest', task ':app:compileDebugUnitTestJavaWithJavac', task ':app:hiltAggregateDepsDebugUnitTest', task ':app:hiltJavaCompileDebugUnitTest', task ':app:processDebugUnitTestJavaRes', task ':app:transformDebugUnitTestClassesWithAsm', task ':app:testDebugUnitTest']
+Tasks that were excluded: []
+work action Parameters of IdentityTransform (Thread[Execution worker,5,main]) started.
+work action Parameters of CopyTransform (Thread[Execution worker,5,main]) started.
+work action Parameters of AggregatedPackagesTransform (Thread[Execution worker,5,main]) started.
+Resolve mutations for :app:preBuild (Thread[Execution worker,5,main]) started.
+:app:preBuild (Thread[Execution worker,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[Execution worker,5,main]) started.
+:app:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+:app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugAarMetadata' as it is up-to-date.
+Resolve mutations for :app:generateDebugResValues (Thread[Execution worker Thread 3,5,main]) started.
+:app:generateDebugResValues (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:generateDebugResValues UP-TO-DATE
+Caching disabled for task ':app:generateDebugResValues' because:
+  Build cache is disabled
+Skipping task ':app:generateDebugResValues' as it is up-to-date.
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[Execution worker Thread 10,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:mapDebugSourceSetPaths' as it is up-to-date.
+Resolve mutations for :app:generateDebugResources (Thread[Execution worker Thread 10,5,main]) started.
+:app:generateDebugResources (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:generateDebugResources UP-TO-DATE
+Skipping task ':app:generateDebugResources' as it has no actions.
+Resolve mutations for :app:mergeDebugResources (Thread[Execution worker Thread 10,5,main]) started.
+:app:mergeDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeDebugResources UP-TO-DATE
+Caching disabled for task ':app:mergeDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:mergeDebugResources' as it is up-to-date.
+Resolve mutations for :app:packageDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+:app:packageDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:packageDebugResources UP-TO-DATE
+Caching disabled for task ':app:packageDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:packageDebugResources' as it is up-to-date.
+Resolve mutations for :app:parseDebugLocalResources (Thread[Execution worker Thread 3,5,main]) started.
+:app:parseDebugLocalResources (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:parseDebugLocalResources UP-TO-DATE
+Caching disabled for task ':app:parseDebugLocalResources' because:
+  Build cache is disabled
+Skipping task ':app:parseDebugLocalResources' as it is up-to-date.
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[Execution worker Thread 6,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:createDebugCompatibleScreenManifests' as it is up-to-date.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[Execution worker Thread 6,5,main]) started.
+:app:extractDeepLinksDebug (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+Caching disabled for task ':app:extractDeepLinksDebug' because:
+  Build cache is disabled
+Skipping task ':app:extractDeepLinksDebug' as it is up-to-date.
+Resolve mutations for :app:processDebugMainManifest (Thread[Execution worker Thread 6,5,main]) started.
+:app:processDebugMainManifest (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:processDebugMainManifest UP-TO-DATE
+Caching disabled for task ':app:processDebugMainManifest' because:
+  Build cache is disabled
+Skipping task ':app:processDebugMainManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifest (Thread[Execution worker Thread 6,5,main]) started.
+:app:processDebugManifest (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:processDebugManifest UP-TO-DATE
+Caching disabled for task ':app:processDebugManifest' because:
+  Build cache is disabled
+Skipping task ':app:processDebugManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifestForPackage (Thread[Execution worker Thread 6,5,main]) started.
+:app:processDebugManifestForPackage (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+Custom actions are attached to task ':app:processDebugManifestForPackage'.
+Caching disabled for task ':app:processDebugManifestForPackage' because:
+  Build cache is disabled
+Skipping task ':app:processDebugManifestForPackage' as it is up-to-date.
+Resolve mutations for :app:processDebugResources (Thread[Execution worker Thread 6,5,main]) started.
+:app:processDebugResources (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:processDebugResources UP-TO-DATE
+Caching disabled for task ':app:processDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:processDebugResources' as it is up-to-date.
+Resolve mutations for :app:kspDebugKotlin (Thread[Execution worker Thread 6,5,main]) started.
+:app:kspDebugKotlin (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:kspDebugKotlin UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+Caching disabled for task ':app:kspDebugKotlin' because:
+  Build cache is disabled
+Skipping task ':app:kspDebugKotlin' as it is up-to-date.
+Resolve mutations for :app:compileDebugKotlin (Thread[Execution worker Thread 6,5,main]) started.
+:app:compileDebugKotlin (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:compileDebugKotlin UP-TO-DATE
+Caching disabled for task ':app:compileDebugKotlin' because:
+  Build cache is disabled
+Skipping task ':app:compileDebugKotlin' as it is up-to-date.
+Resolve mutations for :app:javaPreCompileDebug (Thread[Execution worker Thread 6,5,main]) started.
+:app:javaPreCompileDebug (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:javaPreCompileDebug UP-TO-DATE
+Caching disabled for task ':app:javaPreCompileDebug' because:
+  Build cache is disabled
+Skipping task ':app:javaPreCompileDebug' as it is up-to-date.
+Resolve mutations for :app:compileDebugJavaWithJavac (Thread[Execution worker Thread 6,5,main]) started.
+:app:compileDebugJavaWithJavac (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:compileDebugJavaWithJavac UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Custom actions are attached to task ':app:compileDebugJavaWithJavac'.
+Caching disabled for task ':app:compileDebugJavaWithJavac' because:
+  Build cache is disabled
+Skipping task ':app:compileDebugJavaWithJavac' as it is up-to-date.
+No compile result for :app:compileDebugJavaWithJavac
+Resolve mutations for :app:hiltAggregateDepsDebug (Thread[Execution worker Thread 6,5,main]) started.
+:app:hiltAggregateDepsDebug (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:hiltAggregateDepsDebug UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:hiltAggregateDepsDebug' because:
+  Build cache is disabled
+Skipping task ':app:hiltAggregateDepsDebug' as it is up-to-date.
+Resolve mutations for :app:hiltJavaCompileDebug (Thread[Execution worker Thread 6,5,main]) started.
+:app:hiltJavaCompileDebug (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:hiltJavaCompileDebug UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:hiltJavaCompileDebug' because:
+  Build cache is disabled
+Skipping task ':app:hiltJavaCompileDebug' as it is up-to-date.
+No compile result for :app:hiltJavaCompileDebug
+Resolve mutations for :app:transformDebugClassesWithAsm (Thread[Execution worker Thread 6,5,main]) started.
+:app:transformDebugClassesWithAsm (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:transformDebugClassesWithAsm UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:transformDebugClassesWithAsm' because:
+  Build cache is disabled
+Skipping task ':app:transformDebugClassesWithAsm' as it is up-to-date.
+Resolve mutations for :app:bundleDebugClassesToRuntimeJar (Thread[Execution worker Thread 6,5,main]) started.
+:app:bundleDebugClassesToRuntimeJar (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:bundleDebugClassesToRuntimeJar UP-TO-DATE
+Caching disabled for task ':app:bundleDebugClassesToRuntimeJar' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:bundleDebugClassesToRuntimeJar' as it is up-to-date.
+work action resolve classes.jar (project :app) (Thread[Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app:preDebugUnitTestBuild (Thread[Execution worker Thread 6,5,main]) started.
+IdentityTransform (Thread[Execution worker Thread 2,5,main]) started.
+:app:preDebugUnitTestBuild (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+Skipping task ':app:preDebugUnitTestBuild' as it has no actions.
+Resolve mutations for :app:processDebugJavaRes (Thread[Execution worker Thread 6,5,main]) started.
+:app:processDebugJavaRes (Thread[Execution worker Thread 6,5,main]) started.
+CopyTransform (Thread[Execution worker Thread 2,5,main]) started.
+AggregatedPackagesTransform (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:processDebugJavaRes UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:processDebugJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:processDebugJavaRes' as it is up-to-date.
+work action resolve out (project :app) (Thread[Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app:bundleDebugClassesToCompileJar (Thread[Execution worker Thread 6,5,main]) started.
+:app:bundleDebugClassesToCompileJar (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
+Caching disabled for task ':app:bundleDebugClassesToCompileJar' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:bundleDebugClassesToCompileJar' as it is up-to-date.
+work action resolve classes.jar (project :app) (Thread[Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app:kspDebugUnitTestKotlin (Thread[Execution worker Thread 6,5,main]) started.
+:app:kspDebugUnitTestKotlin (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:kspDebugUnitTestKotlin UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+Caching disabled for task ':app:kspDebugUnitTestKotlin' because:
+  Build cache is disabled
+Skipping task ':app:kspDebugUnitTestKotlin' as it is up-to-date.
+Resolve mutations for :app:compileDebugUnitTestKotlin (Thread[Execution worker Thread 6,5,main]) started.
+:app:compileDebugUnitTestKotlin (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:compileDebugUnitTestKotlin UP-TO-DATE
+Caching disabled for task ':app:compileDebugUnitTestKotlin' because:
+  Build cache is disabled
+Skipping task ':app:compileDebugUnitTestKotlin' as it is up-to-date.
+Resolve mutations for :app:javaPreCompileDebugUnitTest (Thread[Execution worker Thread 6,5,main]) started.
+:app:javaPreCompileDebugUnitTest (Thread[Execution worker,5,main]) started.
+
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+Caching disabled for task ':app:javaPreCompileDebugUnitTest' because:
+  Build cache is disabled
+Skipping task ':app:javaPreCompileDebugUnitTest' as it is up-to-date.
+Resolve mutations for :app:compileDebugUnitTestJavaWithJavac (Thread[Execution worker,5,main]) started.
+:app:compileDebugUnitTestJavaWithJavac (Thread[Execution worker,5,main]) started.
+
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+Skipping task ':app:compileDebugUnitTestJavaWithJavac' as it has no source files and no previous output files.
+Resolve mutations for :app:hiltAggregateDepsDebugUnitTest (Thread[Execution worker,5,main]) started.
+:app:hiltAggregateDepsDebugUnitTest (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:hiltAggregateDepsDebugUnitTest UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+Caching disabled for task ':app:hiltAggregateDepsDebugUnitTest' because:
+  Build cache is disabled
+Skipping task ':app:hiltAggregateDepsDebugUnitTest' as it is up-to-date.
+Resolve mutations for :app:hiltJavaCompileDebugUnitTest (Thread[Execution worker Thread 10,5,main]) started.
+:app:hiltJavaCompileDebugUnitTest (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:hiltJavaCompileDebugUnitTest NO-SOURCE
+Skipping task ':app:hiltJavaCompileDebugUnitTest' as it has no source files and no previous output files.
+Resolve mutations for :app:processDebugUnitTestJavaRes (Thread[Execution worker Thread 10,5,main]) started.
+:app:processDebugUnitTestJavaRes (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+Caching disabled for task ':app:processDebugUnitTestJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:processDebugUnitTestJavaRes' as it is up-to-date.
+Resolve mutations for :app:transformDebugUnitTestClassesWithAsm (Thread[Execution worker Thread 9,5,main]) started.
+:app:transformDebugUnitTestClassesWithAsm (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :app:transformDebugUnitTestClassesWithAsm UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+Caching disabled for task ':app:transformDebugUnitTestClassesWithAsm' because:
+  Build cache is disabled
+Skipping task ':app:transformDebugUnitTestClassesWithAsm' as it is up-to-date.
+Resolve mutations for :app:testDebugUnitTest (Thread[Execution worker Thread 9,5,main]) started.
+:app:testDebugUnitTest (Thread[Execution worker Thread 9,5,main]) started.
+Gradle Test Executor 9 started executing tests.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+Gradle Test Executor 9 finished executing tests.
+
+> Task :app:testDebugUnitTest FAILED
+Caching disabled for task ':app:testDebugUnitTest' because:
+  Build cache is disabled
+Task ':app:testDebugUnitTest' is not up-to-date because:
+  Task has failed previously.
+Starting process 'Gradle Test Executor 9'. Working directory: /home/raynor/Escritorio/Proyectos/audio-libro/app Command: /usr/lib/jvm/java-17-openjdk-amd64/bin/java -Djava.awt.headless=true -Dorg.gradle.internal.worker.tmpdir=/home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/testDebugUnitTest/work @/home/raynor/.gradle/.tmp/gradle-worker-classpath5348760233026004960txt -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=ES -Duser.language=es -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 9'
+Successfully started process 'Gradle Test Executor 9'
+
+PipelineStructuralTest > test short lines are not joined to paragraphs FAILED
+    java.lang.IndexOutOfBoundsException: Empty list doesn't contain element at index 0.
+        at kotlin.collections.EmptyList.get(Collections.kt:37)
+        at kotlin.collections.EmptyList.get(Collections.kt:25)
+        at com.example.cititor.domain.analyzer.PipelineStructuralTest.test short lines are not joined to paragraphs(PipelineStructuralTest.kt:63)
+
+PipelineStructuralTest > test chapter detection and double spacing preservation STANDARD_OUT
+    Segments size: 0
+
+PipelineStructuralTest > test chapter detection and double spacing preservation FAILED
+    java.lang.AssertionError: Debe haber al menos 2 segmentos. Found: 0
+        at org.junit.Assert.fail(Assert.java:89)
+        at org.junit.Assert.assertTrue(Assert.java:42)
+        at com.example.cititor.domain.analyzer.PipelineStructuralTest.test chapter detection and double spacing preservation(PipelineStructuralTest.kt:46)
+
+PipelineStructuralTest > test deep indentation triple marker preservation FAILED
+    java.lang.IndexOutOfBoundsException: Empty list doesn't contain element at index 0.
+        at kotlin.collections.EmptyList.get(Collections.kt:37)
+        at kotlin.collections.EmptyList.get(Collections.kt:25)
+        at com.example.cititor.domain.analyzer.PipelineStructuralTest.test deep indentation triple marker preservation(PipelineStructuralTest.kt:74)
+
+3 tests completed, 3 failed
+Finished generating test XML results (0.0 secs) into: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/test-results/testDebugUnitTest
+Generating HTML test report...
+Finished generating test html results (0.001 secs) into: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/reports/tests/testDebugUnitTest
+
+[Incubating] Problems report is available at: file:///home/raynor/Escritorio/Proyectos/audio-libro/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2s
+29 actionable tasks: 1 executed, 28 up-to-date

@@ -136,8 +136,8 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                 
                 // Get page height for dynamic guillotine
                 val pageHeight = currentPage.mediaBox.height
-                val topGuillotine = pageHeight * 0.10f // 10% top
-                val bottomGuillotine = pageHeight * 0.075f // 5% bottom
+                val topGuillotine = pageHeight * 0.06f // top
+                val bottomGuillotine = pageHeight * 0.06f // bottom
 
                 // --- 1. THE GUILLOTINE: Ignore headers and footers ---
                 if (firstCharY < topGuillotine) return
@@ -166,18 +166,36 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     
                     // CASE B: SEMANTIC RULE (Proposed by user)
                     // Short line that does NOT end in a period and is NOT a dialogue
-                    val isSemanticTitle = isShortLine && !endsWithPeriod && !isDialogue
+                    // AND has <= 3 significant words (ignoring connectors)
+                    val significantWordCount = countSignificantWords(trimmedText)
+                    val isSemanticTitle = isShortLine && !endsWithPeriod && !isDialogue && significantWordCount <= 3 && significantWordCount > 0
 
                     val isIndented = firstCharX > minX + indentationThreshold
 
                     if (isCentered || isSemanticTitle) {
-                        Log.d("IndentationStripper", "Structural Title detected (Semantic): $text")
+                        Log.d("IndentationStripper", "Structural Title detected (Semantic, $significantWordCount words): $text")
                         output.write("\n\n[GEOMETRIC_TITLE] ")
                     } else if (isIndented) {
                         output.write("\n\n") // Regular paragraph break
                     }
             }
             super.writeString(text, textPositions)
+        }
+
+        private val connectors = setOf(
+            "y", "e", "o", "u", "el", "la", "los", "las", "un", "una", "unos", "unas",
+            "de", "del", "a", "al", "en", "por", "para", "con", "sin", "ante", "tras",
+            "mi", "tu", "su", "sus", "que"
+        )
+
+        private fun countSignificantWords(text: String): Int {
+            if (text.isBlank()) return 0
+            val words = text.lowercase()
+                .replace(Regex("[¡!¿?,.;:()\"]"), "") // Remove common symbols
+                .split(Regex("\\s+"))
+                .filter { it.isNotBlank() }
+            
+            return words.count { it !in connectors }
         }
 
         private fun calculateTextWidth(positions: List<com.tom_roush.pdfbox.text.TextPosition>): Float {

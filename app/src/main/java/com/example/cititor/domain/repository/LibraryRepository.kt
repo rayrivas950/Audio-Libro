@@ -26,4 +26,10 @@ interface LibraryRepository {
      */
     suspend fun insertBook(book: Book)
 
+    /**
+     * Deletes a book and all its associated data.
+     * @param book The book to be deleted.
+     */
+    suspend fun deleteBook(book: Book)
+
 }

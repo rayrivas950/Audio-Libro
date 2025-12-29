@@ -1,0 +1,691 @@
+Initialized native services in: /home/raynor/.gradle/native
+Initialized jansi services in: /home/raynor/.gradle/native
+Found daemon DaemonInfo{pid=11932, address=[14143c9e-f029-4409-9b76-896b90aada57 port:39233, addresses:[/127.0.0.1]], state=Idle, lastBusy=1766968366462, context=DefaultDaemonContext[uid=e1c7cd3b-996f-4e90-a72e-353c76dfee99,javaHome=/snap/android-studio/209/jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=/home/raynor/.gradle/daemon,pid=11932,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=ES,-Duser.language=es,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=/usr/lib/jvm/java-17-openjdk-amd64 (no JDK specified, using current Java home), daemonOpts=[-Xmx2048m, -Dfile.encoding=UTF-8, -Duser.country=ES, -Duser.language=es, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=e1c7cd3b-996f-4e90-a72e-353c76dfee99,javaHome=/snap/android-studio/209/jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=/home/raynor/.gradle/daemon,pid=11932,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=ES,-Duser.language=es,-Duser.variant]
+
+  Looking for a different daemon...
+The client will now receive all logging from the daemon (pid: 11594). The daemon log file: /home/raynor/.gradle/daemon/8.13/daemon-11594.out.log
+Starting 66th build in daemon [uptime: 9 hrs 10 mins 17.108 secs, performance: 100%, GC rate: 0.00/s, heap usage: 4% of 2 GiB]
+Using 12 worker leases.
+Now considering [/home/raynor/Escritorio/Proyectos/audio-libro] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/home/raynor/Escritorio/Proyectos/audio-libro/settings.gradle.kts'.
+Projects loaded. Root project using build file '/home/raynor/Escritorio/Proyectos/audio-libro/build.gradle.kts'.
+Included projects: [root project 'Cititor', project ':app']
+
+> Configure project :
+Evaluating root project 'Cititor' using build file '/home/raynor/Escritorio/Proyectos/audio-libro/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '8.2.2', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '1.9.0', apply: false]
+Resolved plugin [id: 'com.google.dagger.hilt.android', version: '2.48', apply: false]
+Resolved plugin [id: 'com.google.devtools.ksp', version: '1.9.0-1.0.13', apply: false]
+
+> Configure project :app
+Evaluating project ':app' using build file '/home/raynor/Escritorio/Proyectos/audio-libro/app/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '8.2.2']
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '1.9.0']
+Resolved plugin [id: 'com.google.dagger.hilt.android', version: '2.48']
+Resolved plugin [id: 'com.google.devtools.ksp', version: '1.9.0-1.0.13']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '1.9.0']
+Using default execution profile
+Using Kotlin Gradle Plugin gradle81 variant
+All projects evaluated.
+Task name matched 'testDebugUnitTest'
+Selected primary task 'testDebugUnitTest' from project :
+Tasks to be executed: [task ':app:preBuild', task ':app:preDebugBuild', task ':app:checkDebugAarMetadata', task ':app:generateDebugResValues', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:kspDebugKotlin', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:hiltAggregateDepsDebug', task ':app:hiltJavaCompileDebug', task ':app:transformDebugClassesWithAsm', task ':app:bundleDebugClassesToRuntimeJar', task ':app:preDebugUnitTestBuild', task ':app:processDebugJavaRes', task ':app:bundleDebugClassesToCompileJar', task ':app:kspDebugUnitTestKotlin', task ':app:compileDebugUnitTestKotlin', task ':app:javaPreCompileDebugUnitTest', task ':app:compileDebugUnitTestJavaWithJavac', task ':app:hiltAggregateDepsDebugUnitTest', task ':app:hiltJavaCompileDebugUnitTest', task ':app:processDebugUnitTestJavaRes', task ':app:transformDebugUnitTestClassesWithAsm', task ':app:testDebugUnitTest']
+Tasks that were excluded: []
+work action Parameters of IdentityTransform (Thread[Execution worker,5,main]) started.
+work action Parameters of CopyTransform (Thread[Execution worker,5,main]) started.
+work action Parameters of AggregatedPackagesTransform (Thread[Execution worker Thread 7,5,main]) started.
+Resolve mutations for :app:preBuild (Thread[Execution worker Thread 7,5,main]) started.
+:app:preBuild (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[Execution worker Thread 7,5,main]) started.
+:app:preDebugBuild (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[Execution worker Thread 11,5,main]) started.
+:app:checkDebugAarMetadata (Thread[Execution worker Thread 11,5,main]) started.
+
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugAarMetadata' as it is up-to-date.
+Resolve mutations for :app:generateDebugResValues (Thread[Execution worker Thread 11,5,main]) started.
+:app:generateDebugResValues (Thread[Execution worker Thread 11,5,main]) started.
+
+> Task :app:generateDebugResValues UP-TO-DATE
+Caching disabled for task ':app:generateDebugResValues' because:
+  Build cache is disabled
+Skipping task ':app:generateDebugResValues' as it is up-to-date.
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[Execution worker Thread 11,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[Execution worker Thread 11,5,main]) started.
+
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:mapDebugSourceSetPaths' as it is up-to-date.
+Resolve mutations for :app:generateDebugResources (Thread[Execution worker Thread 11,5,main]) started.
+:app:generateDebugResources (Thread[Execution worker,5,main]) started.
+
+> Task :app:generateDebugResources UP-TO-DATE
+Skipping task ':app:generateDebugResources' as it has no actions.
+Resolve mutations for :app:mergeDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+:app:mergeDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:mergeDebugResources UP-TO-DATE
+Caching disabled for task ':app:mergeDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:mergeDebugResources' as it is up-to-date.
+Resolve mutations for :app:packageDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+:app:packageDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:packageDebugResources UP-TO-DATE
+Caching disabled for task ':app:packageDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:packageDebugResources' as it is up-to-date.
+Resolve mutations for :app:parseDebugLocalResources (Thread[Execution worker Thread 4,5,main]) started.
+:app:parseDebugLocalResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:parseDebugLocalResources UP-TO-DATE
+Caching disabled for task ':app:parseDebugLocalResources' because:
+  Build cache is disabled
+Skipping task ':app:parseDebugLocalResources' as it is up-to-date.
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[Execution worker Thread 4,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:createDebugCompatibleScreenManifests' as it is up-to-date.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[Execution worker Thread 4,5,main]) started.
+:app:extractDeepLinksDebug (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+Caching disabled for task ':app:extractDeepLinksDebug' because:
+  Build cache is disabled
+Skipping task ':app:extractDeepLinksDebug' as it is up-to-date.
+Resolve mutations for :app:processDebugMainManifest (Thread[Execution worker Thread 4,5,main]) started.
+:app:processDebugMainManifest (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:processDebugMainManifest UP-TO-DATE
+Caching disabled for task ':app:processDebugMainManifest' because:
+  Build cache is disabled
+Skipping task ':app:processDebugMainManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifest (Thread[Execution worker Thread 4,5,main]) started.
+:app:processDebugManifest (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:processDebugManifest UP-TO-DATE
+Caching disabled for task ':app:processDebugManifest' because:
+  Build cache is disabled
+Skipping task ':app:processDebugManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifestForPackage (Thread[Execution worker Thread 4,5,main]) started.
+:app:processDebugManifestForPackage (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+Custom actions are attached to task ':app:processDebugManifestForPackage'.
+Caching disabled for task ':app:processDebugManifestForPackage' because:
+  Build cache is disabled
+Skipping task ':app:processDebugManifestForPackage' as it is up-to-date.
+Resolve mutations for :app:processDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+:app:processDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:processDebugResources UP-TO-DATE
+Caching disabled for task ':app:processDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:processDebugResources' as it is up-to-date.
+Resolve mutations for :app:kspDebugKotlin (Thread[Execution worker Thread 4,5,main]) started.
+:app:kspDebugKotlin (Thread[Execution worker Thread 4,5,main]) started.
+Resolve mutations for :app:javaPreCompileDebug (Thread[Execution worker Thread 9,5,main]) started.
+:app:javaPreCompileDebug (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :app:javaPreCompileDebug UP-TO-DATE
+Caching disabled for task ':app:javaPreCompileDebug' because:
+  Build cache is disabled
+Skipping task ':app:javaPreCompileDebug' as it is up-to-date.
+Resolve mutations for :app:preDebugUnitTestBuild (Thread[Execution worker Thread 10,5,main]) started.
+:app:preDebugUnitTestBuild (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+Skipping task ':app:preDebugUnitTestBuild' as it has no actions.
+Resolve mutations for :app:javaPreCompileDebugUnitTest (Thread[Execution worker Thread 10,5,main]) started.
+:app:javaPreCompileDebugUnitTest (Thread[included builds,5,main]) started.
+
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+Caching disabled for task ':app:javaPreCompileDebugUnitTest' because:
+  Build cache is disabled
+Skipping task ':app:javaPreCompileDebugUnitTest' as it is up-to-date.
+
+> Task :app:kspDebugKotlin
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+Caching disabled for task ':app:kspDebugKotlin' because:
+  Build cache is disabled
+Task ':app:kspDebugKotlin' is not up-to-date because:
+  Input property 'sources' file /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/TextAnalyzer.kt has changed.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+Kotlin source files: /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/Book.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/TextSegment.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/TTSParameters.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/BookCategory.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/ProsodyIntention.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/NarrationStyle.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/sanitizer/TextSanitizer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/GetBooksUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/GetBookPageUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/GetBookUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/AddBookUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/UpdateBookProgressUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/IntentionAnalyzer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/ConsistencyAuditor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/DialogueResolver.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/TextAnalyzer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/prosody/ConsistencyMonitor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/SimpleDialogueResolver.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/text_extractor/TextExtractor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/dictionary/DictionaryManager.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/repository/ReaderRepository.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/repository/LibraryRepository.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/library/LibraryViewModel.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/library/LibraryScreen.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/reader/ReaderViewModel.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/reader/ReaderScreen.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/navigation/Screen.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/di/RepositoryModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/di/DomainModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/di/TtsModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/debug/DebugHelper.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/debug/DiagnosticMonitor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/app/CititorApp.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/app/MainActivity.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/ui/theme/Color.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/ui/theme/Theme.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/ui/theme/Type.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/text_extractor/PdfExtractor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/text_extractor/ExtractorFactory.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/text_extractor/EpubExtractor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/worker/BookProcessingWorker.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/repository/LibraryRepositoryImpl.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/repository/ReaderRepositoryImpl.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/piper/PiperTTSEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/TextToSpeechManager.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/prosody/PatternProsodyEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/prosody/ProsodyEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/prosody/SimpleProsodyEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/AudioEffectProcessor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/AudioPlayer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/LowPassFilterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/DynamicLimiterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/AudioEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/NormalizationEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/WhisperFilterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/HighCutFilterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/dao/CleanPageDao.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/dao/BookDao.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/entity/CleanPageEntity.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/entity/BookEntity.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/CititorDatabase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/di/DatabaseModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/debug/AudioLogger.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/security/SecurityManager.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+i: found daemon on port 17688 (32888853 ms old), trying to connect
+i: connected to the daemon
+i: [ksp] loaded provider(s): [dagger.hilt.processor.internal.uninstallmodules.KspUninstallModulesProcessor$Provider, dagger.hilt.processor.internal.originatingelement.KspOriginatingElementProcessor$Provider, dagger.hilt.processor.internal.root.KspRootProcessor$Provider, dagger.hilt.android.processor.internal.bindvalue.KspBindValueProcessor$Provider, dagger.hilt.processor.internal.generatesrootinput.KspGeneratesRootInputProcessor$Provider, dagger.hilt.android.processor.internal.viewmodel.KspViewModelProcessor$Provider, dagger.hilt.processor.internal.root.KspComponentTreeDepsProcessor$Provider, dagger.hilt.android.processor.internal.customtestapplication.KspCustomTestApplicationProcessor$Provider, dagger.hilt.processor.internal.earlyentrypoint.KspEarlyEntryPointProcessor$Provider, dagger.hilt.processor.internal.definecomponent.KspDefineComponentProcessor$Provider, dagger.hilt.processor.internal.aliasof.KspAliasOfProcessor$Provider, dagger.hilt.processor.internal.aggregateddeps.KspAggregatedDepsProcessor$Provider, dagger.hilt.android.processor.internal.androidentrypoint.KspAndroidEntryPointProcessor$Provider, androidx.hilt.AndroidXHiltKspProcessor$Provider, androidx.room.RoomKspProcessor$Provider, dagger.internal.codegen.KspComponentProcessor$Provider]
+Resolve mutations for :app:compileDebugKotlin (Thread[Execution worker Thread 4,5,main]) started.
+:app:compileDebugKotlin (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:compileDebugKotlin
+Caching disabled for task ':app:compileDebugKotlin' because:
+  Build cache is disabled
+Task ':app:compileDebugKotlin' is not up-to-date because:
+  Input property 'sources' file /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/TextAnalyzer.kt has changed.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugKotlin/kotlin', not found
+Kotlin source files: /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/Book.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/TextSegment.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/TTSParameters.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/BookCategory.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/ProsodyIntention.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/model/NarrationStyle.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/sanitizer/TextSanitizer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/GetBooksUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/GetBookPageUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/GetBookUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/AddBookUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/use_case/UpdateBookProgressUseCase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/IntentionAnalyzer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/ConsistencyAuditor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/DialogueResolver.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/TextAnalyzer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/prosody/ConsistencyMonitor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/SimpleDialogueResolver.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/text_extractor/TextExtractor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/dictionary/DictionaryManager.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/repository/ReaderRepository.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/repository/LibraryRepository.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/library/LibraryViewModel.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/library/LibraryScreen.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/reader/ReaderViewModel.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/reader/ReaderScreen.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/presentation/navigation/Screen.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/di/RepositoryModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/di/DomainModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/di/TtsModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/debug/DebugHelper.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/debug/DiagnosticMonitor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/app/CititorApp.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/app/MainActivity.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/ui/theme/Color.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/ui/theme/Theme.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/ui/theme/Type.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/text_extractor/PdfExtractor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/text_extractor/ExtractorFactory.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/text_extractor/EpubExtractor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/worker/BookProcessingWorker.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/repository/LibraryRepositoryImpl.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/data/repository/ReaderRepositoryImpl.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/piper/PiperTTSEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/TextToSpeechManager.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/prosody/PatternProsodyEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/prosody/ProsodyEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/tts/prosody/SimpleProsodyEngine.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/AudioEffectProcessor.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/AudioPlayer.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/LowPassFilterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/DynamicLimiterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/AudioEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/NormalizationEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/WhisperFilterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/audio/effects/HighCutFilterEffect.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/dao/CleanPageDao.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/dao/BookDao.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/entity/CleanPageEntity.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/entity/BookEntity.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/database/CititorDatabase.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/di/DatabaseModule.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/debug/AudioLogger.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/core/security/SecurityManager.kt
+Java source files: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/sanitizer/TextSanitizer_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/use_case/GetBooksUseCase_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/use_case/GetBookUseCase_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/use_case/GetBookPageUseCase_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/use_case/AddBookUseCase_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/use_case/UpdateBookProgressUseCase_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/analyzer/TextAnalyzer_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/analyzer/ConsistencyAuditor_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/domain/dictionary/DictionaryManager_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/presentation/library/LibraryViewModel_HiltModules.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/presentation/library/LibraryViewModel_HiltModules_KeyModule_ProvideFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/presentation/library/LibraryViewModel_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/presentation/reader/ReaderViewModel_HiltModules.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/presentation/reader/ReaderViewModel_HiltModules_KeyModule_ProvideFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/presentation/reader/ReaderViewModel_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/di/TtsModule_ProvideProsodyEngineFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/di/DomainModule_ProvideDialogueResolverFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/di/DomainModule_ProvideIntentionAnalyzerFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/di/RepositoryModule_Companion_ProvideLibraryRepositoryFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/app/CititorApp_MembersInjector.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/app/MainActivity_GeneratedInjector.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/app/Hilt_MainActivity.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/app/CititorApp_GeneratedInjector.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/text_extractor/PdfExtractor_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/text_extractor/EpubExtractor_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/text_extractor/ExtractorFactory_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/worker/BookProcessingWorker_AssistedFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/worker/BookProcessingWorker_AssistedFactory_Impl.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/worker/BookProcessingWorker_HiltModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/worker/BookProcessingWorker_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/repository/LibraryRepositoryImpl_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/data/repository/ReaderRepositoryImpl_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/tts/TextToSpeechManager_Factory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/database/dao/BookDao_Impl.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/database/dao/CleanPageDao_Impl.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/database/CititorDatabase_Impl.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/di/DatabaseModule_ProvideDatabaseFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/di/DatabaseModule_ProvideJsonFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/di/DatabaseModule_ProvideCleanPageDaoFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/di/DatabaseModule_ProvideSecurityManagerFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/com/example/cititor/core/di/DatabaseModule_ProvideBookDaoFactory.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/dagger/hilt/internal/aggregatedroot/codegen/_com_example_cititor_app_CititorApp.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_presentation_reader_ReaderViewModel_HiltModules_BindsModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_presentation_library_LibraryViewModel_HiltModules_BindsModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_app_MainActivity_GeneratedInjector.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_app_CititorApp_GeneratedInjector.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_data_worker_BookProcessingWorker_HiltModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_presentation_library_LibraryViewModel_HiltModules_KeyModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_di_TtsModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_core_di_DatabaseModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_di_RepositoryModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_di_DomainModule.java, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/java/hilt_aggregated_deps/_com_example_cititor_presentation_reader_ReaderViewModel_HiltModules_KeyModule.java
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+i: found daemon on port 17688 (32889772 ms old), trying to connect
+i: connected to the daemon
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=true, modifiedFiles=[/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/java/com/example/cititor/domain/analyzer/TextAnalyzer.kt], deletedFiles=[], classpathChanges=NoChanges, workingDir=/home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin, useModuleDetection=true), usePreciseJavaTracking=true, outputFiles=[/home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugKotlin/cacheable, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugKotlin/local-state])
+Resolve mutations for :app:compileDebugJavaWithJavac (Thread[Execution worker Thread 4,5,main]) started.
+:app:compileDebugJavaWithJavac (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:compileDebugJavaWithJavac
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Custom actions are attached to task ':app:compileDebugJavaWithJavac'.
+Caching disabled for task ':app:compileDebugJavaWithJavac' because:
+  Build cache is disabled
+Task ':app:compileDebugJavaWithJavac' is not up-to-date because:
+  Input property 'classpath' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug/com/example/cititor/domain/analyzer/TextAnalyzer.class has changed.
+Compilation mode: in-process compilation
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Created classpath snapshot for incremental compilation in 0.017 secs.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+Compiling with toolchain '/usr/lib/jvm/java-17-openjdk-amd64'.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/java', not found
+Compiling with JDK Java compiler API.
+Incremental compilation of 6 classes completed in 0.104 secs.
+Class dependency analysis for incremental compilation took 0.001 secs.
+Resolve mutations for :app:hiltAggregateDepsDebug (Thread[Execution worker Thread 4,5,main]) started.
+:app:hiltAggregateDepsDebug (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:hiltAggregateDepsDebug UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for CopyTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug because:
+  Build cache is disabled
+Caching disabled for AggregatedPackagesTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug because:
+  Build cache is disabled
+Caching disabled for task ':app:hiltAggregateDepsDebug' because:
+  Build cache is disabled
+Skipping task ':app:hiltAggregateDepsDebug' as it is up-to-date.
+Resolve mutations for :app:hiltJavaCompileDebug (Thread[Execution worker Thread 4,5,main]) started.
+:app:hiltJavaCompileDebug (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:hiltJavaCompileDebug
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:hiltJavaCompileDebug' because:
+  Build cache is disabled
+Task ':app:hiltJavaCompileDebug' is not up-to-date because:
+  Input property 'classpath' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug/com/example/cititor/domain/analyzer/TextAnalyzer.class has changed.
+Compilation mode: in-process compilation
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Created classpath snapshot for incremental compilation in 0.022 secs.
+Compiling with toolchain '/usr/lib/jvm/java-17-openjdk-amd64'.
+Compiling with JDK Java compiler API.
+Incremental compilation of 46 classes completed in 1.107 secs.
+Class dependency analysis for incremental compilation took 0.001 secs.
+Resolve mutations for :app:transformDebugClassesWithAsm (Thread[Execution worker Thread 4,5,main]) started.
+:app:transformDebugClassesWithAsm (Thread[Execution worker Thread 4,5,main]) started.
+Resolve mutations for :app:processDebugJavaRes (Thread[Execution worker Thread 3,5,main]) started.
+:app:processDebugJavaRes (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:processDebugJavaRes
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:processDebugJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:processDebugJavaRes' is not up-to-date because:
+  Input property 'rootSpec$1' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/dagger/hilt/internal/aggregatedroot has been added.
+  Input property 'rootSpec$1' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/dagger/hilt/internal/aggregatedroot/codegen has been added.
+  Input property 'rootSpec$1' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/hilt_aggregated_deps has been added.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/main/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/resources', not found
+work action resolve out (project :app) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:bundleDebugClassesToCompileJar (Thread[Execution worker Thread 3,5,main]) started.
+:app:bundleDebugClassesToCompileJar (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:transformDebugClassesWithAsm
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+Caching disabled for task ':app:transformDebugClassesWithAsm' because:
+  Build cache is disabled
+Task ':app:transformDebugClassesWithAsm' is not up-to-date because:
+  Input property 'inputClassesDir' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug/com/example/cititor/domain/analyzer/TextAnalyzer.class has changed.
+  Input property 'inputClassesDir' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/com/example/cititor/app/CititorApp_HiltComponents$ActivityC$Builder.class has been removed.
+  Input property 'inputClassesDir' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/com/example/cititor/app/CititorApp_GeneratedInjector.class has been added.
+  and more...
+Resolve mutations for :app:bundleDebugClassesToRuntimeJar (Thread[Execution worker Thread 4,5,main]) started.
+:app:bundleDebugClassesToRuntimeJar (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:bundleDebugClassesToCompileJar
+Caching disabled for task ':app:bundleDebugClassesToCompileJar' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:bundleDebugClassesToCompileJar' is not up-to-date because:
+  Input property 'inputDirs' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debug/com/example/cititor/domain/analyzer/TextAnalyzer.class has changed.
+  Input property 'inputDirs' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/com/example/cititor/app/CititorApp_HiltComponents$ActivityC$Builder.class has been removed.
+  Input property 'inputDirs' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/hilt/component_classes/debug/com/example/cititor/app/CititorApp_GeneratedInjector.class has been added.
+  and more...
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debug/resources', not found
+work action resolve classes.jar (project :app) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:kspDebugUnitTestKotlin (Thread[Execution worker Thread 3,5,main]) started.
+:app:kspDebugUnitTestKotlin (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:bundleDebugClassesToRuntimeJar
+Caching disabled for task ':app:bundleDebugClassesToRuntimeJar' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:bundleDebugClassesToRuntimeJar' is not up-to-date because:
+  Input property 'inputDirs' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/classes/debug/transformDebugClassesWithAsm/dirs/com/example/cititor/domain/analyzer/TextAnalyzer.class has changed.
+work action resolve classes.jar (project :app) (Thread[Execution worker Thread 5,5,main]) started.
+IdentityTransform (Thread[included builds,5,main]) started.
+
+> Transform classes.jar (project :app) with IdentityTransform
+Caching disabled for IdentityTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/runtime_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+  Caching not enabled.
+CopyTransform (Thread[included builds,5,main]) started.
+
+> Transform classes.jar (project :app) with CopyTransform
+Caching disabled for CopyTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/runtime_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+AggregatedPackagesTransform (Thread[included builds,5,main]) started.
+
+> Transform classes.jar (project :app) with AggregatedPackagesTransform
+Caching disabled for AggregatedPackagesTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/runtime_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+
+> Task :app:kspDebugUnitTestKotlin
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+Caching disabled for ClasspathEntrySnapshotTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/compile_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+Caching disabled for task ':app:kspDebugUnitTestKotlin' because:
+  Build cache is disabled
+Task ':app:kspDebugUnitTestKotlin' is not up-to-date because:
+  Input property 'classpathSnapshotProperties.classpath' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/compile_app_classes_jar/debug/classes.jar has changed.
+  Input property 'classpathSnapshotProperties.classpathSnapshot' file /home/raynor/.gradle/caches/8.13/transforms/eff02006b94f1506654e544d49d89a15/transformed/classes_jar-snapshot.bin has been removed.
+  Input property 'classpathSnapshotProperties.classpathSnapshot' file /home/raynor/.gradle/caches/8.13/transforms/c190c0fe2e09232063453c4c35d4fd29/transformed/classes_jar-snapshot.bin has been added.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+Kotlin source files: /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/sanitizer/TextSanitizerTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/use_case/GetBookUseCaseTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/use_case/UpdateBookProgressUseCaseTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/analyzer/PipelineStructuralTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/data/text_extractor/StructuralDetectionTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/data/text_extractor/TextExtractorStreamingTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/ExampleUnitTest.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Caching disabled for StructureTransformAction: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/compile_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+i: found daemon on port 17688 (32891626 ms old), trying to connect
+i: connected to the daemon
+i: [ksp] loaded provider(s): [dagger.hilt.processor.internal.uninstallmodules.KspUninstallModulesProcessor$Provider, dagger.hilt.processor.internal.originatingelement.KspOriginatingElementProcessor$Provider, dagger.hilt.processor.internal.root.KspRootProcessor$Provider, dagger.hilt.android.processor.internal.bindvalue.KspBindValueProcessor$Provider, dagger.hilt.processor.internal.generatesrootinput.KspGeneratesRootInputProcessor$Provider, dagger.hilt.android.processor.internal.viewmodel.KspViewModelProcessor$Provider, dagger.hilt.processor.internal.root.KspComponentTreeDepsProcessor$Provider, dagger.hilt.android.processor.internal.customtestapplication.KspCustomTestApplicationProcessor$Provider, dagger.hilt.processor.internal.earlyentrypoint.KspEarlyEntryPointProcessor$Provider, dagger.hilt.processor.internal.definecomponent.KspDefineComponentProcessor$Provider, dagger.hilt.processor.internal.aliasof.KspAliasOfProcessor$Provider, dagger.hilt.processor.internal.aggregateddeps.KspAggregatedDepsProcessor$Provider, dagger.hilt.android.processor.internal.androidentrypoint.KspAndroidEntryPointProcessor$Provider, androidx.hilt.AndroidXHiltKspProcessor$Provider, androidx.room.RoomKspProcessor$Provider, dagger.internal.codegen.KspComponentProcessor$Provider]
+Resolve mutations for :app:compileDebugUnitTestKotlin (Thread[Execution worker Thread 3,5,main]) started.
+:app:compileDebugUnitTestKotlin (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:compileDebugUnitTestKotlin
+Caching disabled for task ':app:compileDebugUnitTestKotlin' because:
+  Build cache is disabled
+Task ':app:compileDebugUnitTestKotlin' is not up-to-date because:
+  Input property 'classpathSnapshotProperties.classpathSnapshot' file /home/raynor/.gradle/caches/8.13/transforms/6ec9ca9ce7393ba6ca847eb99ae15dba/transformed/classes_jar-snapshot.bin has been removed.
+  Input property 'classpathSnapshotProperties.classpathSnapshot' file /home/raynor/.gradle/caches/8.13/transforms/c190c0fe2e09232063453c4c35d4fd29/transformed/classes_jar-snapshot.bin has been added.
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugUnitTestKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugUnitTestKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugUnitTestKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/debugUnitTest/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/java', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/generatedByKspDebugUnitTestKotlin/kotlin', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/java', not found
+Kotlin source files: /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/sanitizer/TextSanitizerTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/use_case/GetBookUseCaseTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/use_case/UpdateBookProgressUseCaseTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/domain/analyzer/PipelineStructuralTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/data/text_extractor/StructuralDetectionTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/data/text_extractor/TextExtractorStreamingTest.kt, /home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/java/com/example/cititor/ExampleUnitTest.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+i: found daemon on port 17688 (32891909 ms old), trying to connect
+i: connected to the daemon
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=true, modifiedFiles=[/home/raynor/.gradle/caches/8.13/transforms/c190c0fe2e09232063453c4c35d4fd29/transformed/classes_jar-snapshot.bin], deletedFiles=[/home/raynor/.gradle/caches/8.13/transforms/6ec9ca9ce7393ba6ca847eb99ae15dba/transformed/classes_jar-snapshot.bin], classpathChanges=ToBeComputedByIncrementalCompiler, workingDir=/home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugUnitTestKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugUnitTestKotlin/local-state/build-history.bin, useModuleDetection=true), usePreciseJavaTracking=true, outputFiles=[/home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/kotlin-classes/debugUnitTest, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugUnitTestKotlin/cacheable, /home/raynor/Escritorio/Proyectos/audio-libro/app/build/kotlin/compileDebugUnitTestKotlin/local-state])
+Resolve mutations for :app:compileDebugUnitTestJavaWithJavac (Thread[Execution worker Thread 3,5,main]) started.
+:app:compileDebugUnitTestJavaWithJavac (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+Skipping task ':app:compileDebugUnitTestJavaWithJavac' as it has no source files and no previous output files.
+Resolve mutations for :app:hiltAggregateDepsDebugUnitTest (Thread[Execution worker Thread 3,5,main]) started.
+:app:hiltAggregateDepsDebugUnitTest (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:hiltAggregateDepsDebugUnitTest UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+Caching disabled for IdentityTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/compile_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for CopyTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/compile_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+Caching disabled for AggregatedPackagesTransform: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/compile_app_classes_jar/debug/classes.jar because:
+  Build cache is disabled
+Caching disabled for task ':app:hiltAggregateDepsDebugUnitTest' because:
+  Build cache is disabled
+Skipping task ':app:hiltAggregateDepsDebugUnitTest' as it is up-to-date.
+Resolve mutations for :app:hiltJavaCompileDebugUnitTest (Thread[Execution worker Thread 3,5,main]) started.
+:app:hiltJavaCompileDebugUnitTest (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:hiltJavaCompileDebugUnitTest NO-SOURCE
+Skipping task ':app:hiltJavaCompileDebugUnitTest' as it has no source files and no previous output files.
+Resolve mutations for :app:processDebugUnitTestJavaRes (Thread[Execution worker Thread 3,5,main]) started.
+:app:processDebugUnitTestJavaRes (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/test/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/src/testDebug/resources', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+Caching disabled for task ':app:processDebugUnitTestJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:processDebugUnitTestJavaRes' as it is up-to-date.
+Resolve mutations for :app:transformDebugUnitTestClassesWithAsm (Thread[Execution worker Thread 3,5,main]) started.
+:app:transformDebugUnitTestClassesWithAsm (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:transformDebugUnitTestClassesWithAsm
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+file or directory '/home/raynor/Escritorio/Proyectos/audio-libro/app/build/generated/ksp/debugUnitTest/classes', not found
+Caching disabled for task ':app:transformDebugUnitTestClassesWithAsm' because:
+  Build cache is disabled
+Task ':app:transformDebugUnitTestClassesWithAsm' is not up-to-date because:
+  Input property 'runtimeClasspath' file /home/raynor/Escritorio/Proyectos/audio-libro/app/build/intermediates/runtime_app_classes_jar/debug/classes.jar has changed.
+The input changes require a full rebuild for incremental task ':app:transformDebugUnitTestClassesWithAsm'.
+Resolve mutations for :app:testDebugUnitTest (Thread[Execution worker Thread 3,5,main]) started.
+:app:testDebugUnitTest (Thread[Execution worker Thread 3,5,main]) started.
+Gradle Test Executor 10 started executing tests.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+Gradle Test Executor 10 finished executing tests.
+
+> Task :app:testDebugUnitTest FAILED
+Caching disabled for task ':app:testDebugUnitTest' because:
+  Build cache is disabled
+Task ':app:testDebugUnitTest' is not up-to-date because:
+  Task has failed previously.
+Starting process 'Gradle Test Executor 10'. Working directory: /home/raynor/Escritorio/Proyectos/audio-libro/app Command: /usr/lib/jvm/java-17-openjdk-amd64/bin/java -Djava.awt.headless=true -Dorg.gradle.internal.worker.tmpdir=/home/raynor/Escritorio/Proyectos/audio-libro/app/build/tmp/testDebugUnitTest/work @/home/raynor/.gradle/.tmp/gradle-worker-classpath7906612192944063200txt -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=ES -Duser.language=es -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 10'
+Successfully started process 'Gradle Test Executor 10'
+
+PipelineStructuralTest > test short lines are not joined to paragraphs STANDARD_OUT
+    ANALYZER: Received raw text (length 63)
+    ANALYZER: Sanitized text (length 63):
+    'I
+
+    Este es un parrafo normal que tiene varias lineas continuas.'
+    ANALYZER: Audited text (length 0)
+
+PipelineStructuralTest > test short lines are not joined to paragraphs FAILED
+    java.lang.IndexOutOfBoundsException: Empty list doesn't contain element at index 0.
+        at kotlin.collections.EmptyList.get(Collections.kt:37)
+        at kotlin.collections.EmptyList.get(Collections.kt:25)
+        at com.example.cititor.domain.analyzer.PipelineStructuralTest.test short lines are not joined to paragraphs(PipelineStructuralTest.kt:63)
+
+PipelineStructuralTest > test chapter detection and double spacing preservation STANDARD_OUT
+    ANALYZER: Received raw text (length 123)
+    ANALYZER: Sanitized text (length 123):
+    '[GEOMETRIC_TITLE] EL BRUJO I
+
+    Después dijeron que aquel hombre había venido desde el norte por la Puerta de los Cordeleros.'
+    ANALYZER: Audited text (length 0)
+    Segments size: 0
+
+PipelineStructuralTest > test chapter detection and double spacing preservation FAILED
+    java.lang.AssertionError: Debe haber al menos 2 segmentos. Found: 0
+        at org.junit.Assert.fail(Assert.java:89)
+        at org.junit.Assert.assertTrue(Assert.java:42)
+        at com.example.cititor.domain.analyzer.PipelineStructuralTest.test chapter detection and double spacing preservation(PipelineStructuralTest.kt:46)
+
+PipelineStructuralTest > test deep indentation triple marker preservation STANDARD_OUT
+    ANALYZER: Received raw text (length 55)
+    ANALYZER: Sanitized text (length 55):
+    '[GEOMETRIC_TITLE] CAPITULO DOS
+
+    Contenido del capitulo.'
+    ANALYZER: Audited text (length 0)
+
+PipelineStructuralTest > test deep indentation triple marker preservation FAILED
+    java.lang.IndexOutOfBoundsException: Empty list doesn't contain element at index 0.
+        at kotlin.collections.EmptyList.get(Collections.kt:37)
+        at kotlin.collections.EmptyList.get(Collections.kt:25)
+        at com.example.cititor.domain.analyzer.PipelineStructuralTest.test deep indentation triple marker preservation(PipelineStructuralTest.kt:74)
+
+3 tests completed, 3 failed
+Finished generating test XML results (0.0 secs) into: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/test-results/testDebugUnitTest
+Generating HTML test report...
+Finished generating test html results (0.002 secs) into: /home/raynor/Escritorio/Proyectos/audio-libro/app/build/reports/tests/testDebugUnitTest
+
+[Incubating] Problems report is available at: file:///home/raynor/Escritorio/Proyectos/audio-libro/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/raynor/Escritorio/Proyectos/audio-libro/app/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 5s
+29 actionable tasks: 12 executed, 17 up-to-date

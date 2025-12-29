@@ -45,6 +45,34 @@ class LibraryRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteBook(book: Book) {
+        db.withTransaction {
+            // 1. Cancel background processing if any
+            book.processingWorkId?.let { workId ->
+                try {
+                    workManager.cancelWorkById(java.util.UUID.fromString(workId))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // 2. Delete physical cover file if it exists
+            book.coverPath?.let { path ->
+                try {
+                    val file = java.io.File(path)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // 3. Delete from DB (CASCADE will handle clean_pages)
+            dao.deleteBook(book.toEntity())
+        }
+    }
+
     private suspend fun startBookProcessing(bookId: Long, bookUri: String) {
         val workRequest = OneTimeWorkRequestBuilder<BookProcessingWorker>()
             .setInputData(workDataOf(

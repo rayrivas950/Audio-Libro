@@ -9,6 +9,7 @@ import com.example.cititor.data.text_extractor.ExtractorFactory
 import com.example.cititor.debug.DebugHelper
 import com.example.cititor.domain.model.Book
 import com.example.cititor.domain.use_case.AddBookUseCase
+import com.example.cititor.domain.use_case.DeleteBookUseCase
 import com.example.cititor.domain.use_case.GetBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,7 @@ data class LibraryState(
 class LibraryViewModel @Inject constructor(
     private val getBooksUseCase: GetBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
+    private val deleteBookUseCase: DeleteBookUseCase,
     private val extractorFactory: ExtractorFactory,
     private val application: Application,
     private val json: Json
@@ -125,6 +127,12 @@ class LibraryViewModel @Inject constructor(
             }
         }
         return uri.path?.substringAfterLast('/')
+    }
+
+    fun deleteBook(book: Book) {
+        viewModelScope.launch {
+            deleteBookUseCase(book)
+        }
     }
 
     private fun getBooks() {
