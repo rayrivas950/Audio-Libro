@@ -113,19 +113,36 @@ class PdfExtractor @Inject constructor() : TextExtractor {
     /**
      * Custom stripper that detects paragraph indentation.
      */
+    /**
+     * Custom stripper that detects paragraph indentation and handles page logic.
+     */
     private class IndentationAwareStripper : PDFTextStripper() {
         private var minX = Float.MAX_VALUE
         private var indentationThreshold = 15f // Points
-        private var xCoordinates = mutableListOf<Float>()
         
-        // Guillotine margins (in points, 72 points = 1 inch)
+        // Output Swapping mechanics
+        private var originalOutput: java.io.Writer? = null
+        private var pageBufferWriter: java.io.StringWriter? = null
+
+        // Guillotine margins
         private val topExclusionMargin = 70f
         private val bottomExclusionMargin = 70f
+        
+        // Connectors for word counting
+        private val connectors = setOf(
+            "y", "e", "o", "u", "el", "la", "los", "las", "un", "una", "unos", "unas",
+            "de", "del", "a", "al", "en", "por", "para", "con", "sin", "ante", "tras",
+            "mi", "tu", "su", "sus", "que"
+        )
 
         override fun startPage(page: com.tom_roush.pdfbox.pdmodel.PDPage) {
+            // Hijack the output to buffer the page content
+            this.originalOutput = this.output
+            this.pageBufferWriter = java.io.StringWriter()
+            this.output = this.pageBufferWriter
+            
             super.startPage(page)
             minX = Float.MAX_VALUE
-            xCoordinates.clear()
         }
 
         override fun writeString(text: String?, textPositions: MutableList<com.tom_roush.pdfbox.text.TextPosition>?) {
@@ -136,57 +153,94 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                 
                 // Get page height for dynamic guillotine
                 val pageHeight = currentPage.mediaBox.height
-                val topGuillotine = pageHeight * 0.06f // top
-                val bottomGuillotine = pageHeight * 0.06f // bottom
+                val topGuillotine = pageHeight * 0.06f
+                val bottomGuillotine = pageHeight * 0.06f
 
                 // --- 1. THE GUILLOTINE: Ignore headers and footers ---
                 if (firstCharY < topGuillotine) return
                 if (firstCharY > pageHeight - bottomGuillotine) return
 
-                // --- 2. MARGIN TRACKING (minX) ---
-                // Only establish margin from lines that are clearly NOT titles (left-ish)
+                // --- 2. MARGIN TRACKING ---
                 val pageWidth = currentPage.mediaBox.width
                 if (firstCharX < pageWidth * 0.25f && firstCharX < minX) {
                     minX = firstCharX
                 }
 
-                    // --- 3. PARAGRAPH & TITLE DETECTION ---
-                    val textWidth = calculateTextWidth(textPositions)
-                    
-                    val trimmedText = text?.trim() ?: ""
-                    val isShortLine = textWidth < (pageWidth * 0.5f)
-                    val endsWithPeriod = trimmedText.endsWith(".")
-                    val isDialogue = trimmedText.startsWith("—") || trimmedText.startsWith("-")
+                // --- 3. PARAGRAPH & TITLE DETECTION ---
+                val textWidth = calculateTextWidth(textPositions)
+                val trimmedText = text?.trim() ?: ""
+                
+                // Note: We don't filter noise here line-by-line anymore, 
+                // we do it in endPage regex to avoid breaking structure context.
 
-                    // CASE A: Geometrically Centered (very likely a title)
-                    val pageMidpoint = pageWidth / 2
-                    val midpoint = firstCharX + textWidth / 2
-                    val diffFromCenter = Math.abs(midpoint - pageMidpoint)
-                    val isCentered = isShortLine && diffFromCenter < 25f
-                    
-                    // CASE B: SEMANTIC RULE (Proposed by user)
-                    // Short line that does NOT end in a period and is NOT a dialogue
-                    // AND has <= 3 significant words (ignoring connectors)
-                    val significantWordCount = countSignificantWords(trimmedText)
-                    val isSemanticTitle = isShortLine && !endsWithPeriod && !isDialogue && significantWordCount <= 3 && significantWordCount > 0
+                val isShortLine = textWidth < (pageWidth * 0.5f)
+                val endsWithPeriod = trimmedText.endsWith(".")
+                val isDialogue = trimmedText.startsWith("—") || trimmedText.startsWith("-")
 
-                    val isIndented = firstCharX > minX + indentationThreshold
+                // CASE A: Geometrically Centered
+                val pageMidpoint = pageWidth / 2
+                val midpoint = firstCharX + textWidth / 2
+                val diffFromCenter = Math.abs(midpoint - pageMidpoint)
+                val isCentered = isShortLine && diffFromCenter < 25f
+                
+                // CASE B: SEMANTIC RULE
+                val significantWordCount = countSignificantWords(trimmedText)
+                val isSemanticTitle = isShortLine && !endsWithPeriod
 
-                    if (isCentered || isSemanticTitle) {
-                        Log.d("IndentationStripper", "Structural Title detected (Semantic, $significantWordCount words): $text")
+                val isPotentialTitle = isCentered || isSemanticTitle
+                val passesFilters = !isDialogue && significantWordCount <= 3 && significantWordCount > 0
+
+                val isIndented = firstCharX > minX + indentationThreshold
+
+                try {
+                    if (isPotentialTitle && passesFilters) {
                         output.write("\n\n[GEOMETRIC_TITLE] ")
                     } else if (isIndented) {
-                        output.write("\n\n") // Regular paragraph break
+                        output.write("\n\n")
                     }
+                } catch (e: IOException) {
+                    // Ignore write errors to buffer
+                }
             }
             super.writeString(text, textPositions)
         }
 
-        private val connectors = setOf(
-            "y", "e", "o", "u", "el", "la", "los", "las", "un", "una", "unos", "unas",
-            "de", "del", "a", "al", "en", "por", "para", "con", "sin", "ante", "tras",
-            "mi", "tu", "su", "sus", "que"
-        )
+        override fun endPage(page: com.tom_roush.pdfbox.pdmodel.PDPage) {
+            super.endPage(page)
+            
+            // Restore original output
+            this.output = this.originalOutput
+            
+            // --- 4. POST-PROCESSING: Filter & Density Check ---
+            var pageContent = pageBufferWriter?.toString() ?: ""
+            
+            // A. Title Density Check (Fix for Title Pages/Copyright)
+            val titleCount = pageContent.split("[GEOMETRIC_TITLE]").size - 1
+            if (titleCount > 2) {
+                Log.d("PdfExtractor", "Detected Title Page (Titles: $titleCount). Cleaning markers.")
+                pageContent = pageContent.replace("[GEOMETRIC_TITLE] ", "")
+            }
+            
+            // B. Noise Filtering (Page Numbers & Roman/Chapter Numerals)
+            // Regex explanations:
+            // (?m)^\s*\d+\s*$  -> Lines that are only digits (Page numbers)
+            // (?m)^\s*[IVXLCDM]+\s*$ -> Lines that are only Roman numerals (Chapter numbers like I, V, X)
+            // We use replace to remove them completely.
+            
+            // Filter Page Numbers
+            pageContent = pageContent.replace(Regex("(?m)^\\s*\\d+\\s*$"), "")
+            
+            // Filter Roman Numeral Headers (I, II, IV...) if they are the whole line
+            // We ensure strict matching to avoid removing words like "DIV" or "MIX".
+            pageContent = pageContent.replace(Regex("(?m)^\\s*(?i)[IVXLCDM]+\\s*$"), "")
+            
+            try {
+                output.write(pageContent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
 
         private fun countSignificantWords(text: String): Int {
             if (text.isBlank()) return 0
