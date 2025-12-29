@@ -120,25 +120,38 @@ class TextToSpeechManager @Inject constructor(
             // 1. Consumer: Plays audio from the channel
             playbackJob = scope.launch {
                // ... (consumer logic unchanged) ...
-               try {
+                try {
                     val buffer = mutableListOf<FloatArray>()
                     var prebuffering = true
-                    val threshold = 15
+                    val threshold = 15 // Chunks to buffer before starting
+                    var startTime = System.currentTimeMillis()
+                    var chunksPlayed = 0
+                    
+                    Log.d(TAG, "Audio Pipeline Started. Waiting for buffer...")
 
                     for (audioData in currentChannel) {
                         if (prebuffering) {
                             buffer.add(audioData)
                             if (buffer.size >= threshold) {
-                                Log.d(TAG, "Pre-buffering complete ($threshold segments). Starting playback.")
+                                val bufferDuration = buffer.sumOf { it.size } / 22050f * 1000 // Aprox ms
+                                val latency = System.currentTimeMillis() - startTime
+                                Log.d(TAG, "✅ Pre-buffering complete. Latency: ${latency}ms. Buffered Content: ${bufferDuration.toInt()}ms. Starting playback.")
+                                
                                 prebuffering = false
                                 for (data in buffer) {
                                     audioPlayer?.play(data)
+                                    chunksPlayed++
                                     if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(data)
                                 }
                                 buffer.clear()
                             }
-                        } else {
+                            // REAL-TIME MONITORING
+                            val rms = kotlin.math.sqrt(audioData.map { it * it }.average()).toFloat()
+                            val peak = audioData.maxOf { kotlin.math.abs(it) }
+                            Log.d(TAG, "🔊 Chunk stats | RMS: %.4f | Peak: %.4f | Size: %d".format(rms, peak, audioData.size))
+                            
                             audioPlayer?.play(audioData)
+                            chunksPlayed++
                             if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(audioData)
                         }
                     }
