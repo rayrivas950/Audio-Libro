@@ -38,17 +38,25 @@ class TextAnalyzer @Inject constructor(
         if (text.isEmpty()) return emptyList()
         
         val segments = mutableListOf<TextSegment>()
-        // Split by 2 or more newlines (blindaje estructural)
+        // Split by 2 or more newlines (structural protection)
         val paragraphs = text.split(Regex("\\n{2,}"))
 
         paragraphs.forEach { p ->
             val trimmed = p.trim()
             if (trimmed.isBlank()) return@forEach
             
-            val isTitle = trimmed.contains("[GEOMETRIC_TITLE]")
+            val hasTitleMarker = trimmed.contains("[GEOMETRIC_TITLE]")
             val cleanText = trimmed.replace("[GEOMETRIC_TITLE]", "").trim()
             
-            if (isTitle) {
+            // ANALYZER DEFENSE: Even if the extractor says it's a title, 
+            // the analyzer double-checks if it looks like narration or dialogue.
+            val isDialogue = cleanText.startsWith("—") || cleanText.startsWith("-")
+            val significantWords = countSignificantWords(cleanText)
+            
+            // A title should not be a dialogue and should be short (allowing 4 words for flexibility)
+            val isVerifiedTitle = hasTitleMarker && !isDialogue && significantWords <= 4
+            
+            if (isVerifiedTitle) {
                 segments.add(NarrationSegment(
                     text = cleanText,
                     intention = ProsodyIntention.NEUTRAL,
@@ -63,6 +71,22 @@ class TextAnalyzer @Inject constructor(
             }
         }
         return segments
+    }
+
+    private val connectors = setOf(
+        "y", "e", "o", "u", "el", "la", "los", "las", "un", "una", "unos", "unas",
+        "de", "del", "a", "al", "en", "por", "para", "con", "sin", "ante", "tras",
+        "mi", "tu", "su", "sus", "que"
+    )
+
+    private fun countSignificantWords(text: String): Int {
+        if (text.isBlank()) return 0
+        val words = text.lowercase()
+            .replace(Regex("[¡!¿?,.;:()\"]"), "")
+            .split(Regex("\\s+"))
+            .filter { it.isNotBlank() }
+        
+        return words.count { it !in connectors }
     }
 
     private fun splitIntoParagraphSegments(text: String): List<NarrationSegment> {
