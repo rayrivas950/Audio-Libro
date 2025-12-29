@@ -44,28 +44,24 @@ class TextSanitizer @Inject constructor(
             val currentLine = lines[i].trim()
             val nextLine = lines[i + 1].trim()
             
+            if (currentLine.isEmpty()) continue
+            
             sb.append(currentLine)
             
-            if (currentLine.isEmpty() || nextLine.isEmpty()) {
-                sb.append("\n") // Mantener párrafos vacíos
-            } else if (nextLine.startsWith("—") || nextLine.startsWith("-") || nextLine.startsWith("?")) {
-                sb.append("\n") // Mantener diálogos o listas con viñetas
-            } else if (nextLine.isNotEmpty() && nextLine.first().isDigit()) {
-                sb.append("\n") // Mantener listas numeradas
-            } else if (currentLine.length < 4) {
-                sb.append("\n") // Regla heurística de seguridad para líneas cortas (I, II, etc)
+            val lastChar = currentLine.last()
+            val isDialogue = nextLine.startsWith("—") || nextLine.startsWith("-")
+            val isTitle = currentLine.contains("[GEOMETRIC_TITLE]") || nextLine.contains("[GEOMETRIC_TITLE]")
+            val isShortLine = currentLine.length < 15
+            
+            if (isDialogue || isTitle || isShortLine || lastChar == '.' || lastChar == '!' || lastChar == '?') {
+                sb.append("\n\n")
             } else {
-                val lastChar = currentLine.last()
-                // Si NO termina en signo de puntuación final, unimos
-                if (lastChar != '.' && lastChar != '!' && lastChar != '?' && lastChar != '—') {
-                    sb.append(" ")
-                } else {
-                    sb.append("\n")
-                }
+                sb.append(" ")
             }
         }
         sb.append(lines.last().trim())
-        return sb.toString()
+        
+        return sb.toString().replace(Regex("\\n{3,}") , "\n\n").trim()
     }
 
     private fun fixPunctuation(text: String): String {

@@ -150,24 +150,32 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     minX = firstCharX
                 }
 
-                // --- 3. PARAGRAPH & TITLE DETECTION ---
-                // We need an established margin to detect breaks
-                if (minX != Float.MAX_VALUE) {
+                    // --- 3. PARAGRAPH & TITLE DETECTION ---
                     val textWidth = calculateTextWidth(textPositions)
-                    val midpoint = firstCharX + textWidth / 2
-                    val pageMidpoint = pageWidth / 2
-                    val diffFromCenter = Math.abs(midpoint - pageMidpoint)
                     
-                    // Titles must be SHORT (< 60%) and CENTERED
-                    val isShortLine = textWidth < (pageWidth * 0.6f)
+                    val trimmedText = text?.trim() ?: ""
+                    val isShortLine = textWidth < (pageWidth * 0.5f)
+                    val endsWithPeriod = trimmedText.endsWith(".")
+                    val isDialogue = trimmedText.startsWith("—") || trimmedText.startsWith("-")
+
+                    // CASE A: Geometrically Centered (very likely a title)
+                    val pageMidpoint = pageWidth / 2
+                    val midpoint = firstCharX + textWidth / 2
+                    val diffFromCenter = Math.abs(midpoint - pageMidpoint)
                     val isCentered = isShortLine && diffFromCenter < 25f
                     
+                    // CASE B: SEMANTIC RULE (Proposed by user)
+                    // Short line that does NOT end in a period and is NOT a dialogue
+                    val isSemanticTitle = isShortLine && !endsWithPeriod && !isDialogue
+
                     val isIndented = firstCharX > minX + indentationThreshold
 
-                    if (isCentered || isIndented) {
-                        output.write("\n\n") // Inject break for titles and paragraphs
+                    if (isCentered || isSemanticTitle) {
+                        Log.d("IndentationStripper", "Structural Title detected (Semantic): $text")
+                        output.write("\n\n[GEOMETRIC_TITLE] ")
+                    } else if (isIndented) {
+                        output.write("\n\n") // Regular paragraph break
                     }
-                }
             }
             super.writeString(text, textPositions)
         }

@@ -31,11 +31,38 @@ class TextAnalyzer @Inject constructor(
         val sanitized = textSanitizer.sanitize(rawText, pageIndex)
         val audited = consistencyAuditor.auditAndRepair(sanitized, pageIndex)
         
-        return listOf(NarrationSegment(
-            text = audited,
-            intention = ProsodyIntention.NEUTRAL,
-            style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
-        ))
+        return splitByStructure(audited)
+    }
+
+    private fun splitByStructure(text: String): List<TextSegment> {
+        if (text.isEmpty()) return emptyList()
+        
+        val segments = mutableListOf<TextSegment>()
+        // Split by 2 or more newlines (blindaje estructural)
+        val paragraphs = text.split(Regex("\\n{2,}"))
+
+        paragraphs.forEach { p ->
+            val trimmed = p.trim()
+            if (trimmed.isBlank()) return@forEach
+            
+            val isTitle = trimmed.contains("[GEOMETRIC_TITLE]")
+            val cleanText = trimmed.replace("[GEOMETRIC_TITLE]", "").trim()
+            
+            if (isTitle) {
+                segments.add(NarrationSegment(
+                    text = cleanText,
+                    intention = ProsodyIntention.NEUTRAL,
+                    style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                ))
+            } else {
+                segments.add(NarrationSegment(
+                    text = cleanText,
+                    intention = ProsodyIntention.NEUTRAL,
+                    style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+                ))
+            }
+        }
+        return segments
     }
 
     private fun splitIntoParagraphSegments(text: String): List<NarrationSegment> {

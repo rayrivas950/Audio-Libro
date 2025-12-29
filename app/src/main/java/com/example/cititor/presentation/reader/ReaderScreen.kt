@@ -83,23 +83,53 @@ fun ReaderScreen(
                         modifier = Modifier
                             .weight(1f)
                             .padding(16.dp)
-                            .verticalScroll(scrollState)
+                            .verticalScroll(scrollState),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val annotatedText = buildAnnotatedString {
-                            append(state.pageDisplayText)
-                            state.highlightedTextRange?.let {
-                                addStyle(
-                                    style = SpanStyle(background = Color.Yellow),
-                                    start = it.first,
-                                    end = it.last
+                        var cumulativeLength = 0
+                        state.pageSegments.forEach { segment ->
+                            if (segment is com.example.cititor.domain.model.NarrationSegment) {
+                                val isChapter = segment.style == com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                                val segmentText = segment.text
+                                
+                                val annotatedText = buildAnnotatedString {
+                                    append(segmentText)
+                                    state.highlightedTextRange?.let { globalRange ->
+                                        val segmentStart = cumulativeLength
+                                        val segmentEnd = cumulativeLength + segmentText.length
+                                        
+                                        val intersectStart = maxOf(globalRange.first, segmentStart)
+                                        val intersectEnd = minOf(globalRange.last, segmentEnd)
+                                        
+                                        if (intersectStart <= intersectEnd) {
+                                            addStyle(
+                                                style = SpanStyle(background = Color.Yellow),
+                                                start = intersectStart - segmentStart,
+                                                end = (intersectEnd - segmentStart) + 1
+                                            )
+                                        }
+                                    }
+                                }
+                                
+                                Text(
+                                    text = annotatedText,
+                                    modifier = Modifier.fillMaxWidth().padding(
+                                        vertical = if (isChapter) 16.dp else 4.dp
+                                    ),
+                                    textAlign = if (isChapter) TextAlign.Center else TextAlign.Justify,
+                                    style = if (isChapter) {
+                                        MaterialTheme.typography.headlineSmall.copy(
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                        )
+                                    } else {
+                                        MaterialTheme.typography.bodyLarge.copy(
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                                        )
+                                    }
                                 )
+                                cumulativeLength += segmentText.length
                             }
                         }
-                        Text(
-                            text = annotatedText,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Justify
-                        )
                     }
 
                     Row(
