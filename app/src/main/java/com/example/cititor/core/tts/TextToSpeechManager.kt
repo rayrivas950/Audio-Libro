@@ -208,25 +208,42 @@ class TextToSpeechManager @Inject constructor(
                              // 2. Configure player to match exactly (Bit-Perfect)
                             audioPlayer?.configure(nativeRate)
                             
+                            // PHYSICS TRICK: Decouple Speed from Pitch
+                            // If we pitch shift by P, the audio duration changes by 1/P (speed changes by P).
+                            // To get final speed S, we must generate at G such that G * P = S.
+                            // So, G = S / P.
+                            
                             // Humanize: Add slight random speed variation (+/- 4%)
                             val jitter = kotlin.random.Random.nextDouble(-0.04, 0.04).toFloat()
-                            val humanSpeed = (adjustedSpeed + jitter).coerceIn(0.5f, 1.5f)
+                            val targetSpeed = (adjustedSpeed + jitter).coerceIn(0.5f, 1.5f)
+                            
+                            // Capped pitch to avoid artifacts (0.5x to 2.0x)
+                            val safePitch = adjustedPitch.coerceIn(0.5f, 2.0f)
+                            
+                            val compensatedSpeed = targetSpeed / safePitch
 
-                            rawAudio = piperTts?.synthesize(text, humanSpeed, speakerId)
+                            rawAudio = piperTts?.synthesize(text, compensatedSpeed, speakerId)
                             
                             // 3. Inject Silence Sandwich (Pre-roll + Audio + Post-roll)
                             if (rawAudio != null) {
                                 val preRollSamples = (nativeRate * 0.15).toInt() // 150ms Pre
                                 
-                                // Dynamic Post-Roll based on intention (Dramatic Pause)
-                                val postRollFactor = when (segment.intention) {
-                                    com.example.cititor.domain.model.ProsodyIntention.SHOUT,
-                                    com.example.cititor.domain.model.ProsodyIntention.ADRENALINE,
-                                    com.example.cititor.domain.model.ProsodyIntention.PAIN -> 0.25 // 250ms (Tuned down from 400ms)
-                                    com.example.cititor.domain.model.ProsodyIntention.EMPHASIS -> 0.30 // 300ms 
-                                    else -> 0.20 // 200ms Standard
+                                // Dynamic Post-Roll Logic
+                                // Priority 1: Explicit Pause from Prosody Engine (e.g. Titles)
+                                // Priority 2: Intention-based heuristic
+                                val postRollDurationMs = if (params.pausePost != null) {
+                                    params.pausePost
+                                } else {
+                                    when (segment.intention) {
+                                        com.example.cititor.domain.model.ProsodyIntention.SHOUT,
+                                        com.example.cititor.domain.model.ProsodyIntention.ADRENALINE,
+                                        com.example.cititor.domain.model.ProsodyIntention.PAIN -> 250L
+                                        com.example.cititor.domain.model.ProsodyIntention.EMPHASIS -> 300L
+                                        else -> 200L
+                                    }
                                 }
-                                val postRollSamples = (nativeRate * postRollFactor).toInt()
+                                
+                                val postRollSamples = (nativeRate * (postRollDurationMs / 1000.0)).toInt()
                                 
                                 val silencePre = FloatArray(preRollSamples) { 0f }
                                 val silencePost = FloatArray(postRollSamples) { 0f }

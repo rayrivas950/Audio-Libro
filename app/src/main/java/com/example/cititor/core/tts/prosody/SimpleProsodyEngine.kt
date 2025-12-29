@@ -22,7 +22,7 @@ class SimpleProsodyEngine : ProsodyEngine {
         if (segment is com.example.cititor.domain.model.NarrationSegment) {
             if (segment.style == com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR) {
                 // Emphasis for titles: Slower, slightly louder, and a significant pause after.
-                pausePost = 1500L
+                pausePost = 1000L
                 speedMultiplier = 0.9f
                 volumeMultiplier = 1.1f
             }

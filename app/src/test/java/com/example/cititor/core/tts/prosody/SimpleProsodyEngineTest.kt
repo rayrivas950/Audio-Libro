@@ -21,7 +21,7 @@ class SimpleProsodyEngineTest {
 
         val params = engine.calculateParameters(chapterSegment, 1.0f, BookCategory.FICTION)
 
-        assertEquals(1500L, params.pausePost)
+        assertEquals(1000L, params.pausePost)
         assertEquals(0.9f, params.speed!!, 0.01f) // Should be slowed down
         assertEquals(1.1f, params.volume!!, 0.01f) // Should be louder
     }
