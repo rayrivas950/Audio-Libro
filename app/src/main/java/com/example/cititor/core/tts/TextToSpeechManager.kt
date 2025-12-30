@@ -60,12 +60,19 @@ class TextToSpeechManager @Inject constructor(
                 
                 piperTts = engine
                 audioPlayer = com.example.cititor.core.audio.AudioPlayer()
-                effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor(
-                    effects = listOf(
-                        // Warmth Filter: Cuts strict digital highs (>7kHz approx with 0.6 smoothing)
-                        com.example.cititor.core.audio.effects.LowPassFilterEffect(0.6f)
-                    )
+        // Initialize Audio Effect Processor with Master Chain
+        effectProcessor = com.example.cititor.core.audio.AudioEffectProcessor(
+            effects = listOf(
+                // 3-Band Parametric EQ
+                // Target: Treble < 12% (Massive High Cut)
+                // Bass boost for "Geralt" body
+                com.example.cititor.core.audio.effects.ThreeBandEqEffect(
+                    lowGainDb = 2.0f,   // +2dB Bass
+                    midGainDb = 1.0f,   // +1dB Mids
+                    highGainDb = -12.0f // -12dB Treble (Very Dark)
                 )
+            )
+        )
                 
                 if (DEBUG_SAVE_AUDIO) {
                     audioLogger = com.example.cititor.core.debug.AudioLogger(context)
@@ -128,9 +135,25 @@ class TextToSpeechManager @Inject constructor(
                     Log.d(TAG, "Audio Pipeline Started. Streaming directly...")
 
                     for (audioData in currentChannel) {
-                            audioPlayer?.play(data)
-                            if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(data)
+                        // REAL-TIME MONITORING
+                        val stats = com.example.cititor.core.audio.SpectralAnalyzer.analyze(audioData)
+                        
+                        if (firstChunk) {
+                            val latency = System.currentTimeMillis() - startTime
+                            Log.d(TAG, "✅ First Chunk Received. Latency: ${latency}ms. Size: ${audioData.size}. Playing immediately.")
+                            firstChunk = false
                         }
+                        
+                        Log.d(TAG, "🔊 Spectrum | Bass: %.0f%% | Mid: %.0f%% | Treble: %.0f%% [%s]".format(
+                            stats.bassEnergy * 100, 
+                            stats.midEnergy * 100, 
+                            stats.trebleEnergy * 100,
+                            stats.dominance
+                        ))
+                        
+                        audioPlayer?.play(audioData)
+                        chunksPlayed++
+                        if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(audioData)
                     }
                 } finally {
                     Log.d(TAG, "Playback consumer finished.")
