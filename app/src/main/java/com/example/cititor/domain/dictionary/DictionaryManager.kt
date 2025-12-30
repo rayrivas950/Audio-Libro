@@ -73,7 +73,7 @@ class DictionaryManager @Inject constructor(
      * [CLEAN VERSION]: Currently returns the word as is.
      * Heuristics removed to prevent over-aggressive splitting.
      */
-    fun correctStuckWord(word: String, languageCode: String = "es_ES", pageIndex: Int = -1): String {
+    fun correctStuckWord(word: String): String {
         return word
     }
 
@@ -82,7 +82,7 @@ class DictionaryManager @Inject constructor(
      * Preserves whitespace and punctuation.
      * Optimized to reduce memory allocations on large texts.
      */
-    fun correctText(text: String, languageCode: String = "es_ES", pageIndex: Int = -1): String {
+    fun correctText(text: String, languageCode: String = "es_ES"): String {
         if (text.isBlank()) return text
         
         // Ensure dictionary is loaded
@@ -102,7 +102,7 @@ class DictionaryManager @Inject constructor(
             
             when {
                 word != null -> {
-                    result.append(correctStuckWord(word, languageCode, pageIndex))
+                    result.append(correctStuckWord(word))
                 }
                 whitespace != null -> {
                     result.append(whitespace)

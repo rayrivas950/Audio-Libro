@@ -20,7 +20,7 @@ object SpectralAnalyzer {
      * Analyzes audio chunk using simple digital filters.
      * Efficiency: O(N) single pass approximation.
      */
-    fun analyze(samples: FloatArray, sampleRate: Int = 22050): SpectralReport {
+    fun analyze(samples: FloatArray): SpectralReport {
         if (samples.isEmpty()) return SpectralReport(0f, 0f, 0f, "Silent")
 
         var bassSum = 0.0

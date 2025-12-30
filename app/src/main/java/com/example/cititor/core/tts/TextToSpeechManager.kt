@@ -67,9 +67,9 @@ class TextToSpeechManager @Inject constructor(
                 // Target: Treble < 12% (Massive High Cut)
                 // Bass boost for "Geralt" body
                 com.example.cititor.core.audio.effects.ThreeBandEqEffect(
-                    lowGainDb = 2.0f,   // +2dB Bass
-                    midGainDb = 1.0f,   // +1dB Mids
-                    highGainDb = -12.0f // -12dB Treble (Very Dark)
+                    lowGainDb = 3.0f,   // +2dB Bass
+                    midGainDb = 0.7f,   // +1dB Mids
+                    highGainDb = -10.0f // -12dB Treble (Very Dark)
                 )
             )
         )
@@ -172,7 +172,7 @@ class TextToSpeechManager @Inject constructor(
             synthesisJob = scope.launch {
                 var sessionStarted = false
                 try {
-                    segments.forEachIndexed { index, segment ->
+                    segments.forEachIndexed { _, segment ->
                         if (!isSpeaking.value) return@forEachIndexed
                         // ... (synthesis logic) ...
                         val text = segment.text
@@ -252,19 +252,31 @@ class TextToSpeechManager @Inject constructor(
                                 val silencePre = FloatArray(preRollSamples) { 0f }
                                 val silencePost = FloatArray(postRollSamples) { 0f }
                                 
-                                rawAudio = silencePre + rawAudio!! + silencePost
+                                rawAudio = silencePre + rawAudio + silencePost
                             }
                         }
                         
                         if (rawAudio != null) {
+                            // [DEBUG] Measure PRE-EQ spectrum
+                            val preEqStats = com.example.cititor.core.audio.SpectralAnalyzer.analyze(rawAudio)
+                            
                             // Apply modular effects chain with segment context (shouts, whispers, etc)
                             rawAudio = effectProcessor?.applyNaturalization(rawAudio, segment.intention) ?: rawAudio
 
                             // Apply Pitch Shift if the prosody engine requires it
                             if (adjustedPitch != 1.0f) {
-                                val sampleRate = piperTts?.getSampleRate() ?: 22050
-                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, sampleRate, adjustedPitch.toDouble()) ?: rawAudio
+                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, adjustedPitch.toDouble()) ?: rawAudio
                             }
+                            
+                            // [DEBUG] Measure POST-EQ spectrum
+                            val postEqStats = com.example.cititor.core.audio.SpectralAnalyzer.analyze(rawAudio)
+                            Log.d(TAG, "⚙️ EQ Effect | Treble: %.0f%% → %.0f%% (Δ%.0f%%) | Bass: %.0f%% → %.0f%%".format(
+                                preEqStats.trebleEnergy * 100,
+                                postEqStats.trebleEnergy * 100,
+                                (postEqStats.trebleEnergy - preEqStats.trebleEnergy) * 100,
+                                preEqStats.bassEnergy * 100,
+                                postEqStats.bassEnergy * 100
+                            ))
                             
                             currentChannel.send(rawAudio)
                         }

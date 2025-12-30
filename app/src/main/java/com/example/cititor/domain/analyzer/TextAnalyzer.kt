@@ -27,9 +27,9 @@ class TextAnalyzer @Inject constructor(
     /**
      * Analyzes a raw string, sanitizes it, and splits it into a list of TextSegments.
      */
-    fun analyze(rawText: String, pageIndex: Int = -1): List<TextSegment> {
-        val sanitized = textSanitizer.sanitize(rawText, pageIndex)
-        val audited = consistencyAuditor.auditAndRepair(sanitized, pageIndex)
+    fun analyze(rawText: String): List<TextSegment> {
+        val sanitized = textSanitizer.sanitize(rawText)
+        val audited = consistencyAuditor.auditAndRepair(sanitized)
         
         return splitByStructure(audited)
     }

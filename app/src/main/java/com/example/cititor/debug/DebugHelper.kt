@@ -95,7 +95,7 @@ object DebugHelper {
                 com.example.cititor.domain.analyzer.IntentionAnalyzer(),
                 consistencyAuditor
             )
-            val segments = analyzer.analyze(testText, pageIndex = 0)
+            val segments = analyzer.analyze(testText)
             results.add("✅ Analyzed: ${segments.size} segments")
             Log.d(TAG, "TextAnalyzer produced ${segments.size} segments")
             

@@ -103,7 +103,7 @@ class BookProcessingWorker @AssistedInject constructor(
                     Log.i(TAG, cleanText.take(200) + "...")
                     Log.i(TAG, "[TRACE][PAGE $index] --- RAW TEXT END ---")
                     
-                    val segments = textAnalyzer.analyze(cleanText, pageIndex = index)
+                    val segments = textAnalyzer.analyze(cleanText)
                     
                     if (segments.isNotEmpty()) {
                         Log.i(TAG, "[TRACE][PAGE $index] --- FIRST SEGMENT PREVIEW ---")

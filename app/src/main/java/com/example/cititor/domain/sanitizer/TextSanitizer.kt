@@ -23,16 +23,31 @@ class TextSanitizer @Inject constructor(
      * @param text The input string, potentially containing HTML tags and other artifacts.
      * @return A plain text string, ready for TTS processing or display.
      */
-    fun sanitize(text: String, pageIndex: Int = -1): String {
+    fun sanitize(text: String): String {
         if (text.isBlank()) return text
         
         // 1. Unir líneas para dar fluidez al párrafo
         val textWithJoinedLines = joinLines(text)
         
         // 2. Corregir espaciado de puntuación gramatical
-        val finalResult = fixPunctuation(textWithJoinedLines)
+        val fixedPunctuation = fixPunctuation(textWithJoinedLines)
+        
+        // 3. Eliminar números romanos aislados (numeración de capítulos: I, II, III, etc.)
+        val finalResult = removeRomanNumeralChapterMarkers(fixedPunctuation)
         
         return finalResult
+    }
+    
+    /**
+     * Removes isolated Roman numerals used as chapter numbering (e.g., "I", "II", "III").
+     * These break TTS immersion when read as letters.
+     */
+    private fun removeRomanNumeralChapterMarkers(text: String): String {
+        // Match lines that contain ONLY a Roman numeral (possibly with whitespace)
+        // Roman numerals: I, II, III, IV, V, VI, VII, VIII, IX, X, XI, XII, etc.
+        val romanNumeralLineRegex = Regex("""^\s*[IVXLCDM]+\s*$""", RegexOption.MULTILINE)
+        
+        return text.replace(romanNumeralLineRegex, "").trim()
     }
 
     private fun joinLines(text: String): String {
@@ -68,10 +83,5 @@ class TextSanitizer @Inject constructor(
         // Añade espacio tras punto si le sigue una letra (ej: "hola.Mundo" -> "hola. Mundo")
         // No afecta a números (3.14) ni a puntos seguidos de espacios.
         return text.replace(Regex("""\.([A-ZÁÉÍÓÚÑa-záéíóúñ])"""), ". $1")
-    }
-
-    private fun shouldJoinLines(current: String, next: String): Boolean {
-        // Legacy method, not used anymore in the new atomic flow
-        return false 
     }
 }

@@ -21,7 +21,7 @@ class ConsistencyAuditor @Inject constructor(
      * Performs a final pass on the text to fix obvious high-probability errors.
      * [CLEAN VERSION]: Only performs minimal whitespace normalization.
      */
-    fun auditAndRepair(text: String, pageIndex: Int = -1): String {
+    fun auditAndRepair(text: String): String {
         return text
     }
 }

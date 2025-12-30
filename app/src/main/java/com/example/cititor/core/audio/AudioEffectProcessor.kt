@@ -49,11 +49,10 @@ class AudioEffectProcessor(
      * Note: This also affects speed if not compensated.
      * 
      * @param samples The input audio samples (float array).
-     * @param sampleRate The sample rate of the audio (unused in linear interp but kept for signature consistency).
      * @param pitchFactor The factor to shift pitch (e.g., 0.8 for lower, 1.2 for higher). 1.0 is neutral.
      * @return The processed audio samples.
      */
-    fun applyPitchShift(samples: FloatArray, sampleRate: Int, pitchFactor: Double): FloatArray {
+    fun applyPitchShift(samples: FloatArray, pitchFactor: Double): FloatArray {
         if (pitchFactor == 1.0 || samples.isEmpty()) return samples
 
         // New size = Original size / pitchFactor
