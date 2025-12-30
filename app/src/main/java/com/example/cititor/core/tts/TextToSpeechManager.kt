@@ -121,45 +121,13 @@ class TextToSpeechManager @Inject constructor(
             playbackJob = scope.launch {
                // ... (consumer logic unchanged) ...
                 try {
-                    val buffer = mutableListOf<FloatArray>()
-                    var prebuffering = true
-                    val threshold = 15 // Chunks to buffer before starting
                     var startTime = System.currentTimeMillis()
                     var chunksPlayed = 0
+                    var firstChunk = true
                     
-                    Log.d(TAG, "Audio Pipeline Started. Waiting for buffer...")
+                    Log.d(TAG, "Audio Pipeline Started. Streaming directly...")
 
                     for (audioData in currentChannel) {
-                        if (prebuffering) {
-                            buffer.add(audioData)
-                            if (buffer.size >= threshold) {
-                                val bufferDuration = buffer.sumOf { it.size } / 22050f * 1000 // Aprox ms
-                                val latency = System.currentTimeMillis() - startTime
-                                Log.d(TAG, "✅ Pre-buffering complete. Latency: ${latency}ms. Buffered Content: ${bufferDuration.toInt()}ms. Starting playback.")
-                                
-                                prebuffering = false
-                                for (data in buffer) {
-                                    audioPlayer?.play(data)
-                                    chunksPlayed++
-                                    if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(data)
-                                }
-                                buffer.clear()
-                            }
-                            // REAL-TIME MONITORING
-                            val rms = kotlin.math.sqrt(audioData.map { it * it }.average()).toFloat()
-                            val peak = audioData.maxOf { kotlin.math.abs(it) }
-                            Log.d(TAG, "🔊 Chunk stats | RMS: %.4f | Peak: %.4f | Size: %d".format(rms, peak, audioData.size))
-                            
-                            audioPlayer?.play(audioData)
-                            chunksPlayed++
-                            if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(audioData)
-                        }
-                    }
-                    
-                    // If channel closed before threshold, play remaining
-                    if (prebuffering && buffer.isNotEmpty()) {
-                        Log.d(TAG, "Channel closed before threshold. Playing remaining ${buffer.size} segments.")
-                        for (data in buffer) {
                             audioPlayer?.play(data)
                             if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(data)
                         }
@@ -278,9 +246,11 @@ class TextToSpeechManager @Inject constructor(
                             currentChannel.send(rawAudio)
                         }
                     }
+                    Log.d(TAG, "🟢 Producer: All segments synthesized. Closing channel.")
                 } catch (e: Exception) {
-                    Log.e(TAG, "Producer error", e)
+                    Log.e(TAG, "🔴 Producer error/crash", e)
                 } finally {
+                    Log.d(TAG, "Producer: Closing channel finally.")
                     currentChannel.close()
                 }
             }
