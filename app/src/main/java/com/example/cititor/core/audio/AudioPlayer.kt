@@ -74,6 +74,12 @@ class AudioPlayer {
             val chunkSize = 2048 
             var offset = 0
             while (offset < pcmData.size) {
+                // Interruption check: Stop immediately if track is no longer playing
+                if (audioTrack?.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                    Log.d("AudioPlayer", "Playback loop interrupted: PlayState is ${audioTrack?.playState}")
+                    break
+                }
+                
                 if (Thread.currentThread().isInterrupted) break
 
                 val sizeToWrite = minOf(chunkSize, pcmData.size - offset)

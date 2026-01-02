@@ -14,5 +14,6 @@ data class BookEntity(
     val currentPage: Int = 0,
     val totalPages: Int,
     val lastReadTimestamp: Long = System.currentTimeMillis(),
-    val processingWorkId: String? = null // To track the background processing job
+    val processingWorkId: String? = null, // To track the background processing job
+    val category: com.example.cititor.domain.model.BookCategory = com.example.cititor.domain.model.BookCategory.FICTION
 )

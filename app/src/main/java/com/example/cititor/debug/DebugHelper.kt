@@ -91,7 +91,7 @@ object DebugHelper {
             val consistencyAuditor = com.example.cititor.domain.analyzer.ConsistencyAuditor(dictionaryManager)
             val analyzer = TextAnalyzer(
                 textSanitizer,
-                com.example.cititor.domain.analyzer.SimpleDialogueResolver(),
+                com.example.cititor.domain.analyzer.CharacterDetector(),
                 com.example.cititor.domain.analyzer.IntentionAnalyzer(),
                 consistencyAuditor
             )

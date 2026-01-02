@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class TextAnalyzer @Inject constructor(
     private val textSanitizer: TextSanitizer,
-    private val dialogueResolver: DialogueResolver,
+    private val characterDetector: CharacterDetector,
     private val intentionAnalyzer: IntentionAnalyzer,
     private val consistencyAuditor: ConsistencyAuditor
 ) {

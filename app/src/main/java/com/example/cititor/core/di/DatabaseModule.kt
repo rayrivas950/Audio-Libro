@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import com.example.cititor.core.database.CititorDatabase
 import com.example.cititor.core.database.dao.BookDao
+import com.example.cititor.core.database.dao.CharacterDao
 import com.example.cititor.core.database.dao.CleanPageDao
+import com.example.cititor.core.database.dao.ProsodyScriptDao
 import com.example.cititor.core.security.SecurityManager
 import dagger.Module
 import dagger.Provides
@@ -55,6 +57,18 @@ object DatabaseModule {
     @Singleton
     fun provideCleanPageDao(database: CititorDatabase): CleanPageDao {
         return database.cleanPageDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCharacterDao(database: CititorDatabase): CharacterDao {
+        return database.characterDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideProsodyScriptDao(database: CititorDatabase): ProsodyScriptDao {
+        return database.prosodyScriptDao()
     }
 
 

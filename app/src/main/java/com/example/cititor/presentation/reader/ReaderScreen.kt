@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,13 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,7 +24,12 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Divider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @Composable
 fun ReaderScreen(
@@ -131,6 +132,52 @@ fun ReaderScreen(
                             }
                         }
                     }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Voice Model Selector
+                        var showModels by remember { mutableStateOf(false) }
+                        Box {
+                            OutlinedButton(onClick = { showModels = true }) {
+                                Icon(Icons.Default.Settings, contentDescription = null)
+                                Spacer(Modifier.padding(4.dp))
+                                Text("Voz: ${state.currentVoiceModel}")
+                            }
+                            DropdownMenu(
+                                expanded = showModels,
+                                onDismissRequest = { showModels = false }
+                            ) {
+                                listOf("Miro High (ES)").forEach { model ->
+                                    DropdownMenuItem(
+                                        text = { Text(model) },
+                                        onClick = {
+                                            viewModel.setVoiceModel(model)
+                                            showModels = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.padding(8.dp))
+
+                        Text(
+                            text = "Interpretación: ${"%.1f".format(state.dramatism)}x",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Slider(
+                            value = state.dramatism,
+                            onValueChange = { viewModel.updateDramatism(it) },
+                            valueRange = 0.0f..2.0f,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+
+                    Divider()
 
                     Row(
                         modifier = Modifier

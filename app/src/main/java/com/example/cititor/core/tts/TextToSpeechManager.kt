@@ -7,8 +7,11 @@ import android.util.Log
 import com.example.cititor.domain.model.TextSegment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.yield
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
@@ -17,7 +20,7 @@ import javax.inject.Inject
 
 class TextToSpeechManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val prosodyEngine: com.example.cititor.core.tts.prosody.ProsodyEngine
+    private val prosodyScriptDao: com.example.cititor.core.database.dao.ProsodyScriptDao
 ) {
 
     private var androidTts: TextToSpeech? = null
@@ -25,11 +28,11 @@ class TextToSpeechManager @Inject constructor(
     private var audioPlayer: com.example.cititor.core.audio.AudioPlayer? = null
     private var effectProcessor: com.example.cititor.core.audio.AudioEffectProcessor? = null
     private var audioLogger: com.example.cititor.core.debug.AudioLogger? = null
-    private val DEBUG_SAVE_AUDIO = false // Set to true to debug audio quality
-
+    private val DEBUG_SAVE_AUDIO = false // Set to true to debug
     private var isInitialized = false
     private var usePiper = true // Set to true to use Piper by default
-    private var masterSpeed = 0.94f // Incrementado un 10% (de 0.85 a 0.94) para una narración más ágil
+    private var masterSpeed = 0.85f // Reducido un 10% para un ritmo más pausado
+    private var masterDramatism = 1.0f // Slider value for "Theater" intensity
 
     private val _isSpeaking = MutableStateFlow(false)
     val isSpeaking: StateFlow<Boolean> = _isSpeaking
@@ -51,11 +54,46 @@ class TextToSpeechManager @Inject constructor(
     }
     
     private fun initialize() {
-        // Start Piper initialization in background (Phase 2.3: Null AssetManager)
+        // Default model for now (DaveFX Medium)
+        val defaultConfig = com.example.cititor.core.tts.piper.PiperModelConfig(
+            assetDir = "piper/vits-piper-es_ES-davefx-medium",
+            modelName = "es_ES-davefx-medium.onnx",
+            configName = "es_ES-davefx-medium.onnx.json"
+        )
+        
+        loadPiperModel(defaultConfig)
+        
+        // Also prepare Android TTS as immediate fallback
+        initAndroidTts()
+    }
+
+    private var loadModelJob: Job? = null
+
+    fun switchModel(config: com.example.cititor.core.tts.piper.PiperModelConfig) {
+        stop() // Stop playback before switching models
+        loadModelJob?.cancel() // Cancel any ongoing loading
+        loadModelJob = scope.launch {
+            Log.d(TAG, "Switching Piper model to: ${config.assetDir}")
+            isInitialized = false
+            _isSpeaking.value = false
+            Log.d(TAG, "Releasing old Piper engine...")
+            piperTts?.release()
+            piperTts = null
+            
+            Log.d(TAG, "Cooling down system memory (500ms)...")
+            kotlinx.coroutines.delay(500) 
+            System.gc()
+            
+            Log.d(TAG, "Loading new Piper model: ${config.modelName}")
+            loadPiperModel(config)
+        }
+    }
+
+    private fun loadPiperModel(config: com.example.cititor.core.tts.piper.PiperModelConfig) {
         scope.launch {
             try {
-                Log.d(TAG, "Phase 2.3: Initializing native Piper engine with null AssetManager...")
-                val engine = com.example.cititor.core.tts.piper.PiperTTSEngine(context)
+                Log.d(TAG, "Initializing Piper engine with config: ${config.assetDir}")
+                val engine = com.example.cititor.core.tts.piper.PiperTTSEngine(context, config)
                 engine.initialize() 
                 
                 piperTts = engine
@@ -69,7 +107,7 @@ class TextToSpeechManager @Inject constructor(
                 com.example.cititor.core.audio.effects.ThreeBandEqEffect(
                     lowGainDb = 3.0f,   // +2dB Bass
                     midGainDb = 0.7f,   // +1dB Mids
-                    highGainDb = -10.0f // -12dB Treble (Very Dark)
+                    highGainDb = -0.8f // -12dB Treble (Very Dark)
                 )
             )
         )
@@ -101,13 +139,13 @@ class TextToSpeechManager @Inject constructor(
         }
     }
 
-    private var audioChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 5)
+    private var audioBufferManager: com.example.cititor.core.audio.AudioBufferManager? = null
     private var playbackJob: Job? = null
     private var synthesisJob: Job? = null
 
     // ... (rest of class)
 
-    fun speak(segments: List<TextSegment>, category: com.example.cititor.domain.model.BookCategory = com.example.cititor.domain.model.BookCategory.FICTION) {
+    fun speak(bookId: Long, segments: List<TextSegment>, category: com.example.cititor.domain.model.BookCategory = com.example.cititor.domain.model.BookCategory.FICTION, pageIndex: Int = 0) {
         if (!isInitialized) return
 
         stop() // Stop any ongoing playback
@@ -119,28 +157,36 @@ class TextToSpeechManager @Inject constructor(
         _currentSpokenWord.value = null
         _isSpeaking.value = true
         
-        // ... (channel creation) ...
-        val currentChannel = kotlinx.coroutines.channels.Channel<FloatArray>(capacity = 30)
-        audioChannel = currentChannel
+        // 1. Get native sample rate (assume 22050 if not yet initialized, but piperTts should be ready)
+        val nativeRate = piperTts?.getSampleRate() ?: 22050
+        val bufferManager = com.example.cititor.core.audio.AudioBufferManager(nativeRate, targetBufferDurationMs = 2000L)
+        audioBufferManager = bufferManager
 
         if (usePiper) {
-            // 1. Consumer: Plays audio from the channel
+            // 1. Consumer: Plays audio from the buffer
             playbackJob = scope.launch {
-               // ... (consumer logic unchanged) ...
                 try {
                     var startTime = System.currentTimeMillis()
                     var chunksPlayed = 0
                     var firstChunk = true
                     
-                    Log.d(TAG, "Audio Pipeline Started. Streaming directly...")
+                    Log.d(TAG, "Audio Pipeline Started. Waiting for 2s pre-buffer...")
 
-                    for (audioData in currentChannel) {
+                    // Double Buffer Logic: Wait until enough audio is ready
+                    bufferManager.isReady.first { it }
+                    
+                    Log.d(TAG, "✅ Pre-buffer ready (${bufferManager.bufferedDurationMs.value}ms). Starting playback.")
+
+                    while (isActive && isSpeaking.value) {
+                        val audioData = bufferManager.dequeue()
+                        yield() // Ensure cancellation check
+                        
                         // REAL-TIME MONITORING
                         val stats = com.example.cititor.core.audio.SpectralAnalyzer.analyze(audioData)
                         
                         if (firstChunk) {
                             val latency = System.currentTimeMillis() - startTime
-                            Log.d(TAG, "✅ First Chunk Received. Latency: ${latency}ms. Size: ${audioData.size}. Playing immediately.")
+                            Log.d(TAG, "✅ First Chunk Played. Total Startup Latency: ${latency}ms. Playing immediately.")
                             firstChunk = false
                         }
                         
@@ -155,13 +201,16 @@ class TextToSpeechManager @Inject constructor(
                         chunksPlayed++
                         if (DEBUG_SAVE_AUDIO) audioLogger?.appendAudio(audioData)
                     }
+                } catch (e: Exception) {
+                    if (e !is kotlinx.coroutines.CancellationException) {
+                        Log.e(TAG, "Playback consumer ended with error", e)
+                    }
                 } finally {
                     Log.d(TAG, "Playback consumer finished.")
                     if (DEBUG_SAVE_AUDIO) {
                          audioLogger?.closeSession()
                     }
-                    // Only reset state if this is still the active session
-                    if (audioChannel === currentChannel) {
+                    if (audioBufferManager === bufferManager) {
                         _isSpeaking.value = false
                         _currentSegment.value = null
                     }
@@ -172,18 +221,37 @@ class TextToSpeechManager @Inject constructor(
             synthesisJob = scope.launch {
                 var sessionStarted = false
                 try {
-                    segments.forEachIndexed { _, segment ->
-                        if (!isSpeaking.value) return@forEachIndexed
-                        // ... (synthesis logic) ...
+                    segments.forEachIndexed { segIndex, segment ->
+                        if (!isActive || !isSpeaking.value) return@forEachIndexed
+                        yield() // Check for cancellation
+
                         val text = segment.text
                          // Update current segment for UI highlighting
                          _currentSegment.value = segment
 
-                         // Use modular ProsodyEngine to decide how to speak
-                         val params = prosodyEngine.calculateParameters(segment, masterSpeed, category)
+                         // Phase 35.4: Try to Load DB Script first
+                         val dbScript = prosodyScriptDao.getScriptsForPage(bookId, pageIndex)
+                             .find { it.segmentIndex == segIndex }
                          
-                         val adjustedSpeed = params.speed ?: masterSpeed
-                         val adjustedPitch = params.pitch ?: 1.0f
+                         val finalSpeed: Float
+                         val finalPitch: Float
+                         val finalPausePost: Long
+                         val finalIntention: com.example.cititor.domain.model.ProsodyIntention
+
+                         if (dbScript != null) {
+                             Log.d(TAG, "Using DB Prosody Script for segment $segIndex")
+                             finalSpeed = dbScript.speedMultiplier * masterSpeed
+                             finalPitch = dbScript.pitchMultiplier
+                             finalPausePost = (dbScript.pausePost * masterDramatism).toLong()
+                             
+                             finalIntention = segment.intention
+                         } else {
+                             // Fallback to neutral if DB script is missing (unlikely after import)
+                             finalSpeed = masterSpeed
+                             finalPitch = 1.0f
+                             finalPausePost = 200L
+                             finalIntention = segment.intention
+                         }
                          
                          // Map the speakerId (String) to a Piper Speaker ID (Int)
                          // Narrator is usually 0, and we can assign others modularly.
@@ -194,12 +262,12 @@ class TextToSpeechManager @Inject constructor(
                          }
                          
                          var rawAudio: FloatArray? = null
-                         if (!usePiper) {
-                             androidTts?.setSpeechRate(adjustedSpeed)
-                             androidTts?.setPitch(adjustedPitch)
+                          if (!usePiper) {
+                             androidTts?.setSpeechRate(finalSpeed)
+                             androidTts?.setPitch(finalPitch)
                              androidTts?.speak(text, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
                          } else {
-                             Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $adjustedSpeed | Pitch: $adjustedPitch")
+                             Log.d(TAG, "Synthesizing segment: '${text.take(30)}...' | Speed: $finalSpeed | Pitch: $finalPitch")
                              
                              // 1. Get native sample rate from model
                              val nativeRate = piperTts?.getSampleRate() ?: 22050
@@ -219,35 +287,20 @@ class TextToSpeechManager @Inject constructor(
                             
                             // Humanize: Add slight random speed variation (+/- 4%)
                             val jitter = kotlin.random.Random.nextDouble(-0.04, 0.04).toFloat()
-                            val targetSpeed = (adjustedSpeed + jitter).coerceIn(0.5f, 1.5f)
+                            val targetSpeed = (finalSpeed + jitter).coerceIn(0.5f, 1.5f)
                             
                             // Capped pitch to avoid artifacts (0.5x to 2.0x)
-                            val safePitch = adjustedPitch.coerceIn(0.5f, 2.0f)
+                            val safePitch = finalPitch.coerceIn(0.5f, 2.0f)
                             
                             val compensatedSpeed = targetSpeed / safePitch
 
                             rawAudio = piperTts?.synthesize(text, compensatedSpeed, speakerId)
                             
-                            // 3. Inject Silence Sandwich (Pre-roll + Audio + Post-roll)
+                             // 3. Inject Silence Sandwich (Pre-roll + Audio + Post-roll)
                             if (rawAudio != null) {
                                 val preRollSamples = (nativeRate * 0.15).toInt() // 150ms Pre
                                 
-                                // Dynamic Post-Roll Logic
-                                // Priority 1: Explicit Pause from Prosody Engine (e.g. Titles)
-                                // Priority 2: Intention-based heuristic
-                                val postRollDurationMs = if (params.pausePost != null) {
-                                    params.pausePost
-                                } else {
-                                    when (segment.intention) {
-                                        com.example.cititor.domain.model.ProsodyIntention.SHOUT,
-                                        com.example.cititor.domain.model.ProsodyIntention.ADRENALINE,
-                                        com.example.cititor.domain.model.ProsodyIntention.PAIN -> 250L
-                                        com.example.cititor.domain.model.ProsodyIntention.EMPHASIS -> 300L
-                                        else -> 200L
-                                    }
-                                }
-                                
-                                val postRollSamples = (nativeRate * (postRollDurationMs / 1000.0)).toInt()
+                                val postRollSamples = (nativeRate * (finalPausePost / 1000.0)).toInt()
                                 
                                 val silencePre = FloatArray(preRollSamples) { 0f }
                                 val silencePost = FloatArray(postRollSamples) { 0f }
@@ -264,8 +317,8 @@ class TextToSpeechManager @Inject constructor(
                             rawAudio = effectProcessor?.applyNaturalization(rawAudio, segment.intention) ?: rawAudio
 
                             // Apply Pitch Shift if the prosody engine requires it
-                            if (adjustedPitch != 1.0f) {
-                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, adjustedPitch.toDouble()) ?: rawAudio
+                            if (finalPitch != 1.0f) {
+                                rawAudio = effectProcessor?.applyPitchShift(rawAudio, finalPitch.toDouble()) ?: rawAudio
                             }
                             
                             // [DEBUG] Measure POST-EQ spectrum
@@ -278,15 +331,16 @@ class TextToSpeechManager @Inject constructor(
                                 postEqStats.bassEnergy * 100
                             ))
                             
-                            currentChannel.send(rawAudio)
+                            bufferManager.enqueue(rawAudio)
                         }
                     }
-                    Log.d(TAG, "🟢 Producer: All segments synthesized. Closing channel.")
+                    Log.d(TAG, "🟢 Producer: All segments synthesized.")
                 } catch (e: Exception) {
-                    Log.e(TAG, "🔴 Producer error/crash", e)
+                    if (e !is kotlinx.coroutines.CancellationException) {
+                        Log.e(TAG, "🔴 Producer error/crash", e)
+                    }
                 } finally {
-                    Log.d(TAG, "Producer: Closing channel finally.")
-                    currentChannel.close()
+                    Log.d(TAG, "Producer: Finished.")
                 }
             }
         } else {
@@ -304,21 +358,18 @@ class TextToSpeechManager @Inject constructor(
         Log.d(TAG, "Master speed updated to: $masterSpeed")
     }
 
+    fun setMasterDramatism(dramatism: Float) {
+        this.masterDramatism = dramatism.coerceIn(0.0f, 2.0f)
+        Log.d(TAG, "Master dramatism updated to: $masterDramatism")
+    }
+
     fun stop() {
         _isSpeaking.value = false
         playbackJob?.cancel()
         synthesisJob?.cancel()
         
-        // Clear the current channel safely
-        val channelToClear = audioChannel
-        while (true) {
-            try {
-                val result = channelToClear.tryReceive()
-                if (result.isFailure) break
-            } catch (e: Exception) {
-                break
-            }
-        }
+        // Clear the current buffer safely
+        audioBufferManager?.clear()
         
         if (usePiper) {
             audioPlayer?.stop()

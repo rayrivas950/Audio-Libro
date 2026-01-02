@@ -35,7 +35,9 @@ data class ReaderState(
     val isLoading: Boolean = true,
     val isProcessing: Boolean = false,
     val processingError: String? = null, // To show worker errors
-    val highlightedTextRange: IntRange? = null
+    val highlightedTextRange: IntRange? = null,
+    val dramatism: Float = 1.0f,
+    val currentVoiceModel: String = "Miro High (ES)"
 )
 
 @HiltViewModel
@@ -67,8 +69,35 @@ class ReaderViewModel @Inject constructor(
     fun startReading() {
         val book = state.value.book
         if (book != null) {
-            textToSpeechManager.speak(state.value.pageSegments, book.category)
+            textToSpeechManager.speak(
+                bookId = book.id,
+                segments = state.value.pageSegments,
+                category = book.category,
+                pageIndex = state.value.currentPage
+            )
         }
+    }
+
+    fun updateDramatism(value: Float) {
+        _state.value = state.value.copy(dramatism = value)
+        textToSpeechManager.setMasterDramatism(value)
+    }
+
+    fun setVoiceModel(name: String) {
+        val config = when (name) {
+            "Miro High (ES)" -> com.example.cititor.core.tts.piper.PiperModelConfig(
+                assetDir = "piper/vits-piper-es_ES-miro-high",
+                modelName = "es_ES-miro-high.onnx",
+                configName = "es_ES-miro-high.onnx.json"
+            )
+            else -> com.example.cititor.core.tts.piper.PiperModelConfig(
+                assetDir = "piper/vits-piper-es_ES-miro-high",
+                modelName = "es_ES-miro-high.onnx",
+                configName = "es_ES-miro-high.onnx.json"
+            )
+        }
+        _state.value = _state.value.copy(currentVoiceModel = name)
+        textToSpeechManager.switchModel(config)
     }
 
     fun nextPage() {

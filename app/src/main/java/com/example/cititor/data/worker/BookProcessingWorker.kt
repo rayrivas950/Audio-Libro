@@ -24,7 +24,13 @@ class BookProcessingWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val extractorFactory: ExtractorFactory,
     private val cleanPageDao: CleanPageDao,
+    private val bookDao: com.example.cititor.core.database.dao.BookDao,
+    private val characterDao: com.example.cititor.core.database.dao.CharacterDao,
+    private val prosodyScriptDao: com.example.cititor.core.database.dao.ProsodyScriptDao,
+    private val characterDetector: com.example.cititor.domain.analyzer.CharacterDetector,
     private val textAnalyzer: TextAnalyzer,
+    private val advancedProsodyAnalyzer: com.example.cititor.domain.analyzer.AdvancedProsodyAnalyzer,
+    private val timbreManager: com.example.cititor.domain.analyzer.TimbreManager,
     private val json: Json
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -49,6 +55,9 @@ class BookProcessingWorker @AssistedInject constructor(
 
         val bookUri = Uri.parse(bookUriString)
         val extractor = extractorFactory.create(bookUri.toString())
+
+        val bookEntity = bookDao.getBookById(bookId)
+        val bookCategory = bookEntity?.category ?: com.example.cititor.domain.model.BookCategory.FICTION
 
         if (extractor == null) {
             val errorMsg = "Unsupported file type: $bookUriString"
@@ -92,6 +101,47 @@ class BookProcessingWorker @AssistedInject constructor(
             val noiseBlacklist = lineFrequency.filter { it.value > (totalPagesReceived * 0.3) && it.key.length > 3 }.keys
             Log.d(TAG, "Noise detection complete. Found ${noiseBlacklist.size} repetitive lines.")
 
+            // --- Phase 1.5: Character Detection (Page by Page to avoid OOM) ---
+            Log.d(TAG, "Phase 1.5: Detecting characters page by page...")
+            val detectedCharactersMap = mutableMapOf<String, com.example.cititor.domain.analyzer.CharacterDetection>()
+            
+            pageLines.forEach { lines ->
+                val pageText = lines.joinToString("\n")
+                if (pageText.isNotBlank()) {
+                    characterDetector.detectCharacters(pageText).forEach { detection ->
+                        // Manual merge logic (same as CharacterDetector but global for the book)
+                        val existing = detectedCharactersMap[detection.name]
+                        if (existing == null) {
+                            detectedCharactersMap[detection.name] = detection
+                        } else {
+                            val merged = existing.copy(
+                                description = existing.description ?: detection.description,
+                                genderHeuristic = existing.genderHeuristic ?: detection.genderHeuristic
+                            )
+                            detectedCharactersMap[detection.name] = merged
+                        }
+                    }
+                }
+            }
+            
+            val characterNameIdMap = mutableMapOf<String, Long>()
+            detectedCharactersMap.values.forEach { detection ->
+                val profile = timbreManager.generateProfile(detection)
+                val characterId = characterDao.insertCharacter(
+                    com.example.cititor.core.database.entity.CharacterEntity(
+                        bookId = bookId,
+                        name = detection.name,
+                        description = detection.description,
+                        gender = detection.genderHeuristic,
+                        basePitch = profile.pitchShift,
+                        baseSpeed = 1.0f,
+                        customTimbreJson = json.encodeToString(profile)
+                    )
+                )
+                characterNameIdMap[detection.name] = characterId
+            }
+            Log.d(TAG, "Found and saved ${detectedCharactersMap.size} characters.")
+
             // --- Phase 2: Full Analysis & Saving ---
             Log.d(TAG, "Phase 2: Full analysis and saving to database...")
             pageLines.forEachIndexed { index, lines ->
@@ -105,13 +155,24 @@ class BookProcessingWorker @AssistedInject constructor(
                     
                     val segments = textAnalyzer.analyze(cleanText)
                     
-                    if (segments.isNotEmpty()) {
-                        Log.i(TAG, "[TRACE][PAGE $index] --- FIRST SEGMENT PREVIEW ---")
-                        Log.i(TAG, segments.first().text.take(200))
+                    val prosodyScripts = advancedProsodyAnalyzer.analyzePage(cleanText, segments, bookCategory).mapIndexed { segIndex, analyzed ->
+                        com.example.cititor.core.database.entity.ProsodyScriptEntity(
+                            bookId = bookId,
+                            pageIndex = index,
+                            segmentIndex = segIndex,
+                            text = analyzed.segment.text,
+                            speakerId = null, // Simplified for now: always Narrator
+                            arousal = analyzed.instruction.arousal,
+                            valence = analyzed.instruction.valence,
+                            pausePre = analyzed.instruction.pausePre,
+                            pausePost = analyzed.instruction.pausePost,
+                            speedMultiplier = analyzed.instruction.speedMultiplier,
+                            pitchMultiplier = analyzed.instruction.pitchMultiplier
+                        )
                     }
-                    
+                    prosodyScriptDao.insertScripts(prosodyScripts)
+
                     val jsonContent = json.encodeToString(segments)
-                    
                     cleanPagesBatch.add(
                         CleanPageEntity(
                             bookId = bookId,

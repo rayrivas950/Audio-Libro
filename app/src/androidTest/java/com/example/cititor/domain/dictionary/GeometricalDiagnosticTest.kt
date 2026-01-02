@@ -30,13 +30,13 @@ class GeometricalDiagnosticTest {
             }
         }
 
-        val extractor = PdfExtractor(context)
+        val extractor = PdfExtractor()
         val uri = Uri.fromFile(pdfFile)
 
         // Specifically look at the first few pages (where "El brujo" and "I" are)
         for (i in 0..10) {
             Log.e("GEO_DIAGNOSTIC", "---- PAGE $i ----")
-            val text = extractor.extractTextFromPage(uri, i)
+            val text = extractor.extractText(context, uri, i)
             
             // We want to see the RAW logs from IndentationAwareStripper
             // Those logs are already in PdfExtractor.kt, they will appear in Logcat.
