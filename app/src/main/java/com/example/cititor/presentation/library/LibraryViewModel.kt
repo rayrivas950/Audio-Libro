@@ -37,6 +37,7 @@ class LibraryViewModel @Inject constructor(
     private val addBookUseCase: AddBookUseCase,
     private val deleteBookUseCase: DeleteBookUseCase,
     private val extractorFactory: ExtractorFactory,
+    private val coverExtractor: com.example.cititor.core.utils.CoverExtractor,
     private val application: Application,
     private val json: Json
 ) : ViewModel() {
@@ -87,12 +88,17 @@ class LibraryViewModel @Inject constructor(
                 val fileName = getFileName(uri) ?: "Untitled Book"
                 val title = fileName.substringBeforeLast('.')
                 
+                // Extract Cover
+                val isPdf = uri.toString().lowercase().endsWith(".pdf") || 
+                           application.contentResolver.getType(uri)?.contains("pdf") == true
+                val coverPath = coverExtractor.extractCover(application, uri, isPdf)
+                
                 val newBook = Book(
                     id = 0, // Room will auto-generate
                     title = title,
                     author = null, // Metadata extraction would require format-specific logic
                     filePath = uri.toString(),
-                    coverPath = null,
+                    coverPath = coverPath,
                     currentPage = 0,
                     totalPages = totalPages,
                     lastReadTimestamp = System.currentTimeMillis(),
@@ -131,6 +137,17 @@ class LibraryViewModel @Inject constructor(
 
     fun deleteBook(book: Book) {
         viewModelScope.launch {
+            // Delete cover file if exists
+            book.coverPath?.let { path ->
+                try {
+                    val file = java.io.File(path)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             deleteBookUseCase(book)
         }
     }

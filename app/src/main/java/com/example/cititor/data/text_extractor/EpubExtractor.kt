@@ -3,6 +3,7 @@ package com.example.cititor.data.text_extractor
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.core.text.HtmlCompat
 import com.example.cititor.domain.text_extractor.TextExtractor
 import com.github.mertakdut.BookSection
 import com.github.mertakdut.Reader
@@ -71,8 +72,10 @@ class EpubExtractor @Inject constructor() : TextExtractor {
             val content = bookSection?.sectionContent
             
             if (content != null) {
-                Log.d(TAG, "Successfully extracted ${content.length} characters from section $page (HTML)")
-                content
+                // Convert HTML to plain text with aggressive cleaning
+                val plainText = stripHtml(content)
+                Log.d(TAG, "Successfully extracted ${plainText.length} characters from section $page (Stripped HTML)")
+                plainText
             } else {
                 val errorMsg = "Content not available for section $page"
                 Log.w(TAG, errorMsg)
@@ -142,9 +145,11 @@ class EpubExtractor @Inject constructor() : TextExtractor {
             while (true) {
                 try {
                     val section = reader.readSection(sectionIndex)
-                    val text = section?.sectionContent ?: ""
-                    onPageExtracted(sectionIndex, text)
-                    Log.d(TAG, "Streamed EPUB section $sectionIndex (${text.length} chars)")
+                    val rawContent = section?.sectionContent ?: ""
+                    // Apply aggressive HTML stripping here too!
+                    val cleanText = stripHtml(rawContent) 
+                    onPageExtracted(sectionIndex, cleanText)
+                    Log.d(TAG, "Streamed EPUB section $sectionIndex (${cleanText.length} chars)")
                     sectionIndex++
                 } catch (e: OutOfPagesException) {
                     break
@@ -219,5 +224,25 @@ class EpubExtractor @Inject constructor() : TextExtractor {
                 }
             }
         }
+    }
+
+    private fun stripHtml(html: String): String {
+        // 1. Try to narrow down to body to avoid header metadata leaking in
+        val bodyStart = html.indexOf("<body", ignoreCase = true)
+        val contentToProcess = if (bodyStart != -1) {
+            html.substring(bodyStart)
+        } else {
+            html
+        }
+
+        // 2. HtmlCompat handles most entities and tags
+        val decoded = androidx.core.text.HtmlCompat.fromHtml(contentToProcess, androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+
+        // 3. Fallback Regex for things HtmlCompat misses
+        return decoded
+            .replace(Regex("<[^>]*>"), "")  // Remove residual tags
+            .replace(Regex("[ \\t\\xA0]+"), " ") // Normalize horizontal whitespace (spaces, tabs, nbsp) -> single space
+            .replace(Regex("\\n\\s*\\n"), "\n\n") // Normalize structural newlines (max 2)
+            .trim()
     }
 }

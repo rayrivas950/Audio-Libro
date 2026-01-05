@@ -5,11 +5,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
@@ -24,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,6 +31,22 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.cititor.presentation.navigation.Screen
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
 
 @Composable
 fun LibraryScreen(
@@ -82,56 +98,117 @@ fun LibraryScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Botón de diagnóstico al inicio
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        onClick = { viewModel.runDiagnosticTests() }
-                    ) {
-                        Icon(Icons.Default.Build, contentDescription = null)
-                        Text("  Run Diagnostic Tests")
-                    }
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            // Diagnostic Button
+            Button(
+                onClick = { viewModel.runDiagnosticTests() },
+                modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally)
+            ) {
+                Icon(Icons.Default.Build, contentDescription = null)
+                Text("  Run Diagnostic Tests")
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.books) { book ->
+                    BookCard(
+                        book = book,
+                        onClick = { navController.navigate(Screen.ReaderScreen.withArgs(book.id)) },
+                        onDelete = { bookToDelete = book }
+                    )
                 }
             }
-            
-            items(state.books) { book ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { 
-                            navController.navigate(Screen.ReaderScreen.withArgs(book.id))
-                        }
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = book.title,
-                        modifier = Modifier.weight(1f),
-                        style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
+        }
+    }
+}
+
+@Composable
+fun BookCard(
+    book: com.example.cititor.domain.model.Book,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        label = "scaleAnimation"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // Disable default ripple to emphasize the scale effect
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.7f) // Common book aspect ratio
+            ) {
+                if (book.coverPath != null) {
+                    AsyncImage(
+                        model = book.coverPath,
+                        contentDescription = "Cover of ${book.title}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
-                    
-                    androidx.compose.material3.IconButton(
-                        onClick = { bookToDelete = book }
+                } else {
+                    // Placeholder for books without covers
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(androidx.compose.ui.graphics.Color.LightGray),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete book",
-                            tint = androidx.compose.material3.MaterialTheme.colorScheme.error
+                        Text(
+                            text = book.title.take(1).uppercase(),
+                            style = androidx.compose.material3.MaterialTheme.typography.headlineLarge,
+                            color = androidx.compose.ui.graphics.Color.Gray
                         )
                     }
                 }
+                
+                // Overlay Delete Icon (Subtle)
+                androidx.compose.material3.IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete book",
+                        tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.background(
+                            color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.3f),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        ).padding(4.dp)
+                    )
+                }
             }
+            
+            Text(
+                text = book.title,
+                modifier = Modifier.padding(8.dp),
+                style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
