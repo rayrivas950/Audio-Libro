@@ -1,6 +1,7 @@
 package com.example.cititor.domain.analyzer
 
 import com.example.cititor.domain.model.DialogueSegment
+import com.example.cititor.domain.model.ImageSegment
 import com.example.cititor.domain.model.NarrationSegment
 import com.example.cititor.domain.model.ProsodyIntention
 import com.example.cititor.domain.model.TextSegment
@@ -45,6 +46,26 @@ class TextAnalyzer @Inject constructor(
             val trimmed = p.trim()
             if (trimmed.isBlank()) return@forEach
             
+            // CHECK FOR IMAGE MARKER
+            if (trimmed.startsWith("[IMAGE_REF:") && trimmed.endsWith("]")) {
+                val rawValue = trimmed.substringAfter("IMAGE_REF:").substringBeforeLast("]").trim()
+                // DEFINITIVE FIX: Remove all whitespace that might have been injected
+                // during text sanitization or auditing (e.g., "b64_xxx. jpg" -> "b64_xxx.jpg")
+                val filename = rawValue.replace("\\s".toRegex(), "")
+                
+                android.util.Log.d("TextAnalyzer", "🖼️ Extracted filename from marker: '$rawValue' -> cleaned to: '$filename'")
+                
+                if (filename.isNotBlank()) {
+                    // Reconstruct full path logic - if it's already an absolute path, use it
+                    // if it's just a filename, ReaderScreen will prefix it with cacheDir
+                    val pathForSegment = if (filename.contains("/")) filename else filename
+                    
+                    segments.add(ImageSegment(imagePath = pathForSegment, caption = "Image"))
+                    android.util.Log.d("TextAnalyzer", "   Created ImageSegment with path: '$pathForSegment'")
+                }
+                return@forEach
+            }
+
             val hasTitleMarker = trimmed.contains("[GEOMETRIC_TITLE]")
             val cleanText = trimmed.replace("[GEOMETRIC_TITLE]", "").trim()
             

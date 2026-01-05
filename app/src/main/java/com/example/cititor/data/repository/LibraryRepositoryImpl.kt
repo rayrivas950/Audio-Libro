@@ -67,6 +67,21 @@ class LibraryRepositoryImpl @Inject constructor(
                     e.printStackTrace()
                 }
             }
+            
+            // 2.5. Clean up extracted book images to prevent cache pollution
+            try {
+                val imagesDir = java.io.File(context.cacheDir, "book_images")
+                if (imagesDir.exists() && imagesDir.isDirectory) {
+                    val deletedCount = imagesDir.listFiles()?.count { it.delete() } ?: 0
+                    android.util.Log.d("LibraryRepository", "🧹 Cleaned up $deletedCount cached images from book_images/")
+                    // Optionally delete the directory itself if empty
+                    if (imagesDir.listFiles()?.isEmpty() == true) {
+                        imagesDir.delete()
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("LibraryRepository", "Error cleaning book_images directory", e)
+            }
 
             // 3. Delete from DB (CASCADE will handle clean_pages)
             dao.deleteBook(book.toEntity())

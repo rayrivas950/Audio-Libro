@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
@@ -20,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -89,46 +92,110 @@ fun ReaderScreen(
                     ) {
                         var cumulativeLength = 0
                         state.pageSegments.forEach { segment ->
-                            if (segment is com.example.cititor.domain.model.NarrationSegment) {
-                                val isChapter = segment.style == com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
-                                val segmentText = segment.text
-                                
-                                val annotatedText = buildAnnotatedString {
-                                    append(segmentText)
-                                    state.highlightedTextRange?.let { globalRange ->
-                                        val segmentStart = cumulativeLength
-                                        val segmentEnd = cumulativeLength + segmentText.length
-                                        
-                                        val intersectStart = maxOf(globalRange.first, segmentStart)
-                                        val intersectEnd = minOf(globalRange.last, segmentEnd)
-                                        
-                                        if (intersectStart <= intersectEnd) {
-                                            addStyle(
-                                                style = SpanStyle(background = Color.Yellow),
-                                                start = intersectStart - segmentStart,
-                                                end = (intersectEnd - segmentStart) + 1
+                            when (segment) {
+                                 is com.example.cititor.domain.model.ImageSegment -> {
+                                    // Clean any potential whitespace and reconstruct full path
+                                    val cleanPathStored = segment.imagePath.replace("\\s".toRegex(), "")
+                                    val imagePath = if (cleanPathStored.contains("/")) {
+                                        cleanPathStored
+                                    } else {
+                                        "${LocalContext.current.cacheDir.absolutePath}/book_images/$cleanPathStored"
+                                    }
+                                    
+                                    android.util.Log.d("ReaderScreen", "📷 ImageSegment: stored='${segment.imagePath}', cleaned='$cleanPathStored', loading='$imagePath'")
+                                    
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 12.dp),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        Column {
+                                            coil.compose.AsyncImage(
+                                                model = java.io.File(imagePath),
+                                                contentDescription = segment.caption,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .aspectRatio(1.5f), // Default aspect ratio, Coil adjusts
+                                                contentScale = ContentScale.Fit,
+                                                onError = { state ->
+                                                    android.util.Log.e("ReaderScreen", "❌ AsyncImage FAILED to load: $imagePath", state.result.throwable)
+                                                },
+                                                onLoading = {
+                                                    android.util.Log.d("ReaderScreen", "⏳ AsyncImage loading: $imagePath")
+                                                },
+                                                onSuccess = {
+                                                    android.util.Log.d("ReaderScreen", "✅ AsyncImage success: $imagePath")
+                                                }
                                             )
+                                            if (java.io.File(imagePath).exists()) {
+                                                 Text("Path: $imagePath (${java.io.File(imagePath).length()} bytes)", style = MaterialTheme.typography.bodySmall, color = Color.Gray, modifier = Modifier.padding(4.dp))
+                                            } else {
+                                                 val parent = java.io.File(imagePath).parentFile
+                                                 val files = parent?.listFiles()?.joinToString { it.name } ?: "Empty/Null"
+                                                 Text("FILE NOT FOUND: $imagePath\nDir contents: $files", style = MaterialTheme.typography.bodySmall, color = Color.Red, modifier = Modifier.padding(4.dp))
+                                            }
+                                            if (!segment.caption.isNullOrBlank()) {
+                                                Text(
+                                                    text = segment.caption,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    modifier = Modifier.padding(8.dp).align(Alignment.CenterHorizontally),
+                                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                )
+                                            }
                                         }
                                     }
+                                    // Image text length counts if we read the caption
+                                    cumulativeLength += segment.text.length
                                 }
-                                
-                                Text(
-                                    text = annotatedText,
-                                    modifier = Modifier.fillMaxWidth().padding(
-                                        vertical = if (isChapter) 16.dp else 4.dp
-                                    ),
-                                    textAlign = if (isChapter) TextAlign.Center else TextAlign.Justify,
-                                    style = if (isChapter) {
-                                        MaterialTheme.typography.headlineSmall.copy(
-                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                        )
-                                    } else {
-                                        MaterialTheme.typography.bodyLarge.copy(
-                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
-                                        )
+                                is com.example.cititor.domain.model.TextSegment -> {
+                                    // Handle Narration and Dialogue (both share basics)
+                                    val isChapter = if (segment is com.example.cititor.domain.model.NarrationSegment) {
+                                        segment.style == com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                                    } else false
+                                    
+                                    val segmentText = segment.text
+                                    
+                                    val annotatedText = buildAnnotatedString {
+                                        append(segmentText)
+                                        state.highlightedTextRange?.let { globalRange ->
+                                            val segmentStart = cumulativeLength
+                                            val segmentEnd = cumulativeLength + segmentText.length
+                                            
+                                            // Safety check for empty or invalid ranges
+                                            if (segmentStart < segmentEnd) {
+                                                val intersectStart = maxOf(globalRange.first, segmentStart)
+                                                val intersectEnd = minOf(globalRange.last, segmentEnd)
+                                                
+                                                if (intersectStart <= intersectEnd) {
+                                                    addStyle(
+                                                        style = SpanStyle(background = Color.Yellow),
+                                                        start = intersectStart - segmentStart,
+                                                        end = (intersectEnd - segmentStart) + 1
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
-                                )
-                                cumulativeLength += segmentText.length
+                                    
+                                    Text(
+                                        text = annotatedText,
+                                        modifier = Modifier.fillMaxWidth().padding(
+                                            vertical = if (isChapter) 16.dp else 4.dp
+                                        ),
+                                        textAlign = if (isChapter) TextAlign.Center else TextAlign.Justify,
+                                        style = if (isChapter) {
+                                            MaterialTheme.typography.headlineSmall.copy(
+                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                            )
+                                        } else {
+                                            MaterialTheme.typography.bodyLarge.copy(
+                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                                            )
+                                        }
+                                    )
+                                    cumulativeLength += segmentText.length
+                                }
                             }
                         }
                     }

@@ -39,3 +39,18 @@ data class DialogueSegment(
     override val speakerId: String? = null,
     override val intention: ProsodyIntention = ProsodyIntention.NEUTRAL
 ) : TextSegment
+
+/**
+ * A segment representing an illustrative image within the text.
+ */
+@Serializable
+@SerialName("image")
+data class ImageSegment(
+    val imagePath: String,
+    val caption: String? = null,
+    // Interface overrides to satisfy TextSegment (Image is silent or reads caption)
+    override val text: String = caption ?: "", 
+    override val ttsParams: TTSParameters? = null,
+    override val speakerId: String? = null,
+    override val intention: ProsodyIntention = ProsodyIntention.NEUTRAL
+) : TextSegment

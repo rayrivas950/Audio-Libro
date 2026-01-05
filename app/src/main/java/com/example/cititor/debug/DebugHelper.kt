@@ -103,6 +103,7 @@ object DebugHelper {
                 val type = when(segment) {
                     is NarrationSegment -> "Narration"
                     is DialogueSegment -> "Dialogue"
+                    is com.example.cititor.domain.model.ImageSegment -> "Image"
                 }
                 results.add("  [$index] $type: ${segment.text.take(30)}...")
                 Log.d(TAG, "Segment $index ($type): ${segment.text}")
