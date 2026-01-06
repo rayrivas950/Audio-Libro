@@ -1,5 +1,6 @@
 package com.example.cititor.app
 
+import android.app.Application
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.GifDecoder

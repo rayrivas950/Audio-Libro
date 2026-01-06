@@ -42,56 +42,67 @@ class TextAnalyzer @Inject constructor(
         // Split by 2 or more newlines (structural protection)
         val paragraphs = text.split(Regex("\\n{2,}"))
 
+        val imageMarkerRegex = Regex("\\[IMAGE_REF:\\s*(.+?)\\s*\\]")
+        
         paragraphs.forEach { p ->
             val trimmed = p.trim()
             if (trimmed.isBlank()) return@forEach
             
-            // CHECK FOR IMAGE MARKER
-            if (trimmed.startsWith("[IMAGE_REF:") && trimmed.endsWith("]")) {
-                val rawValue = trimmed.substringAfter("IMAGE_REF:").substringBeforeLast("]").trim()
-                // DEFINITIVE FIX: Remove all whitespace that might have been injected
-                // during text sanitization or auditing (e.g., "b64_xxx. jpg" -> "b64_xxx.jpg")
+            // PROCESS CONTENT WITH POTENTIAL EMBEDDED IMAGES
+            // We split the paragraph by the markers and handle each piece
+            var lastIndex = 0
+            imageMarkerRegex.findAll(trimmed).forEach { match ->
+                // Add text before the marker if it's significant
+                val textBefore = trimmed.substring(lastIndex, match.range.first).trim()
+                if (textBefore.isNotBlank()) {
+                    addNarrationOrTitle(textBefore, segments)
+                }
+                
+                // Process the IMAGE
+                val rawValue = match.groupValues[1].trim()
                 val filename = rawValue.replace("\\s".toRegex(), "")
                 
-                android.util.Log.d("TextAnalyzer", "🖼️ Extracted filename from marker: '$rawValue' -> cleaned to: '$filename'")
+                android.util.Log.d("TextAnalyzer", "🖼️ Found marker in text: '${match.value}' -> cleaned filename: '$filename'")
                 
                 if (filename.isNotBlank()) {
-                    // Reconstruct full path logic - if it's already an absolute path, use it
-                    // if it's just a filename, ReaderScreen will prefix it with cacheDir
-                    val pathForSegment = if (filename.contains("/")) filename else filename
-                    
-                    segments.add(ImageSegment(imagePath = pathForSegment, caption = "Image"))
-                    android.util.Log.d("TextAnalyzer", "   Created ImageSegment with path: '$pathForSegment'")
+                    segments.add(ImageSegment(imagePath = filename, caption = "Image"))
                 }
-                return@forEach
+                
+                lastIndex = match.range.last + 1
             }
-
-            val hasTitleMarker = trimmed.contains("[GEOMETRIC_TITLE]")
-            val cleanText = trimmed.replace("[GEOMETRIC_TITLE]", "").trim()
             
-            // ANALYZER DEFENSE: Even if the extractor says it's a title, 
-            // the analyzer double-checks if it looks like narration or dialogue.
-            val isDialogue = cleanText.startsWith("—") || cleanText.startsWith("-")
-            val significantWords = countSignificantWords(cleanText)
-            
-            // A title should not be a dialogue and should be short (allowing 4 words for flexibility)
-            val isVerifiedTitle = hasTitleMarker && !isDialogue && significantWords <= 4
-            
-            if (isVerifiedTitle) {
-                segments.add(NarrationSegment(
-                    text = cleanText,
-                    intention = ProsodyIntention.NEUTRAL,
-                    style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
-                ))
-            } else {
-                segments.add(NarrationSegment(
-                    text = cleanText,
-                    intention = ProsodyIntention.NEUTRAL,
-                    style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
-                ))
+            // Add remaining text after the last marker
+            val remainingText = trimmed.substring(lastIndex).trim()
+            if (remainingText.isNotBlank()) {
+                addNarrationOrTitle(remainingText, segments)
             }
         }
         return segments
+    }
+
+    private fun addNarrationOrTitle(trimmed: String, segments: MutableList<TextSegment>) {
+        val hasTitleMarker = trimmed.contains("[GEOMETRIC_TITLE]")
+        val cleanText = trimmed.replace("[GEOMETRIC_TITLE]", "").trim()
+        if (cleanText.isBlank()) return
+
+        val isDialogue = cleanText.startsWith("—") || cleanText.startsWith("-")
+        val significantWords = countSignificantWords(cleanText)
+        
+        val isVerifiedTitle = hasTitleMarker && !isDialogue && significantWords <= 4
+        
+        if (isVerifiedTitle) {
+            segments.add(NarrationSegment(
+                text = cleanText,
+                intention = ProsodyIntention.NEUTRAL,
+                style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+            ))
+        } else {
+            segments.add(NarrationSegment(
+                text = cleanText,
+                intention = ProsodyIntention.NEUTRAL,
+                style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+            ))
+        }
     }
 
     private val connectors = setOf(

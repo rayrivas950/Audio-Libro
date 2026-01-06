@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalContext
@@ -83,12 +84,22 @@ fun ReaderScreen(
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     val scrollState = rememberScrollState()
+                    // Determine if the page is "image-centric" (low text, at least one image)
+                    val totalWords = state.pageSegments.filterIsInstance<com.example.cititor.domain.model.NarrationSegment>().sumOf { s -> 
+                        s.text.split(Regex("\\s+")).count { it.isNotBlank() } 
+                    } + state.pageSegments.filterIsInstance<com.example.cititor.domain.model.DialogueSegment>().sumOf { s -> 
+                        s.text.split(Regex("\\s+")).count { it.isNotBlank() } 
+                    }
+                    val hasImage = state.pageSegments.any { it is com.example.cititor.domain.model.ImageSegment }
+                    val isImageCentric = hasImage && totalWords < 30
+                    
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .padding(16.dp)
                             .verticalScroll(scrollState),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = if (isImageCentric) Arrangement.Center else Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         var cumulativeLength = 0
                         state.pageSegments.forEach { segment ->
@@ -102,21 +113,28 @@ fun ReaderScreen(
                                         "${LocalContext.current.cacheDir.absolutePath}/book_images/$cleanPathStored"
                                     }
                                     
-                                    android.util.Log.d("ReaderScreen", "📷 ImageSegment: stored='${segment.imagePath}', cleaned='$cleanPathStored', loading='$imagePath'")
+                                    android.util.Log.d("ReaderScreen", "📷 ImageSegment: stored='${segment.imagePath}', cleaned='$cleanPathStored', loading='$imagePath', isImageCentric=$isImageCentric")
                                     
                                     Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 12.dp),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                            .padding(vertical = if (isImageCentric) 24.dp else 12.dp),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = if (isImageCentric) 8.dp else 4.dp),
+                                        shape = MaterialTheme.shapes.medium
                                     ) {
-                                        Column {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             coil.compose.AsyncImage(
                                                 model = java.io.File(imagePath),
                                                 contentDescription = segment.caption,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .aspectRatio(1.5f), // Default aspect ratio, Coil adjusts
+                                                modifier = if (isImageCentric) {
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .sizeIn(maxHeight = 500.dp) // Allow space for text
+                                                } else {
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .aspectRatio(1.5f)
+                                                },
                                                 contentScale = ContentScale.Fit,
                                                 onError = { state ->
                                                     android.util.Log.e("ReaderScreen", "❌ AsyncImage FAILED to load: $imagePath", state.result.throwable)
@@ -128,6 +146,8 @@ fun ReaderScreen(
                                                     android.util.Log.d("ReaderScreen", "✅ AsyncImage success: $imagePath")
                                                 }
                                             )
+                                            
+                                            // Debug information (as requested by user)
                                             if (java.io.File(imagePath).exists()) {
                                                  Text("Path: $imagePath (${java.io.File(imagePath).length()} bytes)", style = MaterialTheme.typography.bodySmall, color = Color.Gray, modifier = Modifier.padding(4.dp))
                                             } else {
@@ -135,17 +155,17 @@ fun ReaderScreen(
                                                  val files = parent?.listFiles()?.joinToString { it.name } ?: "Empty/Null"
                                                  Text("FILE NOT FOUND: $imagePath\nDir contents: $files", style = MaterialTheme.typography.bodySmall, color = Color.Red, modifier = Modifier.padding(4.dp))
                                             }
+                                            
                                             if (!segment.caption.isNullOrBlank()) {
                                                 Text(
                                                     text = segment.caption,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    modifier = Modifier.padding(8.dp).align(Alignment.CenterHorizontally),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    modifier = Modifier.padding(8.dp),
                                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                                 )
                                             }
                                         }
                                     }
-                                    // Image text length counts if we read the caption
                                     cumulativeLength += segment.text.length
                                 }
                                 is com.example.cititor.domain.model.TextSegment -> {
