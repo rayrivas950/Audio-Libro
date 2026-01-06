@@ -86,6 +86,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 
 # PDF, EPUB & Image Loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil" }
 pdfbox = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
 epub-parser = { group = "com.github.mertakdut", name = "EpubParser", version.ref = "epubParser" }
 

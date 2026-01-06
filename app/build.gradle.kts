@@ -104,6 +104,7 @@ dependencies {
 
     // PDF, EPUB & Image Loading
     implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
     implementation(libs.pdfbox)
     implementation(libs.epub.parser)
 

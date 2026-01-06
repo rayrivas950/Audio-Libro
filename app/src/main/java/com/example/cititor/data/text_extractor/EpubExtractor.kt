@@ -322,7 +322,12 @@ class EpubExtractor @Inject constructor() : TextExtractor {
             }
             
             val mimeType = cleanData.substring(5, semiColonIndex) // e.g., image/jpeg
-            val extension = if (mimeType.contains("png")) "png" else "jpg"
+            val extension = when {
+                mimeType.contains("png", ignoreCase = true) -> "png"
+                mimeType.contains("gif", ignoreCase = true) -> "gif"
+                mimeType.contains("webp", ignoreCase = true) -> "webp"
+                else -> "jpg"
+            }
             val base64Data = cleanData.substring(commaIndex + 1)
             
             // 3. Decode
