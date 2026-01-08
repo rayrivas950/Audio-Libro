@@ -153,7 +153,8 @@ class BookProcessingWorker @AssistedInject constructor(
                     Log.i(TAG, cleanText.take(200) + "...")
                     Log.i(TAG, "[TRACE][PAGE $index] --- RAW TEXT END ---")
                     
-                    val segments = textAnalyzer.analyze(cleanText)
+                    val isEpub = bookUri.toString().lowercase().endsWith(".epub")
+                    val segments = textAnalyzer.analyze(cleanText, isEpub = isEpub)
                     
                     val prosodyScripts = advancedProsodyAnalyzer.analyzePage(cleanText, segments, bookCategory).mapIndexed { segIndex, analyzed ->
                         com.example.cititor.core.database.entity.ProsodyScriptEntity(

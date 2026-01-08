@@ -23,6 +23,7 @@ class EpubExtractor @Inject constructor() : TextExtractor {
 
     companion object {
         private const val TAG = "EpubExtractor"
+        const val BLOCK_SEPARATOR = "|||BLOCK|||"
     }
 
     override suspend fun extractText(context: Context, uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
@@ -244,29 +245,140 @@ class EpubExtractor @Inject constructor() : TextExtractor {
         }
     }
 
-    private fun stripHtml(html: String): String {
-        // 1. Try to narrow down to body to avoid header metadata leaking in
+    internal fun stripHtml(html: String): String {
+        // 1. Narrow down to body
         val bodyStart = html.indexOf("<body", ignoreCase = true)
-        val contentToProcess = if (bodyStart != -1) {
-            html.substring(bodyStart)
-        } else {
-            html
+        val contentToProcess = if (bodyStart != -1) html.substring(bodyStart) else html
+
+        // Pre-clean footnotes before tokenizing
+        // Example: <a id="a8"></a><a href="../Text/notes.html#a77"><span class="super">[9]</span></a>
+        // We remove the entire anchor wrapping a superscript span
+        val footnoteRegex = Regex("""<a[^>]*>\s*<span\s+class="super"[^>]*>\[\d+\]</span>\s*</a>""", RegexOption.IGNORE_CASE)
+        val textWithoutFootnotes = contentToProcess.replace(footnoteRegex, "")
+
+        // 2. SEMANTIC SCANNER (Phase 49 & 50)
+        // This scanner uses a state machine to track style instructions and block boundaries
+        val tagOrTextRegex = Regex("<[^>]+>|[^<]+", RegexOption.IGNORE_CASE)
+        val tokens = tagOrTextRegex.findAll(textWithoutFootnotes)
+
+        val resultBuilder = StringBuilder()
+        var currentBlockText = StringBuilder()
+        var currentBlockIsTitleL = false
+        var currentBlockIsTitleM = false
+        var currentBlockIsQuote = false
+        var currentBlockIsPoem = false
+        
+        fun flushBlock(reset: Boolean = true) {
+            val text = currentBlockText.toString().trim()
+            if (text.isNotEmpty()) {
+                val prefix = when {
+                    currentBlockIsTitleL -> "[TITLE_L]"
+                    currentBlockIsTitleM -> "[TITLE_M]"
+                    currentBlockIsPoem -> "[POEM]"
+                    currentBlockIsQuote -> "[QUOTE]"
+                    else -> ""
+                }
+                val suffix = when {
+                    currentBlockIsTitleL -> "[/TITLE_L]"
+                    currentBlockIsTitleM -> "[/TITLE_M]"
+                    currentBlockIsPoem -> "[/POEM]"
+                    currentBlockIsQuote -> "[/QUOTE]"
+                    else -> ""
+                }
+                resultBuilder.append("$prefix$text$suffix$BLOCK_SEPARATOR")
+            }
+            currentBlockText = StringBuilder()
+            if (reset) {
+                currentBlockIsTitleL = false
+                currentBlockIsTitleM = false
+                // Poem state should ideally persist within the block or poem container.
+                // Resetting on every block might be too aggressive if the poem spans multiple <p> tags inside a container.
+                // However, usually <p class="poema"> is one stanza or line.
+                // If the class is on the <p>, it resets naturally. If unique container...
+                // For now, let's reset poem state on block end IF it was set by a block tag like <p class="poema">
+                // But if it was set by <blockquote> wrapper?
+                // The prompt says: <blockquote> <p class="poema"> ... </p> </blockquote>
+                // So the class is on the <p>. Resetting is correct.
+                currentBlockIsPoem = false
+                
+                // Quote state is usually persistent until </blockquote>...
+                // FIX: Do NOT reset Quote status on simple block resets unless it is </blockquote>.
+            }
         }
 
-        // 1.5 Pre-process structural tags to ensure newlines are preserved
-        // HtmlCompat sometimes collapses blocks, so we force newlines.
-        val preparedForHtmlCompat = contentToProcess
-            .replace(Regex("</(p|div|h\\d)>", RegexOption.IGNORE_CASE), "\n\n")
-            .replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")
+        for (token in tokens) {
+            val value = token.value
+            if (value.startsWith("<")) {
+                val tagLower = value.lowercase()
+                val isOpening = !tagLower.startsWith("</")
+                val isClosing = tagLower.startsWith("</")
+                
+                val isInternalBreak = tagLower.contains("<br") || tagLower.contains("<hr")
+                val isBlockBoundary = tagLower.contains(Regex("<(p|div|h\\d|section|title|/p|/div|/h\\d|/section|/title)"))
+                val isQuoteBoundary = tagLower.contains("blockquote")
 
-        // 2. HtmlCompat handles most entities and tags
-        val decoded = androidx.core.text.HtmlCompat.fromHtml(preparedForHtmlCompat, androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                if (isInternalBreak) {
+                    flushBlock(reset = false) // Keep style!
+                } else if (isBlockBoundary) {
+                     // Only reset Titles/Poem local classes. Quote status persists until </blockquote>
+                    flushBlock(reset = true) 
+                } else if (isQuoteBoundary) {
+                    // Blockquote ends -> flush and reset quote mode
+                    flushBlock(reset = true)
+                    if (isOpening) currentBlockIsQuote = true 
+                    else currentBlockIsQuote = false
+                }
 
-        // 3. Fallback Regex for things HtmlCompat misses
+                if (isOpening) {
+                    // Identify style instructions only on OPENING tags
+                    val hasLargeStyle = tagLower.contains("xx-large") || tagLower.contains("2em") || 
+                                        tagLower.contains(Regex("""class\s*=\s*["'][^"']*title[^"']*["']""", RegexOption.IGNORE_CASE))
+                    
+                    val hasMediumStyle = tagLower.contains(Regex("<h[1-6]")) || // All H tags default to Title
+                                          tagLower.contains("large") || tagLower.contains("1.5em") || 
+                                          tagLower.contains("text-align: center") ||
+                                          tagLower.contains(Regex("""class\s*=\s*["'][^"']*(chapter|subtitle|section|number)[^"']*["']""", RegexOption.IGNORE_CASE))
+                    
+                    val isPoetry = tagLower.contains("class=\"poema\"") || tagLower.contains("class=\"verse\"") ||
+                                   tagLower.contains("class=\"ring\"")
+
+                    // explicit "asangre" handling (Tolkien & Standard EPUBs) - First paragraph
+                    val isStartParagraph = tagLower.contains("class=\"asangre\"") || tagLower.contains("class=\"first\"")
+                    
+                    // Special marker for Drop Caps (often start of paragraph after title)
+                    if (tagLower.contains("class=\"capital\"")) {
+                        // Drop caps are just text, never titles.
+                        // We ensure we are NOT in a title mode effectively
+                    }
+
+                    if (isStartParagraph) {
+                        // Definitively NOT a title.
+                        currentBlockIsTitleL = false
+                        currentBlockIsTitleM = false
+                    } else if (isPoetry) {
+                         currentBlockIsPoem = true
+                         // Poetry overrides titles usually
+                         currentBlockIsTitleL = false
+                         currentBlockIsTitleM = false
+                    } else if (hasLargeStyle || tagLower.contains("h1")) {
+                        currentBlockIsTitleL = true
+                    } else if (hasMediumStyle) {
+                        currentBlockIsTitleM = true
+                    }
+                }
+            } else {
+                currentBlockText.append(value)
+            }
+        }
+        flushBlock()
+
+        // 3. HtmlCompat for entities and remaining cleanup
+        val decoded = androidx.core.text.HtmlCompat.fromHtml(resultBuilder.toString(), androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+
+        // 4. Final normalization
         return decoded
-            .replace(Regex("<[^>]*>"), "")  // Remove residual tags
-            .replace(Regex("[ \\t\\xA0]+"), " ") // Normalize horizontal whitespace (spaces, tabs, nbsp) -> single space
-            .replace(Regex("\\n\\s*\\n"), "\n\n") // Normalize structural newlines (max 2)
+            .replace(Regex("[ \\t\\xA0]+"), " ")
+            .replace(Regex("\\n\\s*\\n"), "\n\n")
             .trim()
     }
 

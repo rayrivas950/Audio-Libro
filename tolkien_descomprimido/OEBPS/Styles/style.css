@@ -1,0 +1,331 @@
+@font-face{font-family:"Ringbearer";font-style:normal;font-weight:normal;src:url(../Fonts/RINGM_.TTF)}
+@font-face{font-family:"Tolkien";font-style:normal;font-weight:normal;src:url(../Fonts/tolkien.ttf)}
+
+body { font-family: "Times New Roman", Times, serif; margin:1em; }
+
+h1 { 
+	font-family:Ringbearer,Times;
+	font-size:1.8em; 
+	padding-top:0;  
+	display:block; 
+	text-align:center; 
+	margin-top:35%;
+	}
+
+h2 { 
+	font-family:Ringbearer,Times;
+	font-size:1.6em; 
+	padding-top:0;  
+	display:block; 
+	text-align:center; 
+	margin-top:35%;
+	}
+
+h3 { 
+	font-family:Tolkien,Times;
+	font-size:1.4em; 
+	padding-top:0;  
+	display:block; 
+	text-align:center; 
+	margin-top:35%;
+	}
+
+h4 { 
+	font-size:1.2em; 
+	text-align:center;  
+	}
+
+h5 { font-size:1.1em; }
+h6 { font-size:1.0em; }
+
+p { 
+	text-align:justify; 
+	margin:0; 
+	text-indent:1.5em; 
+	line-height:1.3em; 
+	}
+
+a { text-decoration:none; }
+
+.p0 {
+	text-indent:0;
+	margin-left:0;
+	text-align:center;
+	margin-top:0;
+	margin-bottom:0
+	}
+
+.p1 { 
+	text-indent:0; 
+	margin-top:1.0em; 
+	margin-bottom:1.0em; 
+	font-size:1.0em;
+	 }
+
+blockquote { font-size:0.95em; }
+
+.poema {
+/*	font-size:0.9em;  */
+	font-style: italic; 
+	text-align:left; 
+	margin-top: 0.0em;
+	margin-left: 1.5em;
+	margin-bottom: 0.0em;
+	line-height:1.2em; 
+	text-indent:-1.5em;
+	}
+
+li { 
+	text-align:justify; 
+	margin:0.2em;
+	}
+
+sup {
+	font-size:.65em;
+	line-height: normal;
+	}
+
+.borde1 {
+	border-bottom: solid 1pt; 
+	border-top: solid 1pt; 
+	border-color:grey; 
+}
+
+.small {
+	font-size: 0.85em;
+}
+
+
+.ring { 
+	font-family: "Ringbearer", Ringbearer, Times, serif; 
+	}
+
+.tolkien { 
+	font-family: "Tolkien", tolkien, Times, serif; 
+	}
+
+.sans { 
+	font-family:"Helvetica Neue", Helvetica, Verdana, Arial, Trebuchet MS, Trebuchet, sans-serif; 
+	}
+
+.courier { 
+	font-family: "Courier", courier; 
+	}
+
+.bodymonospace {
+	font-family: monospace;
+}
+
+
+.derecha { 
+	text-align:right; 
+	}
+
+.izquierda { 
+	text-align:left; 
+	}
+
+.justificado { 
+	text-align:justify; 
+	}
+
+.centrado { 
+	text-align:center; 
+	text-indent:0 
+	}
+
+.asangre { 
+	text-indent:0 
+	}
+
+.salgria { 
+	padding-top:1.7em; 
+	text-indent:0 
+	}
+
+.tachado {
+	text-decoration:line-through
+	}
+
+.espaciado{
+	letter-spacing:.099em
+	}
+
+
+.texto-imagen { margin:0.5em; font-style: italic; font-size:.8em; text-indent:0}
+
+.citasinsalto 
+	{ 
+	margin:0em 2.5em 
+	}
+
+.negrita { 
+	font-weight: bold; 
+	}
+
+.textooculto { 
+	display:none; 
+	}
+
+
+.iniciocapitulo { 
+	margin:0em 0em 0em 6em 
+	}
+
+.saltoinicio { 
+	margin-top:35%;
+	}
+
+.capital  {
+	font-family:Tolkien,sans-serif;
+	font-size: 300%; 
+	font-weight: bold; 
+	float: left; 
+	margin: -0.1em 0.125em -0.2em 0em; 
+	text-indent: 0em; 
+	line-height: 1em; 
+	height: 1em;
+	}
+
+.versalita { 
+	font-size:75%; 
+	}
+
+.italica { 
+	font-style: italic; 
+	}
+
+.super {
+	font-size:.70em;
+	vertical-align:super; 
+	line-height: normal;
+	}
+
+.super2 {
+	font-size:30%;
+/*	vertical-align:super;  */
+	line-height: normal;
+	}
+
+.sub {
+	font-size:.70em;
+	vertical-align:sub; 
+	line-height: normal;
+	}
+
+.intro { 
+	margin-top:1em; 
+	margin-bottom:0.5em; 
+	text-indent:0; 
+	font-style: italic; 
+	font-size:.9em; 
+	}
+	.intro p { 
+	/*		text-align:right; */
+			text-indent:0;
+			}
+
+.intro-autor { 
+	margin-top:0.5em; 
+	text-align:right; 
+	font-size:.9em; 
+	}
+
+
+.dedica { 
+	margin-top:1em; 
+	margin-bottom:0.5em; 
+	text-indent:0; 
+	font-style: italic; 
+	}
+
+	.dedica p { 
+			text-align:right;
+			text-indent:0;
+			}
+
+.cita { 
+	margin:1.0em; 
+/*	font-style: italic;  */
+	text-indent:0 
+	}
+
+.cita2 { 
+	margin:0.5em 0 0.5em 2em;
+	text-indent:0; 
+	padding: 0px;
+	}
+
+.biblio {
+	text-indent:-1.6em;
+	margin-left:1.6em;
+	line-height:1;
+	margin-right:0;
+	margin-top:.55em;
+	margin-bottom:.55em;
+	font-size:100%
+	}
+
+.mail { 
+	font-family: monospace; 
+	font-weight:bold;
+	font-size:.85em; 
+	text-indent:0;
+	margin-left:1.5em;
+	}
+
+.indentado{text-indent:0 ;margin-left:1.5em;margin-top:0;margin-bottom:0}
+
+.salto { padding-bottom:2.5em; }
+.minisalto { padding-bottom:0.7em; }
+.salto1 { padding-bottom:1.0em; }
+.salto2 { padding-bottom:1.5em; }
+.salto3 { padding-top:1.0em; padding-bottom:1.0em; }
+
+/* FORMATO DE IMAGENES */
+
+.imagen { 
+	text-align: center; 
+	margin: 1em; 
+	}
+
+.imagencentrada { 
+	text-align: center; 
+	text-indent: 0; 
+	margin: 0.5em 0 0.5em 0; 
+	font-size:.8em;
+	}
+
+.imagenizquierda { 
+	float: left; 
+/*	padding: 0.5em 0.5em 1.0em 0;  */
+	padding: 0.1em 0.1em 0.1em 0.1em; 
+	text-indent: 0; 
+	font-size:.8em
+	}
+
+.imagenderecha { 
+	float: right; 
+	padding: 0.5em 0 0.5em 1.0em; 
+	text-indent: 0; 
+	}
+
+	.imagenderecha p { 
+		text-align: justify; 
+		text-indent: 0; 
+		font-style: italic; 
+		font-size:.8em; 
+		}
+
+.ancho20 { width: 20%; }
+.ancho25 { width: 25%; }
+.ancho30 { width: 30%; }
+.ancho40 { width: 40%; }
+.ancho45 { width: 45%; }
+.ancho50 { width: 50%; }
+
+
+.sinmargen { margin:0; }
+        
+     
+

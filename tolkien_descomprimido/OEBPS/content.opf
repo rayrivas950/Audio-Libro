@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:identifier id="BookId">awp2011-10-03T03:23:14Z</dc:identifier>
+    <dc:title>El Señor de los Anillos</dc:title>
+    <dc:subject>Fantasía Epica</dc:subject>
+    <dc:creator opf:role="aut">J. R. R. Tolkien</dc:creator>
+    <dc:description>El Señor de los Anillos es una novela, obra cumbre del escritor John Ronald Reuel Tolkien, ambientada en un mundo fantástico llamado la Tierra Media hacia el final de su Tercera Edad. El título hace referencia a Sauron, el Señor Oscuro de Mordor, principal villano de la historia, creador del Anillo Único que utilizó para controlar el poder de los demás Anillos. El Señor de los Anillos constituye la continuación de un libro anterior de Tolkien, El Hobbit, que cuenta la historia de cómo el Anillo del Poder pasa a las manos de Bilbo Bolsón, el tío de Frodo Bolsón. En un nivel más profundo, constituye la continuación de otro libro llamado El Silmarillion, que habla de la creación de la Tierra Media y de todas las criaturas que en ella habitan, así como del primer Señor Oscuro, maestro de Sauron, y de las luchas por los Silmarils.El Señor de los Anillos narra las aventuras de un grupo de seres: (elfos, hobbits, enanos, humanos), que forman la Comunidad del Anillo en su intento por destruir el Anillo Único, forjado por Sauron. Es la historia del héroe del pueblo llano, de aquella persona que aún sabiendo que su destino puede ser fatal, lucha por cumplirlo, pues de él depende la continuidad de su mundo.</dc:description>
+    <dc:contributor opf:role="trl">Lluis Domènech y Matilde Horne</dc:contributor>
+    <dc:date opf:event="publication">1954-01-01</dc:date>
+    <dc:language>es</dc:language>
+    <meta name="cover" content="cover" />
+    <meta content="0.5.3" name="Sigil version" />
+  </metadata>
+  <manifest>
+    <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml" />
+    <item href="Styles/style.css" id="style" media-type="text/css" />
+    <item href="Text/poema.xhtml" id="poema.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/mapa_tierra_media.xhtml" id="mapa_tierra_media.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/prologo1.xhtml" id="prologo1.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/prologo2.xhtml" id="prologo2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/prologo3.xhtml" id="prologo3.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/prologo4.xhtml" id="prologo4.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/prologo5.xhtml" id="prologo5.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/prologo6.xhtml" id="prologo6.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/volumen1.xhtml" id="volumen1.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/libro1.xhtml" id="libro1.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/mapa_comarca.xhtml" id="mapa_comarca.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-001.xhtml" id="x1-001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-002.xhtml" id="x1-002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-003.xhtml" id="x1-003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-004.xhtml" id="x1-004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-005.xhtml" id="x1-005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0004.xhtml" id="lee0004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0005.xhtml" id="lee0005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-008.xhtml" id="x1-008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0006.xhtml" id="lee0006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/1-010.xhtml" id="x1-010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0007.xhtml" id="lee0007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0009.xhtml" id="lee0009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/libro2.xhtml" id="libro2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0010.xhtml" id="lee0010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0011.xhtml" id="lee0011.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0012.xhtml" id="lee0012.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0013.xhtml" id="lee0013.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/puerta_moria.xhtml" id="puerta_moria.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0014.xhtml" id="lee0014.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0015.xhtml" id="lee0015.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0016.xhtml" id="lee0016.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0017.xhtml" id="lee0017.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/2-008.xhtml" id="x2-008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/2-009.xhtml" id="x2-009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0018.xhtml" id="lee0018.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/volumen2.xhtml" id="volumen2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/libro3.xhtml" id="libro3.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0019.xhtml" id="lee0019.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/3-002.xhtml" id="x3-002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0020.xhtml" id="lee0020.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0021.xhtml" id="lee0021.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0022.xhtml" id="lee0022.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0023.xhtml" id="lee0023.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0024.xhtml" id="lee0024.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0025.xhtml" id="lee0025.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/3-009.xhtml" id="x3-009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0026.xhtml" id="lee0026.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/3-011.xhtml" id="x3-011.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/libro4.xhtml" id="libro4.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0027.xhtml" id="lee0027.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0028.xhtml" id="lee0028.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0029.xhtml" id="lee0029.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/4-005.xhtml" id="x4-005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0031.xhtml" id="lee0031.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/4-007.xhtml" id="x4-007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0032.xhtml" id="lee0032.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0033.xhtml" id="lee0033.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0034.xhtml" id="lee0034.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/volumen3.xhtml" id="volumen3.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/mapa_gondor.xhtml" id="mapa_gondor.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/libro5.xhtml" id="libro5.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0036.xhtml" id="lee0036.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0038.xhtml" id="lee0038.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-003.xhtml" id="x5-003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0039.xhtml" id="lee0039.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-005.xhtml" id="x5-005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0041.xhtml" id="lee0041.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-007.xhtml" id="x5-007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-008.xhtml" id="x5-008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-009.xhtml" id="x5-009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-010.xhtml" id="x5-010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0042.xhtml" id="lee0042.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0043.xhtml" id="lee0043.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0044.xhtml" id="lee0044.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0045.xhtml" id="lee0045.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/6-004.xhtml" id="x6-004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0046.xhtml" id="lee0046.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0047.xhtml" id="lee0047.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0048.xhtml" id="lee0048.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/6-008.xhtml" id="x6-008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0049.xhtml" id="lee0049.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/apendices.xhtml" id="apendices.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap001.xhtml" id="ap001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap002.xhtml" id="ap002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap003.xhtml" id="ap003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap004.xhtml" id="ap004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap005.xhtml" id="ap005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap006.xhtml" id="ap006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap007.xhtml" id="ap007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap008.xhtml" id="ap008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap009.xhtml" id="ap009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap010.xhtml" id="ap010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap011.xhtml" id="ap011.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap012.xhtml" id="ap012.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap013.xhtml" id="ap013.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap014.xhtml" id="ap014.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap015.xhtml" id="ap015.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap016.xhtml" id="ap016.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap017.xhtml" id="ap017.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap018.xhtml" id="ap018.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap019.xhtml" id="ap019.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap020.xhtml" id="ap020.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap021.xhtml" id="ap021.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap022.xhtml" id="ap022.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap023.xhtml" id="ap023.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap024.xhtml" id="ap024.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap025.xhtml" id="ap025.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap026.xhtml" id="ap026.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap027.xhtml" id="ap027.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap028.xhtml" id="ap028.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap029.xhtml" id="ap029.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap030.xhtml" id="ap030.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap031.xhtml" id="ap031.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap032.xhtml" id="ap032.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap033.xhtml" id="ap033.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap034.xhtml" id="ap034.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap035.xhtml" id="ap035.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap036.xhtml" id="ap036.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap037.xhtml" id="ap037.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap038.xhtml" id="ap038.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap039.xhtml" id="ap039.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap040.xhtml" id="ap040.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap041.xhtml" id="ap041.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap042.xhtml" id="ap042.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap043.xhtml" id="ap043.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap044.xhtml" id="ap044.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/ap045.xhtml" id="ap045.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/notes.html" id="idnotes" media-type="application/xhtml+xml" />
+    <item href="Fonts/RINGM_.TTF" id="idfont1" media-type="application/vnd-ms-opentype" />
+    <item href="Fonts/tolkien.ttf" id="idfont2" media-type="application/x-font-ttf" />
+    <item href="Images/cover.jpg" id="cover" media-type="image/jpeg" />
+    <item href="Images/img2.jpg" id="img2" media-type="image/jpeg" />
+    <item href="Images/img3.png" id="img3" media-type="image/png" />
+    <item href="Images/img4.jpg" id="img4" media-type="image/jpeg" />
+    <item href="Images/img5.jpg" id="img5" media-type="image/jpeg" />
+    <item href="Images/img6.jpg" id="img6" media-type="image/jpeg" />
+    <item href="Images/img8.jpg" id="img8" media-type="image/jpeg" />
+    <item href="Images/img9.jpg" id="img9" media-type="image/jpeg" />
+    <item href="Images/img10.jpg" id="img10" media-type="image/jpeg" />
+    <item href="Images/img11.jpg" id="img11" media-type="image/jpeg" />
+    <item href="Images/img12.jpg" id="img12" media-type="image/jpeg" />
+    <item href="Images/img13.jpg" id="img13" media-type="image/jpeg" />
+    <item href="Images/img14.jpg" id="img14" media-type="image/jpeg" />
+    <item href="Images/img15.jpg" id="img15" media-type="image/jpeg" />
+    <item href="Images/img16.jpg" id="img16" media-type="image/jpeg" />
+    <item href="Images/img17.jpg" id="img17" media-type="image/jpeg" />
+    <item href="Images/img18.jpg" id="img18" media-type="image/jpeg" />
+    <item href="Images/img19.jpg" id="img19" media-type="image/jpeg" />
+    <item href="Images/one_ring_inscription.png" id="one_ring_inscription.png" media-type="image/png" />
+    <item href="Text/cubierta.xhtml" id="cubierta.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/sinopsis.xhtml" id="sinopsis.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/ePUBlogo.png" id="ePUBlogo.png" media-type="image/png" />
+    <item href="Images/epubgratis.png" id="epubgratis.png" media-type="image/png" />
+    <item href="Text/titulo.xhtml" id="titulo.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/info.xhtml" id="info.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0001.xhtml" id="lee0001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/01-bag_end.jpg" id="x01-bag_end.jpg" media-type="image/jpeg" />
+    <item href="Text/lee0002.xhtml" id="lee0002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/03_gandalf_and_bilbo.jpg" id="x03_gandalf_and_bilbo.jpg" media-type="image/jpeg" />
+    <item href="Text/lee0003.xhtml" id="lee0003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/04_with_the_elves.jpg" id="x04_with_the_elves.jpg" media-type="image/jpeg" />
+    <item href="Text/1-006.xhtml" id="x1-006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/05_the_old_forest.jpg" id="x05_the_old_forest.jpg" media-type="image/jpeg" />
+    <item href="Text/1-007.xhtml" id="x1-007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/06_the_house_of_tom_bombadil.jpg" id="x06_the_house_of_tom_bombadil.jpg" media-type="image/jpeg" />
+    <item href="Text/1-009.xhtml" id="x1-009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/07_at_the_prancing_pony.jpg" id="x07_at_the_prancing_pony.jpg" media-type="image/jpeg" />
+    <item href="Text/lee0008.xhtml" id="lee0008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/08_black_riders.jpg" id="x08_black_riders.jpg" media-type="image/jpeg" />
+    <item href="Text/1-011.xhtml" id="x1-011.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/09_tinuviel.jpg" id="x09_tinuviel.jpg" media-type="image/jpeg" />
+    <item href="Text/1-012.xhtml" id="x1-012.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/10_trolls.jpg" id="x10_trolls.jpg" media-type="image/jpeg" />
+    <item href="Text/2-001.xhtml" id="x2-001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/11_rivendell.jpg" id="x11_rivendell.jpg" media-type="image/jpeg" />
+    <item href="Text/2-002.xhtml" id="x2-002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/12_council_of_elrond.jpg" id="x12_council_of_elrond.jpg" media-type="image/jpeg" />
+    <item href="Text/2-003.xhtml" id="x2-003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/13_caradhras.jpg" id="x13_caradhras.jpg" media-type="image/jpeg" />
+    <item href="Text/2-004.xhtml" id="x2-004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/14_gates_of_moria.jpg" id="x14_gates_of_moria.jpg" media-type="image/jpeg" />
+    <item href="Text/2-004-2.xhtml" id="x2-004-2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/15_halls_of_durin.jpg" id="x15_halls_of_durin.jpg" media-type="image/jpeg" />
+    <item href="Text/2-005.xhtml" id="x2-005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/16_nimrodel.jpg" id="x16_nimrodel.jpg" media-type="image/jpeg" />
+    <item href="Text/2-006.xhtml" id="x2-006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/17_lothlorien.jpg" id="x17_lothlorien.jpg" media-type="image/jpeg" />
+    <item href="Text/2-007.xhtml" id="x2-007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/18_mirror_of_galadriel.jpg" id="x18_mirror_of_galadriel.jpg" media-type="image/jpeg" />
+    <item href="Text/2-010.xhtml" id="x2-010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/19_stairs_of_amon_hen.jpg" id="x19_stairs_of_amon_hen.jpg" media-type="image/jpeg" />
+    <item href="Text/3-001.xhtml" id="x3-001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/20_orc_hunting.jpg" id="x20_orc_hunting.jpg" media-type="image/jpeg" />
+    <item href="Text/3-003.xhtml" id="x3-003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/21_merry_and_pippin_in_fangorn.jpg" id="x21_merry_and_pippin_in_fangorn.jpg" media-type="image/jpeg" />
+    <item href="Text/3-004.xhtml" id="x3-004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/22_treebeard.jpg" id="x22_treebeard.jpg" media-type="image/jpeg" />
+    <item href="Text/3-005.xhtml" id="x3-005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/23_footprints_by_the_Entwash.jpg" id="x23_footprints_by_the_Entwash.jpg" media-type="image/jpeg" />
+    <item href="Text/3-006.xhtml" id="x3-006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/24_edoras.jpg" id="x24_edoras.jpg" media-type="image/jpeg" />
+    <item href="Text/3-007.xhtml" id="x3-007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/25_attacking_helms_deep.jpg" id="x25_attacking_helms_deep.jpg" media-type="image/jpeg" />
+    <item href="Text/3-008.xhtml" id="x3-008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/26_the_isen.jpg" id="x26_the_isen.jpg" media-type="image/jpeg" />
+    <item href="Text/3-010.xhtml" id="x3-010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/27_orthanc.jpg" id="x27_orthanc.jpg" media-type="image/jpeg" />
+    <item href="Text/4-001.xhtml" id="x4-001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/28_the_taming_of_smeagol.jpg" id="x28_the_taming_of_smeagol.jpg" media-type="image/jpeg" />
+    <item href="Text/4-002.xhtml" id="x4-002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/29_the_marshes.jpg" id="x29_the_marshes.jpg" media-type="image/jpeg" />
+    <item href="Text/4-003.xhtml" id="x4-003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/30_the_black_gate.jpg" id="x30_the_black_gate.jpg" media-type="image/jpeg" />
+    <item href="Text/4-004.xhtml" id="x4-004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/lee0030.xhtml" id="lee0030.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/31_the_oliphaunt.jpg" id="x31_the_oliphaunt.jpg" media-type="image/jpeg" />
+    <item href="Text/4-006.xhtml" id="x4-006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/32_minas_ithil.jpg" id="x32_minas_ithil.jpg" media-type="image/jpeg" />
+    <item href="Text/4-008.xhtml" id="x4-008.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/33_cirith_ungol.jpg" id="x33_cirith_ungol.jpg" media-type="image/jpeg" />
+    <item href="Text/4-009.xhtml" id="x4-009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/34_shelob.jpg" id="x34_shelob.jpg" media-type="image/jpeg" />
+    <item href="Text/4-010.xhtml" id="x4-010.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/35_frodo_lives.jpg" id="x35_frodo_lives.jpg" media-type="image/jpeg" />
+    <item href="Text/lee0035.xhtml" id="lee0035.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-001.xhtml" id="x5-001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/36_denethor_eteward_of_minas_tirith.jpg" id="x36_denethor_eteward_of_minas_tirith.jpg" media-type="image/jpeg" />
+    <item href="Text/5-001-2.xhtml" id="x5-001-2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/37_the_white_city.jpg" id="x37_the_white_city.jpg" media-type="image/jpeg" />
+    <item href="Text/lee0037.xhtml" id="lee0037.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-002.xhtml" id="x5-002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/38_aragorn_and_eowyn.jpg" id="x38_aragorn_and_eowyn.jpg" media-type="image/jpeg" />
+    <item href="Text/5-002-2.xhtml" id="x5-002-2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/39_dunharrow.jpg" id="x39_dunharrow.jpg" media-type="image/jpeg" />
+    <item href="Text/5-004.xhtml" id="x5-004.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/40_the_siege_of_gondor.jpg" id="x40_the_siege_of_gondor.jpg" media-type="image/jpeg" />
+    <item href="Text/lee0040.xhtml" id="lee0040.xhtml" media-type="application/xhtml+xml" />
+    <item href="Text/5-006.xhtml" id="x5-006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/41_the_battle_of_the_pelennor_fields.jpg" id="x41_the_battle_of_the_pelennor_fields.jpg" media-type="image/jpeg" />
+    <item href="Text/5-006-2.xhtml" id="x5-006-2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/42_after_the_battle.jpg" id="x42_after_the_battle.jpg" media-type="image/jpeg" />
+    <item href="Text/libro6.xhtml" id="libro6.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/43_barad_dur.jpg" id="x43_barad_dur.jpg" media-type="image/jpeg" />
+    <item href="Text/6-001.xhtml" id="x6-001.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/44_cirith_ungol.jpg" id="x44_cirith_ungol.jpg" media-type="image/jpeg" />
+    <item href="Text/6-002.xhtml" id="x6-002.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/45_the_land_of_shadow.jpg" id="x45_the_land_of_shadow.jpg" media-type="image/jpeg" />
+    <item href="Text/6-003.xhtml" id="x6-003.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/46_mount_doom.jpg" id="x46_mount_doom.jpg" media-type="image/jpeg" />
+    <item href="Text/6-005.xhtml" id="x6-005.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/48_the_white_tree.jpg" id="x48_the_white_tree.jpg" media-type="image/jpeg" />
+    <item href="Text/6-006.xhtml" id="x6-006.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/49_bilbo.jpg" id="x49_bilbo.jpg" media-type="image/jpeg" />
+    <item href="Text/6-007.xhtml" id="x6-007.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/50_the_scouring_of_the_shire.jpg" id="x50_the_scouring_of_the_shire.jpg" media-type="image/jpeg" />
+    <item href="Text/6-009.xhtml" id="x6-009.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/51_ring_sail_west.jpg" id="x51_ring_sail_west.jpg" media-type="image/jpeg" />
+    <item href="Text/mapa_tierra_media2.xhtml" id="mapa_tierra_media2.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/mapa2.jpg" id="mapa2.jpg" media-type="image/jpeg" />
+    <item href="Text/autor.xhtml" id="autor.xhtml" media-type="application/xhtml+xml" />
+    <item href="Images/autor.jpg" id="autor.jpg" media-type="image/jpeg" />
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="cubierta.xhtml" />
+    <itemref idref="sinopsis.xhtml" />
+    <itemref idref="titulo.xhtml" />
+    <itemref idref="info.xhtml" />
+    <itemref idref="poema.xhtml" />
+    <itemref idref="mapa_tierra_media.xhtml" />
+    <itemref idref="mapa_tierra_media2.xhtml" />
+    <itemref idref="prologo1.xhtml" />
+    <itemref idref="prologo2.xhtml" />
+    <itemref idref="prologo3.xhtml" />
+    <itemref idref="prologo4.xhtml" />
+    <itemref idref="prologo5.xhtml" />
+    <itemref idref="prologo6.xhtml" />
+    <itemref idref="volumen1.xhtml" />
+    <itemref idref="libro1.xhtml" />
+    <itemref idref="mapa_comarca.xhtml" />
+    <itemref idref="x1-001.xhtml" />
+    <itemref idref="lee0001.xhtml" />
+    <itemref idref="x1-002.xhtml" />
+    <itemref idref="lee0002.xhtml" />
+    <itemref idref="x1-003.xhtml" />
+    <itemref idref="lee0003.xhtml" />
+    <itemref idref="x1-004.xhtml" />
+    <itemref idref="x1-005.xhtml" />
+    <itemref idref="x1-006.xhtml" />
+    <itemref idref="lee0004.xhtml" />
+    <itemref idref="x1-007.xhtml" />
+    <itemref idref="lee0005.xhtml" />
+    <itemref idref="x1-008.xhtml" />
+    <itemref idref="x1-009.xhtml" />
+    <itemref idref="lee0006.xhtml" />
+    <itemref idref="x1-010.xhtml" />
+    <itemref idref="lee0007.xhtml" />
+    <itemref idref="x1-011.xhtml" />
+    <itemref idref="lee0008.xhtml" />
+    <itemref idref="x1-012.xhtml" />
+    <itemref idref="lee0009.xhtml" />
+    <itemref idref="libro2.xhtml" />
+    <itemref idref="x2-001.xhtml" />
+    <itemref idref="lee0010.xhtml" />
+    <itemref idref="x2-002.xhtml" />
+    <itemref idref="lee0011.xhtml" />
+    <itemref idref="x2-003.xhtml" />
+    <itemref idref="lee0012.xhtml" />
+    <itemref idref="x2-004.xhtml" />
+    <itemref idref="lee0013.xhtml" />
+    <itemref idref="puerta_moria.xhtml" />
+    <itemref idref="x2-004-2.xhtml" />
+    <itemref idref="lee0014.xhtml" />
+    <itemref idref="x2-005.xhtml" />
+    <itemref idref="lee0015.xhtml" />
+    <itemref idref="x2-006.xhtml" />
+    <itemref idref="lee0016.xhtml" />
+    <itemref idref="x2-007.xhtml" />
+    <itemref idref="lee0017.xhtml" />
+    <itemref idref="x2-008.xhtml" />
+    <itemref idref="x2-009.xhtml" />
+    <itemref idref="x2-010.xhtml" />
+    <itemref idref="lee0018.xhtml" />
+    <itemref idref="volumen2.xhtml" />
+    <itemref idref="libro3.xhtml" />
+    <itemref idref="x3-001.xhtml" />
+    <itemref idref="lee0019.xhtml" />
+    <itemref idref="x3-002.xhtml" />
+    <itemref idref="x3-003.xhtml" />
+    <itemref idref="lee0020.xhtml" />
+    <itemref idref="x3-004.xhtml" />
+    <itemref idref="lee0021.xhtml" />
+    <itemref idref="x3-005.xhtml" />
+    <itemref idref="lee0022.xhtml" />
+    <itemref idref="x3-006.xhtml" />
+    <itemref idref="lee0023.xhtml" />
+    <itemref idref="x3-007.xhtml" />
+    <itemref idref="lee0024.xhtml" />
+    <itemref idref="x3-008.xhtml" />
+    <itemref idref="lee0025.xhtml" />
+    <itemref idref="x3-009.xhtml" />
+    <itemref idref="x3-010.xhtml" />
+    <itemref idref="lee0026.xhtml" />
+    <itemref idref="x3-011.xhtml" />
+    <itemref idref="libro4.xhtml" />
+    <itemref idref="x4-001.xhtml" />
+    <itemref idref="lee0027.xhtml" />
+    <itemref idref="x4-002.xhtml" />
+    <itemref idref="lee0028.xhtml" />
+    <itemref idref="x4-003.xhtml" />
+    <itemref idref="lee0029.xhtml" />
+    <itemref idref="x4-004.xhtml" />
+    <itemref idref="lee0030.xhtml" />
+    <itemref idref="x4-005.xhtml" />
+    <itemref idref="x4-006.xhtml" />
+    <itemref idref="lee0031.xhtml" />
+    <itemref idref="x4-007.xhtml" />
+    <itemref idref="x4-008.xhtml" />
+    <itemref idref="lee0032.xhtml" />
+    <itemref idref="x4-009.xhtml" />
+    <itemref idref="lee0033.xhtml" />
+    <itemref idref="x4-010.xhtml" />
+    <itemref idref="lee0034.xhtml" />
+    <itemref idref="volumen3.xhtml" />
+    <itemref idref="mapa_gondor.xhtml" />
+    <itemref idref="libro5.xhtml" />
+    <itemref idref="x5-001.xhtml" />
+    <itemref idref="lee0035.xhtml" />
+    <itemref idref="x5-001-2.xhtml" />
+    <itemref idref="lee0036.xhtml" />
+    <itemref idref="x5-002.xhtml" />
+    <itemref idref="lee0037.xhtml" />
+    <itemref idref="x5-002-2.xhtml" />
+    <itemref idref="lee0038.xhtml" />
+    <itemref idref="x5-003.xhtml" />
+    <itemref idref="x5-004.xhtml" />
+    <itemref idref="lee0039.xhtml" />
+    <itemref idref="x5-005.xhtml" />
+    <itemref idref="x5-006.xhtml" />
+    <itemref idref="lee0040.xhtml" />
+    <itemref idref="x5-006-2.xhtml" />
+    <itemref idref="lee0041.xhtml" />
+    <itemref idref="x5-007.xhtml" />
+    <itemref idref="x5-008.xhtml" />
+    <itemref idref="x5-009.xhtml" />
+    <itemref idref="x5-010.xhtml" />
+    <itemref idref="libro6.xhtml" />
+    <itemref idref="lee0042.xhtml" />
+    <itemref idref="x6-001.xhtml" />
+    <itemref idref="lee0043.xhtml" />
+    <itemref idref="x6-002.xhtml" />
+    <itemref idref="lee0044.xhtml" />
+    <itemref idref="x6-003.xhtml" />
+    <itemref idref="lee0045.xhtml" />
+    <itemref idref="x6-004.xhtml" />
+    <itemref idref="x6-005.xhtml" />
+    <itemref idref="lee0046.xhtml" />
+    <itemref idref="x6-006.xhtml" />
+    <itemref idref="lee0047.xhtml" />
+    <itemref idref="x6-007.xhtml" />
+    <itemref idref="lee0048.xhtml" />
+    <itemref idref="x6-008.xhtml" />
+    <itemref idref="x6-009.xhtml" />
+    <itemref idref="lee0049.xhtml" />
+    <itemref idref="apendices.xhtml" />
+    <itemref idref="ap001.xhtml" />
+    <itemref idref="ap002.xhtml" />
+    <itemref idref="ap003.xhtml" />
+    <itemref idref="ap004.xhtml" />
+    <itemref idref="ap005.xhtml" />
+    <itemref idref="ap006.xhtml" />
+    <itemref idref="ap007.xhtml" />
+    <itemref idref="ap008.xhtml" />
+    <itemref idref="ap009.xhtml" />
+    <itemref idref="ap010.xhtml" />
+    <itemref idref="ap011.xhtml" />
+    <itemref idref="ap012.xhtml" />
+    <itemref idref="ap013.xhtml" />
+    <itemref idref="ap014.xhtml" />
+    <itemref idref="ap015.xhtml" />
+    <itemref idref="ap016.xhtml" />
+    <itemref idref="ap017.xhtml" />
+    <itemref idref="ap018.xhtml" />
+    <itemref idref="ap019.xhtml" />
+    <itemref idref="ap020.xhtml" />
+    <itemref idref="ap021.xhtml" />
+    <itemref idref="ap022.xhtml" />
+    <itemref idref="ap023.xhtml" />
+    <itemref idref="ap024.xhtml" />
+    <itemref idref="ap025.xhtml" />
+    <itemref idref="ap026.xhtml" />
+    <itemref idref="ap027.xhtml" />
+    <itemref idref="ap028.xhtml" />
+    <itemref idref="ap029.xhtml" />
+    <itemref idref="ap030.xhtml" />
+    <itemref idref="ap031.xhtml" />
+    <itemref idref="ap032.xhtml" />
+    <itemref idref="ap033.xhtml" />
+    <itemref idref="ap034.xhtml" />
+    <itemref idref="ap035.xhtml" />
+    <itemref idref="ap036.xhtml" />
+    <itemref idref="ap037.xhtml" />
+    <itemref idref="ap038.xhtml" />
+    <itemref idref="ap039.xhtml" />
+    <itemref idref="ap040.xhtml" />
+    <itemref idref="ap041.xhtml" />
+    <itemref idref="ap042.xhtml" />
+    <itemref idref="ap043.xhtml" />
+    <itemref idref="ap044.xhtml" />
+    <itemref idref="ap045.xhtml" />
+    <itemref idref="autor.xhtml" />
+    <itemref idref="idnotes" />
+  </spine>
+  <guide>
+    <reference href="Text/cubierta.xhtml" title="Cover" type="cover" />
+    <reference href="Text/titulo.xhtml" title="Title Page" type="title-page" />
+    <reference href="Text/info.xhtml" title="Copyright Page" type="copyright-page" />
+  </guide>
+</package>

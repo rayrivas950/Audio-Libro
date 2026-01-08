@@ -21,16 +21,22 @@ class TextSanitizer @Inject constructor(
      * Cleans a string by removing all HTML tags, normalizing whitespace,
      * and correcting stuck words (e.g., "yque" -> "y que").
      * @param text The input string, potentially containing HTML tags and other artifacts.
+     * @param isEpub Whether the text comes from an EPUB (allowing for more structural preservation).
      * @return A plain text string, ready for TTS processing or display.
      */
-    fun sanitize(text: String): String {
+    fun sanitize(text: String, isEpub: Boolean = false): String {
         if (text.isBlank()) return text
         
-        // 1. Unir líneas para dar fluidez al párrafo
-        val textWithJoinedLines = joinLines(text)
+        // 1. Unir líneas para dar fluidez al párrafo (solo si no es EPUB, ya que EPUB ya viene estructurado)
+        val processedText = if (isEpub) {
+             // For EPUB, we just normalize excessive newlines but keep single ones
+             text.replace(Regex("\\n{3,}"), "\n\n")
+        } else {
+             joinLines(text)
+        }
         
         // 2. Corregir espaciado de puntuación gramatical
-        val fixedPunctuation = fixPunctuation(textWithJoinedLines)
+        val fixedPunctuation = fixPunctuation(processedText)
         
         // 3. Eliminar números romanos aislados (numeración de capítulos: I, II, III, etc.)
         val finalResult = removeRomanNumeralChapterMarkers(fixedPunctuation)

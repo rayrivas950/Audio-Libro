@@ -28,8 +28,8 @@ class TextAnalyzer @Inject constructor(
     /**
      * Analyzes a raw string, sanitizes it, and splits it into a list of TextSegments.
      */
-    fun analyze(rawText: String): List<TextSegment> {
-        val sanitized = textSanitizer.sanitize(rawText)
+    fun analyze(rawText: String, isEpub: Boolean = false): List<TextSegment> {
+        val sanitized = textSanitizer.sanitize(rawText, isEpub = isEpub)
         val audited = consistencyAuditor.auditAndRepair(sanitized)
         
         return splitByStructure(audited)
@@ -39,8 +39,12 @@ class TextAnalyzer @Inject constructor(
         if (text.isEmpty()) return emptyList()
         
         val segments = mutableListOf<TextSegment>()
-        // Split by 2 or more newlines (structural protection)
-        val paragraphs = text.split(Regex("\\n{2,}"))
+        // Split by the Definitive Separator (or fallback to newlines)
+        val paragraphs = if (text.contains(com.example.cititor.data.text_extractor.EpubExtractor.BLOCK_SEPARATOR)) {
+             text.split(com.example.cititor.data.text_extractor.EpubExtractor.BLOCK_SEPARATOR)
+        } else {
+             text.split(Regex("\\n{2,}"))
+        }
 
         val imageMarkerRegex = Regex("\\[IMAGE_REF:\\s*(.+?)\\s*\\]")
         
@@ -81,26 +85,53 @@ class TextAnalyzer @Inject constructor(
     }
 
     private fun addNarrationOrTitle(trimmed: String, segments: MutableList<TextSegment>) {
-        val hasTitleMarker = trimmed.contains("[GEOMETRIC_TITLE]")
-        val cleanText = trimmed.replace("[GEOMETRIC_TITLE]", "").trim()
-        if (cleanText.isBlank()) return
+        val hasTitleL = trimmed.contains("[TITLE_L]")
+        val hasTitleM = trimmed.contains("[TITLE_M]")
+        val hasChapterMarker = trimmed.contains("[GEOMETRIC_TITLE]")
+        
+        val cleanFullText = trimmed
+            .replace("[TITLE_L]", "")
+            .replace("[/TITLE_L]", "")
+            .replace("[TITLE_M]", "")
+            .replace("[/TITLE_M]", "")
+            .replace("[QUOTE]", "")
+            .replace("[/QUOTE]", "")
+            .replace("[POEM]", "")
+            .replace("[/POEM]", "")
+            .replace("[GEOMETRIC_TITLE]", "")
+            .replace("[/GEOMETRIC_TITLE]", "")
+            .trim()
+            
+        if (cleanFullText.isBlank()) return
 
-        val isDialogue = cleanText.startsWith("—") || cleanText.startsWith("-")
-        val significantWords = countSignificantWords(cleanText)
+        val isDialogue = cleanFullText.startsWith("—") || cleanFullText.startsWith("-")
+        val significantWords = countSignificantWords(cleanFullText)
         
-        val isVerifiedTitle = hasTitleMarker && !isDialogue && significantWords <= 4
+        // Simple split by newline (injected by extractor for healing)
+        val parts = cleanFullText.split("\n").filter { it.isNotBlank() }
         
-        if (isVerifiedTitle) {
+        parts.forEachIndexed { index, partText ->
+            val isFirstPart = index == 0
+            val partTrimmed = partText.trim()
+            if (partTrimmed.isEmpty()) return@forEachIndexed
+            
+            val isPartDialogue = partTrimmed.startsWith("—") || partTrimmed.startsWith("-")
+            val partSignificantWords = countSignificantWords(partTrimmed)
+            
+            // Priority: Only the first part can be a Title if it was marked as such.
+            val style = when {
+                isFirstPart && hasTitleL -> com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE
+                isFirstPart && hasTitleM -> com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM
+                isFirstPart && trimmed.contains("[QUOTE]") -> com.example.cititor.domain.model.NarrationStyle.DRAMATIC
+                isFirstPart && trimmed.contains("[POEM]") -> com.example.cititor.domain.model.NarrationStyle.POETRY
+                isFirstPart && hasChapterMarker && !isPartDialogue && partSignificantWords <= 6 -> com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                else -> com.example.cititor.domain.model.NarrationStyle.`NEUTRAL`
+            }
+            
             segments.add(NarrationSegment(
-                text = cleanText,
+                text = partTrimmed,
                 intention = ProsodyIntention.NEUTRAL,
-                style = com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
-            ))
-        } else {
-            segments.add(NarrationSegment(
-                text = cleanText,
-                intention = ProsodyIntention.NEUTRAL,
-                style = com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+                style = style
             ))
         }
     }

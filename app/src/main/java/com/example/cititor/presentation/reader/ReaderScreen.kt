@@ -28,6 +28,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Divider
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -91,14 +93,17 @@ fun ReaderScreen(
                         s.text.split(Regex("\\s+")).count { it.isNotBlank() } 
                     }
                     val hasImage = state.pageSegments.any { it is com.example.cititor.domain.model.ImageSegment }
+                    val hasLargeTitle = state.pageSegments.any { it is com.example.cititor.domain.model.NarrationSegment && it.style == com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE }
                     val isImageCentric = hasImage && totalWords < 30
+                    val isTitleCentric = hasLargeTitle && totalWords < 15
+                    val isInmersive = isImageCentric || isTitleCentric
                     
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .padding(16.dp)
                             .verticalScroll(scrollState),
-                        verticalArrangement = if (isImageCentric) Arrangement.Center else Arrangement.spacedBy(8.dp),
+                        verticalArrangement = if (isInmersive) Arrangement.Center else Arrangement.spacedBy(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         var cumulativeLength = 0
@@ -113,20 +118,20 @@ fun ReaderScreen(
                                         "${LocalContext.current.cacheDir.absolutePath}/book_images/$cleanPathStored"
                                     }
                                     
-                                    android.util.Log.d("ReaderScreen", "📷 ImageSegment: stored='${segment.imagePath}', cleaned='$cleanPathStored', loading='$imagePath', isImageCentric=$isImageCentric")
+                                    android.util.Log.d("ReaderScreen", "📷 ImageSegment: stored='${segment.imagePath}', cleaned='$cleanPathStored', loading='$imagePath', isInmersive=$isInmersive")
                                     
                                     Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = if (isImageCentric) 24.dp else 12.dp),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = if (isImageCentric) 8.dp else 4.dp),
+                                            .padding(vertical = if (isInmersive) 24.dp else 12.dp),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = if (isInmersive) 8.dp else 4.dp),
                                         shape = MaterialTheme.shapes.medium
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             coil.compose.AsyncImage(
                                                 model = java.io.File(imagePath),
                                                 contentDescription = segment.caption,
-                                                modifier = if (isImageCentric) {
+                                                modifier = if (isInmersive) {
                                                     Modifier
                                                         .fillMaxWidth()
                                                         .sizeIn(maxHeight = 500.dp) // Allow space for text
@@ -168,11 +173,12 @@ fun ReaderScreen(
                                     }
                                     cumulativeLength += segment.text.length
                                 }
-                                is com.example.cititor.domain.model.TextSegment -> {
+                                 is com.example.cititor.domain.model.TextSegment -> {
                                     // Handle Narration and Dialogue (both share basics)
-                                    val isChapter = if (segment is com.example.cititor.domain.model.NarrationSegment) {
-                                        segment.style == com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
-                                    } else false
+                                    val style = if (segment is com.example.cititor.domain.model.NarrationSegment) segment.style else com.example.cititor.domain.model.NarrationStyle.NEUTRAL
+                                    val isTitle = style == com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE || 
+                                                 style == com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM ||
+                                                 style == com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
                                     
                                     val segmentText = segment.text
                                     
@@ -182,7 +188,6 @@ fun ReaderScreen(
                                             val segmentStart = cumulativeLength
                                             val segmentEnd = cumulativeLength + segmentText.length
                                             
-                                            // Safety check for empty or invalid ranges
                                             if (segmentStart < segmentEnd) {
                                                 val intersectStart = maxOf(globalRange.first, segmentStart)
                                                 val intersectEnd = minOf(globalRange.last, segmentEnd)
@@ -201,17 +206,39 @@ fun ReaderScreen(
                                     Text(
                                         text = annotatedText,
                                         modifier = Modifier.fillMaxWidth().padding(
-                                            vertical = if (isChapter) 16.dp else 4.dp
+                                            vertical = if (isTitle) 24.dp else 4.dp
                                         ),
-                                        textAlign = if (isChapter) TextAlign.Center else TextAlign.Justify,
-                                        style = if (isChapter) {
-                                            MaterialTheme.typography.headlineSmall.copy(
-                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                            )
-                                        } else {
-                                            MaterialTheme.typography.bodyLarge.copy(
-                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
-                                            )
+                                        textAlign = if (isTitle) TextAlign.Center else TextAlign.Justify,
+                                        style = when (style) {
+                                            com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE -> {
+                                                MaterialTheme.typography.headlineLarge.copy(
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                                                    fontSize = if (isTitleCentric) 36.sp else 30.sp,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                            com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM -> {
+                                                MaterialTheme.typography.headlineMedium.copy(
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                            com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR -> {
+                                                MaterialTheme.typography.headlineSmall.copy(
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                            else -> {
+                                                MaterialTheme.typography.bodyLarge.copy(
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                                                    textAlign = TextAlign.Justify,
+                                                    textIndent = androidx.compose.ui.text.style.TextIndent(
+                                                        firstLine = 24.sp,
+                                                        restLine = 0.sp
+                                                    )
+                                                )
+                                            }
                                         }
                                     )
                                     cumulativeLength += segmentText.length
