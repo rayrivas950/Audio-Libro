@@ -26,4 +26,10 @@ interface TextExtractor {
      * Gets the total number of pages/sections in the document.
      */
     suspend fun getPageCount(context: Context, uri: Uri): Int
+
+    /**
+     * Extracts book-wide metadata like CSS themes and custom fonts (if applicable).
+     */
+    suspend fun extractMetadata(context: Context, uri: Uri, bookId: Long): com.example.cititor.domain.theme.BookTheme = 
+        com.example.cititor.domain.theme.BookTheme.DEFAULT
 }

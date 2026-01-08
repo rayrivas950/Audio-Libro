@@ -66,6 +66,12 @@ class BookProcessingWorker @AssistedInject constructor(
         }
 
         try {
+            Log.d(TAG, "Starting metadata extraction (CSS & Themes)...")
+            val theme = extractor.extractMetadata(applicationContext, bookUri, bookId)
+            val themeJson = json.encodeToString(theme)
+            bookDao.updateThemeJson(bookId, themeJson)
+            Log.d(TAG, "Book theme metadata saved to database.")
+
             Log.d(TAG, "Starting streaming extraction and processing...")
             val cleanPagesBatch = mutableListOf<CleanPageEntity>()
             val batchSize = 75

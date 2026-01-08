@@ -25,7 +25,9 @@ data class NarrationSegment(
     override val ttsParams: TTSParameters? = null,
     override val speakerId: String? = "Narrator",
     override val intention: ProsodyIntention = ProsodyIntention.NEUTRAL,
-    val style: NarrationStyle = NarrationStyle.NEUTRAL
+    val style: NarrationStyle = NarrationStyle.NEUTRAL,
+    val isBold: Boolean? = null,
+    val dropCap: String? = null
 ) : TextSegment
 
 /**

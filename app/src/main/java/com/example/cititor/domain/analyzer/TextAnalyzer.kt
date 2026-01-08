@@ -69,7 +69,7 @@ class TextAnalyzer @Inject constructor(
                 android.util.Log.d("TextAnalyzer", "🖼️ Found marker in text: '${match.value}' -> cleaned filename: '$filename'")
                 
                 if (filename.isNotBlank()) {
-                    segments.add(ImageSegment(imagePath = filename, caption = "Image"))
+                    segments.add(ImageSegment(imagePath = filename, caption = null))
                 }
                 
                 lastIndex = match.range.last + 1
@@ -85,11 +85,37 @@ class TextAnalyzer @Inject constructor(
     }
 
     private fun addNarrationOrTitle(trimmed: String, segments: MutableList<TextSegment>) {
-        val hasTitleL = trimmed.contains("[TITLE_L]")
-        val hasTitleM = trimmed.contains("[TITLE_M]")
-        val hasChapterMarker = trimmed.contains("[GEOMETRIC_TITLE]")
+        // 1. Detect explicit style instructions (injected by Extractor)
+        val isExplicitlyBold = trimmed.contains("[STYLE:BOLD]")
+        val isExplicitlyNormal = trimmed.contains("[STYLE:NORMAL]")
         
-        val cleanFullText = trimmed
+        // Detect Drop Cap
+        val dropCapRegex = Regex("\\[DROP_CAP:(.)\\]")
+        val dropCapMatch = dropCapRegex.find(trimmed)
+        val dropCapChar = dropCapMatch?.groupValues?.get(1)
+        
+        val isBold: Boolean? = when {
+            isExplicitlyBold -> true
+            isExplicitlyNormal -> false
+            else -> null
+        }
+        
+        // 2. Initial Clean of Style Markers (to allow detection of other markers)
+        // We do this EARLY so that 'cleanFullText' and 'trimmed' logic below works on content closer to final
+        val textWithoutStyle = trimmed
+            .replace("[STYLE:BOLD]", "")
+            .replace("[STYLE:NORMAL]", "")
+            .replace(dropCapRegex, "$1") // Restore Drop Cap character into text
+            .trim()
+
+        val hasTitleL = textWithoutStyle.contains("[TITLE_L]")
+        val hasTitleM = textWithoutStyle.contains("[TITLE_M]")
+        val hasChapterMarker = textWithoutFootnotes(textWithoutStyle) // Helper check for geometric marker if needed, but existing check was direct string contains
+        // Re-implementing the check which was lost in my previous thought process or purely based on string
+        val hasGeometricTitle = textWithoutStyle.contains("[GEOMETRIC_TITLE]")
+
+        // 3. Clean structural markers for the final text content
+        val cleanFullText = textWithoutStyle
             .replace("[TITLE_L]", "")
             .replace("[/TITLE_L]", "")
             .replace("[TITLE_M]", "")
@@ -103,11 +129,9 @@ class TextAnalyzer @Inject constructor(
             .trim()
             
         if (cleanFullText.isBlank()) return
-
-        val isDialogue = cleanFullText.startsWith("—") || cleanFullText.startsWith("-")
-        val significantWords = countSignificantWords(cleanFullText)
         
-        // Simple split by newline (injected by extractor for healing)
+        // ... (rest of logic) ...
+        
         val parts = cleanFullText.split("\n").filter { it.isNotBlank() }
         
         parts.forEachIndexed { index, partText ->
@@ -118,23 +142,27 @@ class TextAnalyzer @Inject constructor(
             val isPartDialogue = partTrimmed.startsWith("—") || partTrimmed.startsWith("-")
             val partSignificantWords = countSignificantWords(partTrimmed)
             
-            // Priority: Only the first part can be a Title if it was marked as such.
             val style = when {
                 isFirstPart && hasTitleL -> com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE
                 isFirstPart && hasTitleM -> com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM
-                isFirstPart && trimmed.contains("[QUOTE]") -> com.example.cititor.domain.model.NarrationStyle.DRAMATIC
-                isFirstPart && trimmed.contains("[POEM]") -> com.example.cititor.domain.model.NarrationStyle.POETRY
-                isFirstPart && hasChapterMarker && !isPartDialogue && partSignificantWords <= 6 -> com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                isFirstPart && textWithoutStyle.contains("[QUOTE]") -> com.example.cititor.domain.model.NarrationStyle.DRAMATIC
+                isFirstPart && textWithoutStyle.contains("[POEM]") -> com.example.cititor.domain.model.NarrationStyle.POETRY
+                isFirstPart && hasGeometricTitle && !isPartDialogue && partSignificantWords <= 6 -> com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
                 else -> com.example.cititor.domain.model.NarrationStyle.`NEUTRAL`
             }
             
             segments.add(NarrationSegment(
                 text = partTrimmed,
                 intention = ProsodyIntention.NEUTRAL,
-                style = style
+                style = style,
+                isBold = isBold,
+                dropCap = if (isFirstPart) dropCapChar else null // Only first part gets the Drop Cap
             ))
         }
     }
+    
+    // Helper to keep code clean since I used it above
+    private fun textWithoutFootnotes(text: String): Boolean = text.contains("[GEOMETRIC_TITLE]")
 
     private val connectors = setOf(
         "y", "e", "o", "u", "el", "la", "los", "las", "un", "una", "unos", "unas",

@@ -112,7 +112,9 @@ private fun BookEntity.toDomainModel(): Book {
         currentPage = this.currentPage,
         totalPages = this.totalPages,
         lastReadTimestamp = this.lastReadTimestamp,
-        processingWorkId = this.processingWorkId
+        processingWorkId = this.processingWorkId,
+        category = this.category,
+        themeJson = this.themeJson
     )
 }
 
@@ -126,6 +128,8 @@ private fun Book.toEntity(): BookEntity {
         currentPage = this.currentPage,
         totalPages = this.totalPages,
         lastReadTimestamp = this.lastReadTimestamp,
-        processingWorkId = this.processingWorkId
+        processingWorkId = this.processingWorkId,
+        category = this.category,
+        themeJson = this.themeJson
     )
 }

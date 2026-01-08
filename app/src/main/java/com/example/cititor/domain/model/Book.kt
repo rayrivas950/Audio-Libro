@@ -15,5 +15,6 @@ data class Book(
     val totalPages: Int,
     val lastReadTimestamp: Long,
     val processingWorkId: String?, // To track the background processing job
-    val category: BookCategory = BookCategory.FICTION
+    val category: BookCategory = BookCategory.FICTION,
+    val themeJson: String? = null // Serialized BookTheme from CSS parsing
 )

@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.serialization.json.Json
 
 data class ReaderState(
     val book: Book? = null,
@@ -37,7 +38,8 @@ data class ReaderState(
     val processingError: String? = null, // To show worker errors
     val highlightedTextRange: IntRange? = null,
     val dramatism: Float = 1.0f,
-    val currentVoiceModel: String = "Miro High (ES)"
+    val currentVoiceModel: String = "Miro High (ES)",
+    val bookTheme: com.example.cititor.domain.theme.BookTheme = com.example.cititor.domain.theme.BookTheme.DEFAULT
 )
 
 @HiltViewModel
@@ -122,7 +124,20 @@ class ReaderViewModel @Inject constructor(
     private fun loadBook(bookId: Long) {
         getBookUseCase(bookId).onEach { book ->
             if (book != null) {
-                _state.value = state.value.copy(book = book, currentPage = book.currentPage)
+                val theme = book.themeJson?.let {
+                    try {
+                        Json.decodeFromString<com.example.cititor.domain.theme.BookTheme>(it)
+                    } catch (e: Exception) {
+                        Log.e("ReaderViewModel", "Error deserializing book theme", e)
+                        com.example.cititor.domain.theme.BookTheme.DEFAULT
+                    }
+                } ?: com.example.cititor.domain.theme.BookTheme.DEFAULT
+                
+                _state.value = state.value.copy(
+                    book = book, 
+                    currentPage = book.currentPage,
+                    bookTheme = theme
+                )
                 observeWorkStatus(book.processingWorkId)
                 loadPageContent()
             } else {

@@ -186,6 +186,97 @@ class EpubExtractor @Inject constructor() : TextExtractor {
         }
     }
 
+    override suspend fun extractMetadata(context: Context, uri: Uri, bookId: Long): com.example.cititor.domain.theme.BookTheme = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Extracting specialized metadata for book $bookId, URI: $uri")
+        var tempFile: File? = null
+        try {
+            tempFile = File.createTempFile("temp_epub_meta", ".epub", context.cacheDir)
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext com.example.cititor.domain.theme.BookTheme.DEFAULT
+            
+            inputStream.use { input ->
+                FileOutputStream(tempFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            java.util.zip.ZipFile(tempFile).use { zip ->
+                val entries = zip.entries().asSequence().toList()
+                
+                // 1. Find the first CSS file (usually style.css)
+                val cssEntry = entries.find { it.name.endsWith(".css", ignoreCase = true) }
+                if (cssEntry == null) {
+                    Log.d(TAG, "No CSS file found in EPUB")
+                    return@withContext com.example.cititor.domain.theme.BookTheme.DEFAULT
+                }
+
+                val cssContent = zip.getInputStream(cssEntry).bufferedReader().use { it.readText() }
+                Log.d(TAG, "Found CSS metadata: ${cssEntry.name} (${cssContent.length} bytes)")
+
+                // 2. Parse the CSS
+                val parser = com.example.cititor.domain.theme.SimpleCssParser()
+                val theme = parser.parse(cssContent)
+
+                // 3. Extract fonts referenced in CSS
+                val fontsDir = File(context.filesDir, "fonts/$bookId")
+                if (!fontsDir.exists()) fontsDir.mkdirs()
+
+                val extractedFonts = mutableMapOf<String, String>()
+                theme.fonts.forEach { (family, relativePath) ->
+                    // Resolve path relative to CSS location
+                    val cssPath = cssEntry.name.substringBeforeLast("/", "")
+                    val fontZipPath = if (cssPath.isNotEmpty()) {
+                         // Simple path resolution (handles ../Fonts/ etc)
+                         resolveRelativePath(cssPath, relativePath)
+                    } else {
+                         relativePath
+                    }
+
+                    Log.d(TAG, "Attempting to extract font '$family' from ZIP path: $fontZipPath")
+                    
+                    // Match in zip (fuzzy match if needed like images)
+                    val fontEntry = entries.find { 
+                        it.name.equals(fontZipPath, ignoreCase = true) || 
+                        it.name.endsWith(fontZipPath.substringAfterLast("/"), ignoreCase = true)
+                    }
+
+                    if (fontEntry != null) {
+                        val fontFile = File(fontsDir, fontEntry.name.substringAfterLast("/"))
+                        zip.getInputStream(fontEntry).use { input ->
+                            FileOutputStream(fontFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        extractedFonts[family] = fontFile.absolutePath
+                        Log.d(TAG, "Successfully extracted font '$family' to: ${fontFile.absolutePath}")
+                    } else {
+                        Log.w(TAG, "Font entry not found in EPUB: $fontZipPath")
+                    }
+                }
+
+                return@withContext theme.copy(fonts = extractedFonts)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting metadata: ${e.message}", e)
+            return@withContext com.example.cititor.domain.theme.BookTheme.DEFAULT
+        } finally {
+            tempFile?.delete()
+        }
+    }
+
+    private fun resolveRelativePath(base: String, relative: String): String {
+        val parts = base.split("/").toMutableList()
+        val relParts = relative.split("/")
+        
+        for (part in relParts) {
+            when (part) {
+                "." -> {}
+                ".." -> if (parts.isNotEmpty()) parts.removeAt(parts.size - 1)
+                else -> parts.add(part)
+            }
+        }
+        return parts.joinToString("/")
+    }
+
     override suspend fun getPageCount(context: Context, uri: Uri): Int = withContext(Dispatchers.IO) {
         Log.d(TAG, "Getting section count for EPUB, URI: $uri")
         var tempFile: File? = null
@@ -245,16 +336,24 @@ class EpubExtractor @Inject constructor() : TextExtractor {
         }
     }
 
-    internal fun stripHtml(html: String): String {
+    fun stripHtml(html: String): String {
         // 1. Narrow down to body
         val bodyStart = html.indexOf("<body", ignoreCase = true)
-        val contentToProcess = if (bodyStart != -1) html.substring(bodyStart) else html
+        val rawContent = if (bodyStart != -1) html.substring(bodyStart) else html
+
+        // 0. PRE-PROCESS DROP CAPS (Phase 54)
+        // Convert <span class="capital">L</span> into internal marker [DROP_CAP:L]
+        val dropCapRegex = Regex("""<span\s+[^>]*class\s*=\s*"[^"]*\bcapital\b[^"]*"[^>]*>\s*([^<]+?)\s*</span>""", RegexOption.IGNORE_CASE)
+        val contentWithDropCaps = dropCapRegex.replace(rawContent) { matchResult ->
+            val content = matchResult.groupValues[1]
+            "[DROP_CAP:$content]"
+        }
 
         // Pre-clean footnotes before tokenizing
         // Example: <a id="a8"></a><a href="../Text/notes.html#a77"><span class="super">[9]</span></a>
         // We remove the entire anchor wrapping a superscript span
         val footnoteRegex = Regex("""<a[^>]*>\s*<span\s+class="super"[^>]*>\[\d+\]</span>\s*</a>""", RegexOption.IGNORE_CASE)
-        val textWithoutFootnotes = contentToProcess.replace(footnoteRegex, "")
+        val textWithoutFootnotes = contentWithDropCaps.replace(footnoteRegex, "")
 
         // 2. SEMANTIC SCANNER (Phase 49 & 50)
         // This scanner uses a state machine to track style instructions and block boundaries
@@ -267,6 +366,8 @@ class EpubExtractor @Inject constructor() : TextExtractor {
         var currentBlockIsTitleM = false
         var currentBlockIsQuote = false
         var currentBlockIsPoem = false
+        var currentBlockIsExplicitlyNormal = false
+        var currentBlockIsExplicitlyBold = false
         
         fun flushBlock(reset: Boolean = true) {
             val text = currentBlockText.toString().trim()
@@ -278,6 +379,14 @@ class EpubExtractor @Inject constructor() : TextExtractor {
                     currentBlockIsQuote -> "[QUOTE]"
                     else -> ""
                 }
+                
+                // Inject style marker if explicit
+                val styleMarker = when {
+                     currentBlockIsExplicitlyNormal -> "[STYLE:NORMAL]"
+                     currentBlockIsExplicitlyBold -> "[STYLE:BOLD]"
+                     else -> ""
+                }
+                
                 val suffix = when {
                     currentBlockIsTitleL -> "[/TITLE_L]"
                     currentBlockIsTitleM -> "[/TITLE_M]"
@@ -285,23 +394,15 @@ class EpubExtractor @Inject constructor() : TextExtractor {
                     currentBlockIsQuote -> "[/QUOTE]"
                     else -> ""
                 }
-                resultBuilder.append("$prefix$text$suffix$BLOCK_SEPARATOR")
+                resultBuilder.append("$prefix$styleMarker$text$suffix$BLOCK_SEPARATOR")
             }
             currentBlockText = StringBuilder()
             if (reset) {
                 currentBlockIsTitleL = false
                 currentBlockIsTitleM = false
-                // Poem state should ideally persist within the block or poem container.
-                // Resetting on every block might be too aggressive if the poem spans multiple <p> tags inside a container.
-                // However, usually <p class="poema"> is one stanza or line.
-                // If the class is on the <p>, it resets naturally. If unique container...
-                // For now, let's reset poem state on block end IF it was set by a block tag like <p class="poema">
-                // But if it was set by <blockquote> wrapper?
-                // The prompt says: <blockquote> <p class="poema"> ... </p> </blockquote>
-                // So the class is on the <p>. Resetting is correct.
                 currentBlockIsPoem = false
-                
-                // Quote state is usually persistent until </blockquote>...
+                currentBlockIsExplicitlyNormal = false
+                currentBlockIsExplicitlyBold = false
                 // FIX: Do NOT reset Quote status on simple block resets unless it is </blockquote>.
             }
         }
@@ -345,10 +446,11 @@ class EpubExtractor @Inject constructor() : TextExtractor {
                     // explicit "asangre" handling (Tolkien & Standard EPUBs) - First paragraph
                     val isStartParagraph = tagLower.contains("class=\"asangre\"") || tagLower.contains("class=\"first\"")
                     
-                    // Special marker for Drop Caps (often start of paragraph after title)
-                    if (tagLower.contains("class=\"capital\"")) {
-                        // Drop caps are just text, never titles.
-                        // We ensure we are NOT in a title mode effectively
+                    // Style detection (CSS)
+                    if (tagLower.contains("font-weight: normal") || tagLower.contains("font-weight:normal")) {
+                        currentBlockIsExplicitlyNormal = true
+                    } else if (tagLower.contains("font-weight: bold") || tagLower.contains("font-weight:bold")) {
+                        currentBlockIsExplicitlyBold = true
                     }
 
                     if (isStartParagraph) {

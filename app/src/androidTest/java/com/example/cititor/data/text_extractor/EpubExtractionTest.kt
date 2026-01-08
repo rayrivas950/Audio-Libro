@@ -102,7 +102,7 @@ class EpubExtractionTest {
         // Should have "3" and "Tres es compañía" as titles, and the paragraph separately
         assertTrue("Should contain 3 as title", result.contains("[TITLE_M]3[/TITLE_M]"))
         assertTrue("Should contain name as title", result.contains("[TITLE_M]Tres es compañía[/TITLE_M]"))
-        assertTrue("Should contain paragraph", result.contains("Tienes que irte en silencio"))
+        assertTrue("Should contain paragraph", result.contains("[DROP_CAP:T]ienes que irte en silencio"))
         assertTrue("Paragraph should NOT be titled", !result.contains("[TITLE_M]Tienes que irte"))
     }
 
@@ -164,5 +164,40 @@ class EpubExtractionTest {
         
         // We expect: [TITLE_L]Title[/TITLE_L]|||BLOCK|||Paragraph 1.|||BLOCK|||Paragraph 2.
         assertTrue("Blocks must be separated by BLOCK_SEPARATOR", result.contains("|||BLOCK|||"))
+    }
+
+    @Test
+    fun testDropCapDetection() {
+        // Simulating XHTML with Drop Cap info
+        val input = """
+            <p class="asangre"><span class="capital">E</span>rase una vez...</p>
+        """.trimIndent()
+        
+        val result = extractor.stripHtml(input)
+        
+        // We expect the marker to be injected and normalized
+        // Note: stripHtml output includes BLOCK_SEPARATOR
+        assertTrue("Should contain Drop Cap marker", result.contains("[DROP_CAP:E]"))
+        assertTrue("Should contain rest of text", result.contains("rase una vez..."))
+        
+        // Verify it didn't duplicate the letter (check logic trace)
+        // If logic was [DROP_CAP:E]Erase... that would be wrong based on Extractor replacement logic
+        // Extractor replaces the whole span. So <span..>E</span> becomes [DROP_CAP:E]. 
+        // Following text is "rase...". So result matches logic.
+    }
+
+    @Test
+    fun testDynamicStyling() {
+        val html = """
+            <h1 style="font-weight: normal">Thin Title</h1>
+            <h2 style="font-weight:bold">Bold Subtitle</h2>
+            <p>Normal text</p>
+        """.trimIndent()
+        
+        val result = extractor.stripHtml(html)
+        
+        // Assert markers are present
+        assertTrue("Should contain [STYLE:NORMAL]", result.contains("[TITLE_L][STYLE:NORMAL]Thin Title[/TITLE_L]"))
+        assertTrue("Should contain [STYLE:BOLD]", result.contains("[TITLE_M][STYLE:BOLD]Bold Subtitle[/TITLE_M]"))
     }
 }

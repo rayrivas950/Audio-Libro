@@ -26,9 +26,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import java.io.File
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Divider
@@ -86,6 +94,40 @@ fun ReaderScreen(
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     val scrollState = rememberScrollState()
+                    
+                    // 1. Cargamos las fuentes dinámicamente desde los archivos extraídos
+                    val fontFamilies = remember(state.bookTheme) {
+                        state.bookTheme.fonts.mapValues { (family, path) ->
+                            try {
+                                val file = File(path)
+                                if (file.exists()) {
+                                    FontFamily(Font(file))
+                                } else {
+                                    android.util.Log.w("ReaderScreen", "Font file not found: $path")
+                                    FontFamily.Default
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("ReaderScreen", "Error loading font $family from $path", e)
+                                FontFamily.Default
+                            }
+                        }
+                    }
+
+                    // 2. Helper para resolver estilo basado en la etiqueta
+                    fun getTextStyle(segment: com.example.cititor.domain.model.TextSegment): com.example.cititor.domain.theme.CssTextStyle {
+                        val theme = state.bookTheme
+                        return when (segment) {
+                            is com.example.cititor.domain.model.NarrationSegment -> {
+                                when (segment.style) {
+                                    com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE -> theme.tagStyles["h1"] ?: theme.tagStyles["h2"] ?: com.example.cititor.domain.theme.CssTextStyle.EMPTY
+                                    com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM -> theme.tagStyles["h3"] ?: theme.tagStyles["h4"] ?: com.example.cititor.domain.theme.CssTextStyle.EMPTY
+                                    else -> theme.tagStyles["p"] ?: theme.tagStyles["body"] ?: com.example.cititor.domain.theme.CssTextStyle.EMPTY
+                                }
+                            }
+                            else -> theme.tagStyles["p"] ?: theme.tagStyles["body"] ?: com.example.cititor.domain.theme.CssTextStyle.EMPTY
+                        }
+                    }
+
                     // Determine if the page is "image-centric" (low text, at least one image)
                     val totalWords = state.pageSegments.filterIsInstance<com.example.cititor.domain.model.NarrationSegment>().sumOf { s -> 
                         s.text.split(Regex("\\s+")).count { it.isNotBlank() } 
@@ -108,6 +150,9 @@ fun ReaderScreen(
                     ) {
                         var cumulativeLength = 0
                         state.pageSegments.forEach { segment ->
+                            val cssStyle = getTextStyle(segment)
+                            val fontFamily = cssStyle.getPrimaryFontFamily()?.let { fontFamilies[it] } ?: FontFamily.Default
+
                             when (segment) {
                                  is com.example.cititor.domain.model.ImageSegment -> {
                                     // Clean any potential whitespace and reconstruct full path
@@ -125,7 +170,10 @@ fun ReaderScreen(
                                             .fillMaxWidth()
                                             .padding(vertical = if (isInmersive) 24.dp else 12.dp),
                                         elevation = CardDefaults.cardElevation(defaultElevation = if (isInmersive) 8.dp else 4.dp),
-                                        shape = MaterialTheme.shapes.medium
+                                        shape = MaterialTheme.shapes.medium,
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f) // darken slightly or use variant
+                                        )
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             coil.compose.AsyncImage(
@@ -133,8 +181,9 @@ fun ReaderScreen(
                                                 contentDescription = segment.caption,
                                                 modifier = if (isInmersive) {
                                                     Modifier
+                                                    Modifier
                                                         .fillMaxWidth()
-                                                        .sizeIn(maxHeight = 500.dp) // Allow space for text
+                                                        .sizeIn(maxHeight = 425.dp) // Reduced by 15% (was 500.dp)
                                                 } else {
                                                     Modifier
                                                         .fillMaxWidth()
@@ -151,15 +200,6 @@ fun ReaderScreen(
                                                     android.util.Log.d("ReaderScreen", "✅ AsyncImage success: $imagePath")
                                                 }
                                             )
-                                            
-                                            // Debug information (as requested by user)
-                                            if (java.io.File(imagePath).exists()) {
-                                                 Text("Path: $imagePath (${java.io.File(imagePath).length()} bytes)", style = MaterialTheme.typography.bodySmall, color = Color.Gray, modifier = Modifier.padding(4.dp))
-                                            } else {
-                                                 val parent = java.io.File(imagePath).parentFile
-                                                 val files = parent?.listFiles()?.joinToString { it.name } ?: "Empty/Null"
-                                                 Text("FILE NOT FOUND: $imagePath\nDir contents: $files", style = MaterialTheme.typography.bodySmall, color = Color.Red, modifier = Modifier.padding(4.dp))
-                                            }
                                             
                                             if (!segment.caption.isNullOrBlank()) {
                                                 Text(
@@ -183,7 +223,15 @@ fun ReaderScreen(
                                     val segmentText = segment.text
                                     
                                     val annotatedText = buildAnnotatedString {
-                                        append(segmentText)
+                                        if (segment is com.example.cititor.domain.model.NarrationSegment && !segment.dropCap.isNullOrBlank() && segmentText.startsWith(segment.dropCap)) {
+                                            withStyle(style = SpanStyle(fontSize = 3.em, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) {
+                                                append(segmentText.substring(0, 1))
+                                            }
+                                            append(segmentText.substring(1))
+                                        } else {
+                                            append(segmentText)
+                                        }
+                                        
                                         state.highlightedTextRange?.let { globalRange ->
                                             val segmentStart = cumulativeLength
                                             val segmentEnd = cumulativeLength + segmentText.length
@@ -208,35 +256,61 @@ fun ReaderScreen(
                                         modifier = Modifier.fillMaxWidth().padding(
                                             vertical = if (isTitle) 24.dp else 4.dp
                                         ),
-                                        textAlign = if (isTitle) TextAlign.Center else TextAlign.Justify,
+                                        textAlign = when (cssStyle.textAlign?.lowercase()) {
+                                            "center" -> TextAlign.Center
+                                            "right" -> TextAlign.Right
+                                            "justify" -> TextAlign.Justify
+                                            else -> if (isTitle) TextAlign.Center else TextAlign.Justify
+                                        },
                                         style = when (style) {
                                             com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE -> {
+                                                val fontWeight = if (segment is com.example.cititor.domain.model.NarrationSegment && segment.isBold != null) {
+                                                    if (segment.isBold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                                                } else {
+                                                    val cssWeight = if (cssStyle.fontWeight?.lowercase() == "bold") FontWeight.Bold else FontWeight.Bold
+                                                    cssWeight
+                                                }
+                                                
                                                 MaterialTheme.typography.headlineLarge.copy(
-                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
-                                                    fontSize = if (isTitleCentric) 36.sp else 30.sp,
-                                                    textAlign = TextAlign.Center
+                                                    fontWeight = fontWeight,
+                                                    fontSize = cssStyle.fontSizeEm?.let { (it * 30).sp } ?: (if (isTitleCentric) 36.sp else 30.sp),
+                                                    textAlign = TextAlign.Center,
+                                                    fontFamily = fontFamily
                                                 )
                                             }
                                             com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM -> {
+                                                val fontWeight = if (segment is com.example.cititor.domain.model.NarrationSegment && segment.isBold != null) {
+                                                    if (segment.isBold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                                                } else {
+                                                    val cssWeight = if (cssStyle.fontWeight?.lowercase() == "bold") FontWeight.Bold else FontWeight.Bold
+                                                    cssWeight
+                                                }
+                                                
                                                 MaterialTheme.typography.headlineMedium.copy(
-                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                                    textAlign = TextAlign.Center
+                                                    fontWeight = fontWeight,
+                                                    textAlign = TextAlign.Center,
+                                                    fontSize = cssStyle.fontSizeEm?.let { (it * 24).sp } ?: MaterialTheme.typography.headlineMedium.fontSize,
+                                                    fontFamily = fontFamily
                                                 )
                                             }
                                             com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR -> {
                                                 MaterialTheme.typography.headlineSmall.copy(
                                                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                                    textAlign = TextAlign.Center
+                                                    textAlign = TextAlign.Center,
+                                                    fontFamily = fontFamily
                                                 )
                                             }
                                             else -> {
+                                                val fontSize = cssStyle.fontSizeEm?.let { (it * 16).sp } ?: 16.sp
                                                 MaterialTheme.typography.bodyLarge.copy(
-                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                                                    fontWeight = if (cssStyle.fontWeight?.lowercase() == "bold") FontWeight.Bold else FontWeight.Normal,
                                                     textAlign = TextAlign.Justify,
                                                     textIndent = androidx.compose.ui.text.style.TextIndent(
                                                         firstLine = 24.sp,
                                                         restLine = 0.sp
-                                                    )
+                                                    ),
+                                                    fontSize = fontSize,
+                                                    fontFamily = fontFamily
                                                 )
                                             }
                                         }
