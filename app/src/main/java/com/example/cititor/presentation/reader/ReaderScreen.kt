@@ -157,10 +157,13 @@ fun ReaderScreen(
                                  is com.example.cititor.domain.model.ImageSegment -> {
                                     // Clean any potential whitespace and reconstruct full path
                                     val cleanPathStored = segment.imagePath.replace("\\s".toRegex(), "")
+                                    val context = LocalContext.current
                                     val imagePath = if (cleanPathStored.contains("/")) {
                                         cleanPathStored
                                     } else {
-                                        "${LocalContext.current.cacheDir.absolutePath}/book_images/$cleanPathStored"
+                                        val filesPath = "${context.filesDir.absolutePath}/book_images/$cleanPathStored"
+                                        val cachePath = "${context.cacheDir.absolutePath}/book_images/$cleanPathStored"
+                                        if (java.io.File(filesPath).exists()) filesPath else cachePath
                                     }
                                     
                                     android.util.Log.d("ReaderScreen", "📷 ImageSegment: stored='${segment.imagePath}', cleaned='$cleanPathStored', loading='$imagePath', isInmersive=$isInmersive")
@@ -180,7 +183,6 @@ fun ReaderScreen(
                                                 model = java.io.File(imagePath),
                                                 contentDescription = segment.caption,
                                                 modifier = if (isInmersive) {
-                                                    Modifier
                                                     Modifier
                                                         .fillMaxWidth()
                                                         .sizeIn(maxHeight = 425.dp) // Reduced by 15% (was 500.dp)

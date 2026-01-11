@@ -553,9 +553,9 @@ class EpubExtractor @Inject constructor() : TextExtractor {
             val hashBytes = md5.digest(imageBytes)
             val hashString = hashBytes.joinToString("") { "%02x".format(it) }
             val filename = "b64_${hashString.take(16)}.$extension"  // First 16 chars of MD5
-            // Use CACHE DIR instead of FILES DIR - Coil can access this directly
-            val imagesDir = File(context.cacheDir, "book_images")
-            Log.d(TAG, "📍 Using CACHE dir: ${context.cacheDir.absolutePath}")
+            // Standardize: Use FILES DIR for all book-related persistable assets
+            val imagesDir = File(context.filesDir, "book_images")
+            Log.d(TAG, "📍 Using FILES dir for Base64: ${context.filesDir.absolutePath}")
             Log.d(TAG, "📍 Target imagesDir: ${imagesDir.absolutePath}")
             if (!imagesDir.exists()) {
                 val created = imagesDir.mkdirs()
