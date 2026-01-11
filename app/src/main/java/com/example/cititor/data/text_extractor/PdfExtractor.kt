@@ -6,11 +6,19 @@ import android.util.Log
 import com.example.cititor.domain.text_extractor.TextExtractor
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.tom_roush.pdfbox.contentstream.operator.Operator
+import com.tom_roush.pdfbox.cos.COSBase
+import com.tom_roush.pdfbox.cos.COSName
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
+import android.graphics.Bitmap
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 
 @Singleton
 class PdfExtractor @Inject constructor() : TextExtractor {
@@ -21,6 +29,7 @@ class PdfExtractor @Inject constructor() : TextExtractor {
 
     override suspend fun extractText(context: Context, uri: Uri, page: Int): String = withContext(Dispatchers.IO) {
         Log.d(TAG, "Extracting text from PDF page $page, URI: $uri")
+        val bookUniqueId = getBookUniqueId(uri)
         try {
             val inputStream = context.contentResolver.openInputStream(uri)
             if (inputStream == null) {
@@ -34,7 +43,7 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     Log.d(TAG, "PDF loaded successfully, total pages: ${document.numberOfPages}")
                     
                     if (page >= 0 && page < document.numberOfPages) {
-                        val stripper = IndentationAwareStripper()
+                        val stripper = IndentationAwareStripper(context, bookUniqueId)
                         stripper.startPage = page + 1
                         stripper.endPage = page + 1
                         stripper.sortByPosition = true
@@ -70,6 +79,7 @@ class PdfExtractor @Inject constructor() : TextExtractor {
         onPageExtracted: suspend (Int, String) -> Unit
     ) = withContext(Dispatchers.IO) {
         Log.d(TAG, "Streaming all pages from PDF, URI: $uri")
+        val bookUniqueId = getBookUniqueId(uri)
         try {
             val inputStream = context.contentResolver.openInputStream(uri)
             if (inputStream == null) {
@@ -82,7 +92,7 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                     val pageCount = document.numberOfPages
                     Log.d(TAG, "PDF loaded, streaming $pageCount pages")
                     
-                    val stripper = IndentationAwareStripper()
+                    val stripper = IndentationAwareStripper(context, bookUniqueId)
                     stripper.sortByPosition = true
                     stripper.spacingTolerance = 0.3f
                     stripper.lineSeparator = "\n"
@@ -110,19 +120,38 @@ class PdfExtractor @Inject constructor() : TextExtractor {
         }
     }
 
+    private fun getBookUniqueId(uri: Uri): String {
+        return try {
+            val digest = MessageDigest.getInstance("MD5")
+            val hash = digest.digest(uri.toString().toByteArray())
+            hash.joinToString("") { "%02x".format(it) }.take(8)
+        } catch (e: Exception) {
+            uri.hashCode().toString()
+        }
+    }
+
     /**
      * Custom stripper that detects paragraph indentation.
      */
     /**
      * Custom stripper that detects paragraph indentation and handles page logic.
      */
-    private class IndentationAwareStripper : PDFTextStripper() {
+    private class IndentationAwareStripper(
+        private val context: Context,
+        private val bookUniqueId: String
+    ) : PDFTextStripper() {
         private var minX = Float.MAX_VALUE
         private var indentationThreshold = 15f // Points
         
         // Output Swapping mechanics
         private var originalOutput: java.io.Writer? = null
         private var pageBufferWriter: java.io.StringWriter? = null
+
+        // Image tracking
+        private val pageImages = mutableListOf<PdfImageInfo>()
+        private var lastProcessedY = -1f
+
+        data class PdfImageInfo(val filename: String, val yTopDown: Float)
 
         // Guillotine margins
         private val topExclusionMargin = 70f
@@ -143,6 +172,51 @@ class PdfExtractor @Inject constructor() : TextExtractor {
             
             super.startPage(page)
             minX = Float.MAX_VALUE
+            pageImages.clear()
+            lastProcessedY = 0f
+        }
+
+        override fun processOperator(operator: Operator?, operands: MutableList<COSBase>?) {
+            val symbol = operator?.name
+            if ("Do" == symbol && operands != null && operands.isNotEmpty()) {
+                val name = operands[0] as? COSName
+                if (name != null) {
+                    val xObject = resources.getXObject(name)
+                    if (xObject is PDImageXObject) {
+                        val matrix = graphicsState.currentTransformationMatrix
+                        val yBottomUp = matrix.translateY
+                        val w = matrix.scalingFactorX
+                        val h = matrix.scalingFactorY
+                        
+                        val pageHeight = currentPage.mediaBox.height
+                        val yTopDown = pageHeight - yBottomUp - h
+
+                        // Filter tiny noise (icons, lines)
+                        if (w > 30 && h > 30) {
+                            try {
+                                val bitmap = xObject.image
+                                val filename = "pdf_${bookUniqueId}_${name.name.hashCode()}_${yTopDown.toInt()}.jpg"
+                                
+                                val imagesDir = File(context.filesDir, "book_images")
+                                if (!imagesDir.exists()) imagesDir.mkdirs()
+                                
+                                val outputFile = File(imagesDir, filename)
+                                if (!outputFile.exists()) {
+                                    FileOutputStream(outputFile).use { out ->
+                                        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                                    }
+                                }
+                                
+                                pageImages.add(PdfImageInfo(filename, yTopDown))
+                                Log.d("PdfExtractor", "Detected PDF image: $filename at Y: $yTopDown")
+                            } catch (e: Exception) {
+                                Log.e("PdfExtractor", "Error extracting PDF image $name", e)
+                            }
+                        }
+                    }
+                }
+            }
+            super.processOperator(operator, operands)
         }
 
         override fun writeString(text: String?, textPositions: MutableList<com.tom_roush.pdfbox.text.TextPosition>?) {
@@ -150,6 +224,14 @@ class PdfExtractor @Inject constructor() : TextExtractor {
                 val firstChar = textPositions[0]
                 val firstCharX = firstChar.xDirAdj
                 val firstCharY = firstChar.yDirAdj
+
+                // --- 0. IMAGE INJECTION ---
+                // Insert images that appear between the last line and this one
+                val pendingImages = pageImages.filter { it.yTopDown >= lastProcessedY && it.yTopDown < firstCharY }
+                pendingImages.forEach { img ->
+                    output.write("\n\n[IMAGE_REF:${img.filename}]\n\n")
+                }
+                lastProcessedY = firstCharY
                 
                 // Get page height for dynamic guillotine
                 val pageHeight = currentPage.mediaBox.height
@@ -206,6 +288,13 @@ class PdfExtractor @Inject constructor() : TextExtractor {
         }
 
         override fun endPage(page: com.tom_roush.pdfbox.pdmodel.PDPage) {
+            // --- 0. TRAILING IMAGES ---
+            // Insert images that appear after the last line of text on the page
+            val trailingImages = pageImages.filter { it.yTopDown >= lastProcessedY }
+            trailingImages.forEach { img ->
+                output.write("\n\n[IMAGE_REF:${img.filename}]\n\n")
+            }
+
             super.endPage(page)
             
             // Restore original output
