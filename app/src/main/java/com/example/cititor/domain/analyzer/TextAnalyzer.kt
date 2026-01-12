@@ -147,7 +147,7 @@ class TextAnalyzer @Inject constructor(
                 isFirstPart && hasTitleM -> com.example.cititor.domain.model.NarrationStyle.TITLE_MEDIUM
                 isFirstPart && textWithoutStyle.contains("[QUOTE]") -> com.example.cititor.domain.model.NarrationStyle.DRAMATIC
                 isFirstPart && textWithoutStyle.contains("[POEM]") -> com.example.cititor.domain.model.NarrationStyle.POETRY
-                isFirstPart && hasGeometricTitle && !isPartDialogue && partSignificantWords <= 6 -> com.example.cititor.domain.model.NarrationStyle.CHAPTER_INDICATOR
+                isFirstPart && hasGeometricTitle && !isPartDialogue && partSignificantWords <= 6 -> com.example.cititor.domain.model.NarrationStyle.TITLE_LARGE
                 else -> com.example.cititor.domain.model.NarrationStyle.`NEUTRAL`
             }
             

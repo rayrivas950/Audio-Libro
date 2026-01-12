@@ -24,22 +24,34 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
+data class VirtualPageInfo(
+    val segments: List<TextSegment>,
+    val chapterIndex: Int
+)
+
 data class ReaderState(
     val book: Book? = null,
-    val pageSegments: List<TextSegment> = emptyList(),
+    // windowChapters: Maps physical chapter index to its segments
+    val windowChapters: Map<Int, List<TextSegment>> = emptyMap(),
+    // virtualPages: Sliced content across all loaded chapters
+    val virtualPages: List<VirtualPageInfo> = emptyList(),
     val pageDisplayText: String = "",
-    val currentPage: Int = 0,
+    val currentPage: Int = 0, // Current Chapter (Physical Page)
+    val currentVirtualPage: Int = 0, // Global Index within virtualPages
     val isLoading: Boolean = true,
     val isProcessing: Boolean = false,
-    val processingError: String? = null, // To show worker errors
+    val processingError: String? = null,
     val highlightedTextRange: IntRange? = null,
     val dramatism: Float = 1.0f,
     val currentVoiceModel: String = "Miro High (ES)",
-    val bookTheme: com.example.cititor.domain.theme.BookTheme = com.example.cititor.domain.theme.BookTheme.DEFAULT
+    val bookTheme: com.example.cititor.domain.theme.BookTheme = com.example.cititor.domain.theme.BookTheme.DEFAULT,
+    val navigationMode: com.example.cititor.domain.model.ReaderNavigationMode = com.example.cititor.domain.model.ReaderNavigationMode.PAGINATED
 )
 
 @HiltViewModel
@@ -52,8 +64,15 @@ class ReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    companion object {
+        private const val BUFFER_SIZE = 10
+        private const val REFILL_THRESHOLD = 7
+    }
+
     private val _state = MutableStateFlow(ReaderState())
     val state: StateFlow<ReaderState> = _state
+
+    private var lastRefilledChapter = -1
 
     private var workInfoJob: Job? = null
     private val workManager = WorkManager.getInstance(context)
@@ -69,14 +88,39 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun startReading() {
-        val book = state.value.book
-        if (book != null) {
-            textToSpeechManager.speak(
-                bookId = book.id,
-                segments = state.value.pageSegments,
-                category = book.category,
-                pageIndex = state.value.currentPage
-            )
+        val pageInfo = state.value.virtualPages.getOrNull(state.value.currentVirtualPage) ?: return
+        val book = state.value.book ?: return
+        
+        textToSpeechManager.speak(
+            bookId = book.id,
+            segments = pageInfo.segments,
+            category = book.category,
+            pageIndex = pageInfo.chapterIndex
+        )
+    }
+
+    fun onVirtualPageChanged(index: Int) {
+        val infos = state.value.virtualPages
+        if (index < 0 || index >= infos.size) return
+        
+        val pageInfo = infos[index]
+        val oldChapterIndex = state.value.currentPage
+        
+        _state.value = state.value.copy(currentVirtualPage = index)
+        
+        if (pageInfo.chapterIndex != oldChapterIndex) {
+            Log.d("ReaderViewModel", "Chapter boundary crossed: $oldChapterIndex -> ${pageInfo.chapterIndex}")
+            _state.value = state.value.copy(currentPage = pageInfo.chapterIndex)
+            saveProgress()
+            
+            // Refill Check (Tank Logic)
+            val windowKeys = state.value.windowChapters.keys.sorted()
+            val maxChapterLoaded = windowKeys.lastOrNull() ?: pageInfo.chapterIndex
+            
+            if (pageInfo.chapterIndex >= lastRefilledChapter + (BUFFER_SIZE * 0.7).toInt()) {
+                Log.d("ReaderViewModel", "Triggering buffer refill at chapter ${pageInfo.chapterIndex}")
+                loadWindowContent(startFrom = maxChapterLoaded + 1)
+            }
         }
     }
 
@@ -102,23 +146,56 @@ class ReaderViewModel @Inject constructor(
         textToSpeechManager.switchModel(config)
     }
 
-    fun nextPage() {
-        val book = state.value.book ?: return
-        if (state.value.currentPage < book.totalPages - 1) {
-            loadPage(state.value.currentPage + 1)
-        }
+    fun setVirtualPages(pages: List<VirtualPageInfo>) {
+        _state.value = state.value.copy(virtualPages = pages)
     }
 
-    fun previousPage() {
-        if (state.value.currentPage > 0) {
-            loadPage(state.value.currentPage - 1)
-        }
-    }
+    private fun loadWindowContent(startFrom: Int? = null) {
+        viewModelScope.launch(Dispatchers.Default) {
+            val book = state.value.book ?: return@launch
+            val current = startFrom ?: state.value.currentPage
+            
+            // If it's the initial load, we might want current and current + 10
+            // If it's a refill, we want [startFrom, startFrom + 10]
+            val targets = (current until (current + BUFFER_SIZE)).filter { it >= 0 && it < book.totalPages }
+            
+            if (targets.isEmpty()) return@launch
+            
+            val newWindow = state.value.windowChapters.toMutableMap()
+            var modified = false
+            
+            // Only show loader if we have ABSOLUTELY NOTHING for the current page
+            if (!newWindow.containsKey(state.value.currentPage)) {
+                withContext(Dispatchers.Main) {
+                    _state.value = state.value.copy(isLoading = true)
+                }
+            }
 
-    private fun loadPage(pageNumber: Int) {
-        _state.value = state.value.copy(currentPage = pageNumber)
-        loadPageContent()
-        saveProgress()
+            for (target in targets) {
+                if (!newWindow.containsKey(target)) {
+                    val segments = getBookPageUseCase(book.id, target)
+                    if (segments != null) {
+                        newWindow[target] = segments
+                        modified = true
+                    }
+                }
+            }
+            
+            if (modified) {
+                lastRefilledChapter = current
+                withContext(Dispatchers.Main) {
+                    _state.value = state.value.copy(
+                        windowChapters = newWindow,
+                        isLoading = false,
+                        processingError = null
+                    )
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    _state.value = state.value.copy(isLoading = false)
+                }
+            }
+        }
     }
 
     private fun loadBook(bookId: Long) {
@@ -139,7 +216,7 @@ class ReaderViewModel @Inject constructor(
                     bookTheme = theme
                 )
                 observeWorkStatus(book.processingWorkId)
-                loadPageContent()
+                loadWindowContent()
             } else {
                 _state.value = state.value.copy(isLoading = false)
             }
@@ -164,45 +241,9 @@ class ReaderViewModel @Inject constructor(
                 }
 
                 if (isFinished) {
-                    loadPageContent()
+                    loadWindowContent()
                 }
             }.launchIn(viewModelScope)
-    }
-
-    private fun loadPageContent() {
-        viewModelScope.launch {
-            if (state.value.isProcessing) {
-                _state.value = state.value.copy(
-                    isLoading = false,
-                    pageDisplayText = "Analysing book for the first time, please wait..."
-                )
-                return@launch
-            }
-
-            val book = state.value.book
-            val page = state.value.currentPage
-            if (book != null) {
-                _state.value = state.value.copy(isLoading = true)
-                val segments = getBookPageUseCase(book.id, page)
-
-                if (segments != null && segments.isNotEmpty()) {
-                    val displayText = segments.joinToString(separator = "") { it.text }
-                    Log.d("ReaderViewModel", "Page $page loaded. Length: ${displayText.length}, Newlines: ${displayText.count { it == '\n' }}")
-                    _state.value = state.value.copy(
-                        pageSegments = segments,
-                        pageDisplayText = displayText,
-                        isLoading = false,
-                        processingError = null // Clear previous errors
-                    )
-                } else {
-                    _state.value = state.value.copy(
-                        pageSegments = emptyList(),
-                        pageDisplayText = if (state.value.processingError == null) "Page content not available." else "",
-                        isLoading = false
-                    )
-                }
-            }
-        }
     }
 
     private fun saveProgress() {
